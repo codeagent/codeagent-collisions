@@ -94,7 +94,7 @@ const createStackScene = (n: number) => {
     0.0
   );
 
-  let offset = 2.0;
+  let offset = 5.0;
   while (n--) {
     world.createBody(
       n % 2 == 1
@@ -110,8 +110,62 @@ const createStackScene = (n: number) => {
   }
 };
 
+export const createPendulumScene = (n: number) => {
+  const step = 1.0;
+  const length = 8;
+  const m = 1.0;
+
+  // ceil
+  const ceil = world.createBody(
+    createRectShape(20, 1),
+    Number.POSITIVE_INFINITY,
+    Number.POSITIVE_INFINITY,
+    vec2.fromValues(0.0, 10),
+    0.0
+  );
+
+  let offset = 0;
+
+  while (n--) {
+    let pendulum: Body;
+    if (n === 1) {
+      pendulum = world.createBody(
+        new CircleShape(step * 0.5),
+        m,
+        m,
+        vec2.fromValues(
+          (n % 2 ? offset : -offset) + length * Math.sin(Math.PI * 0.25),
+          length * Math.cos(Math.PI * 0.25)
+        ),
+        0.0
+      );
+    } else {
+      pendulum = world.createBody(
+        new CircleShape(step * 0.5),
+        m,
+        m,
+        vec2.fromValues(n % 2 ? offset : -offset, 0),
+        0.0
+      );
+    }
+
+    world.addDistanceConstraint(
+      ceil,
+      vec2.fromValues(n % 2 ? offset : -offset, 0.0),
+      pendulum,
+      vec2.fromValues(0.0, 0.0),
+      length
+    );
+
+    if (n % 2) {
+      offset += step;
+    }
+  }
+};
+
 // createChainScene(14);
-createStackScene(32);
+createStackScene(1);
+// createPendulumScene(2);
 
 self["world"] = world;
 

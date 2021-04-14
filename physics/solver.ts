@@ -20,6 +20,14 @@ export const MxV = (out: Vector, M: Matrix, V: Vector) => {
   }
 };
 
+export const VxV = (V1: Vector, V2: Vector): number => {
+  let dot = 0.0;
+  for (let j = 0; j < V1.length; j++) {
+    dot += V1[j] * V2[j];
+  }
+  return dot;
+};
+
 export const MtxV = (out: Vector, M: Matrix, V: Vector) => {
   const n = V.length;
   const m = M.length / n;

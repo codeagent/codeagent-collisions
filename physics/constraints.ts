@@ -1,5 +1,5 @@
 import { vec2 } from "gl-matrix";
-import { Vector } from "./solver";
+import { MxV, Vector, VxV } from "./solver";
 import { cross } from "./tests";
 import { World } from "./world";
 
@@ -108,7 +108,9 @@ export class ContactConstraint implements ConstraintInterface {
   }
 
   getPushFactor(dt: number, strength: number): number {
-    return (this.penetration / dt) * strength;
+    const J = this.getJacobian();
+    const v = this.world.velocities;
+    return (this.penetration / dt) * strength - VxV(J, v) * 4;
   }
 
   getClamping() {
