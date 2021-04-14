@@ -1,15 +1,7 @@
 import { mat3, vec2, vec3 } from "gl-matrix";
 
 export type AABB = [vec2, vec2];
-export interface Circle {
-  radius: number;
-  center: vec2;
-}
-export interface Capsule {
-  radius: number;
-  height: number;
-}
-export type Polygon = vec2[];
+export type Poly = vec2[];
 export interface ContactManifoldContactPoint {
   point: vec2;
   normal: vec2;
@@ -19,7 +11,7 @@ export interface ContactManifoldContactPoint {
 export type ContactManifold = ContactManifoldContactPoint[];
 
 export const cross = (a: vec2, b: vec2): number => a[0] * b[1] - b[0] * a[1];
- 
+
 //
 export type Shape = vec2[];
 
@@ -44,7 +36,24 @@ export const testCircleCircle = (
   center0: vec2,
   radius1: number,
   center1: vec2
-) => vec2.distance(center0, center1) < radius0 + radius1;
+): ContactManifold => {
+  const manifold: ContactManifold = [];
+  const depth = radius0 + radius1 - vec2.distance(center0, center1);
+  if (depth > 0) {
+    const normal = vec2.create();
+    vec2.sub(normal, center1, center0);
+    vec2.normalize(normal, normal);
+    const point = vec2.create();
+    vec2.scaleAndAdd(point, center0, normal, radius0);
+    manifold.push({
+      point,
+      normal,
+      depth,
+      index: 0
+    });
+  }
+  return manifold;
+};
 
 export const getCircleAABB = (radius: number, center: vec2) => [
   vec2.fromValues(center[0] - radius, center[1] - radius),
@@ -60,7 +69,7 @@ export const getCircleAABB = (radius: number, center: vec2) => [
 /**
  * Poly
  */
-export const testPolyPoint = (poly: Polygon, transform: mat3, point: vec2) => {
+export const testPolyPoint = (poly: Poly, transform: mat3, point: vec2) => {
   const e = vec2.create();
   const p = vec2.create();
   const v0 = vec2.create();
@@ -87,7 +96,7 @@ export const testPolyPoint = (poly: Polygon, transform: mat3, point: vec2) => {
 };
 
 export const testPolyCircle = (
-  poly: Polygon,
+  poly: Poly,
   transform: mat3,
   radius: number,
   center: vec2
@@ -99,12 +108,14 @@ export const testPolyCircle = (
     vec2.transformMat3(p, poly[i], transform);
     const normal = vec2.create();
     vec2.sub(normal, p, center);
-    const depth = vec2.length(normal);
 
-    if (depth < radius) {
-      vec2.scale(normal, normal, 1.0 / depth);
+    const len = vec2.len(normal);
+
+    if (len < radius) {
+      vec2.scale(normal, normal, 1.0 / len);
       const point = vec2.create();
-      vec2.scaleAndAdd(point, center, normal, depth);
+      vec2.scaleAndAdd(point, center, normal, radius);
+      const depth = radius - len;
       manifold.push({
         point,
         normal,
@@ -208,7 +219,7 @@ export const testPolyPoly = (
   return manifold;
 };
 
-export const getPolyAABB = (poly: Polygon, transform: mat3) => {
+export const getPolyAABB = (poly: Poly, transform: mat3) => {
   const v = vec2.create();
 
   let minX = Number.POSITIVE_INFINITY;

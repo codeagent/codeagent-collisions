@@ -1,8 +1,18 @@
 import { vec2 } from "gl-matrix";
 
 import { Body } from "./body";
-import { AABB, getContactManifold, testAABBAABB } from "./tests";
-import { World } from "./world";
+import {
+  AABB,
+  ContactManifold,
+  getCircleAABB,
+  getContactManifold,
+  getPolyAABB,
+  testAABBAABB,
+  testCircleCircle,
+  testPolyCircle,
+  testPolyPoly
+} from "./tests";
+import { CircleShape, PolygonShape, World } from "./world";
 
 export interface ContactPoint {
   bodyAIndex: number;
@@ -28,34 +38,20 @@ export class CollisionDetector {
   }
 
   private updateAABBs() {
-    const v = vec2.create();
-
     for (const body of this.world.bodies) {
-      let minX = Number.POSITIVE_INFINITY;
-      let minY = Number.POSITIVE_INFINITY;
-      let maxX = Number.NEGATIVE_INFINITY;
-      let maxY = Number.NEGATIVE_INFINITY;
-
-      for (const p of body.shape) {
-        vec2.transformMat3(v, p, body.transform);
-
-        if (v[0] < minX) {
-          minX = v[0];
-        }
-        if (v[1] < minY) {
-          minY = v[1];
-        }
-        if (v[0] > maxX) {
-          maxX = v[0];
-        }
-        if (v[1] > maxY) {
-          maxY = v[1];
-        }
-      }
-
+      const shape = this.world.bodyShapeLookup.get(body);
       const aabb = this.bodyAABBLookup.get(body);
-      vec2.set(aabb[0], minX, minY);
-      vec2.set(aabb[1], maxX, maxY);
+
+      if (shape instanceof CircleShape) {
+        const box = getCircleAABB(shape.radius, body.position);
+        vec2.copy(aabb[0], box[0]);
+        vec2.copy(aabb[1], box[1]);
+      } else if (shape instanceof PolygonShape) {
+        const box = getPolyAABB(shape.points, body.transform);
+        vec2.copy(aabb[0], box[0]);
+        vec2.copy(aabb[1], box[1]);
+      } else {
+      }
     }
   }
 
@@ -77,12 +73,48 @@ export class CollisionDetector {
     const contacts: ContactPoint[] = [];
 
     for (const [left, right] of paris) {
-      const manifold = getContactManifold(
-        this.world.bodies[left].shape,
-        this.world.bodies[left].transform,
-        this.world.bodies[right].shape,
-        this.world.bodies[right].transform
-      );
+      const leftBody = this.world.bodies[left];
+      const rightBody = this.world.bodies[right];
+      const leftShape = this.world.bodyShapeLookup.get(leftBody);
+      const rightShape = this.world.bodyShapeLookup.get(rightBody);
+
+      let manifold: ContactManifold = [];
+
+      if (leftShape instanceof CircleShape) {
+        if (rightShape instanceof CircleShape) {
+          manifold = testCircleCircle(
+            leftShape.radius,
+            leftBody.position,
+            rightShape.radius,
+            rightBody.position
+          );
+        } else if (rightShape instanceof PolygonShape) {
+          manifold = testPolyCircle(
+            rightShape.points,
+            rightBody.transform,
+            leftShape.radius,
+            leftBody.position
+          );
+        }
+      } else if (leftShape instanceof PolygonShape) {
+        if (rightShape instanceof CircleShape) {
+          manifold = testPolyCircle(
+            leftShape.points,
+            leftBody.transform,
+            rightShape.radius,
+            rightBody.position
+          );
+        } else if (rightShape instanceof PolygonShape) {
+          manifold = testPolyPoly(
+            leftShape.points,
+            leftBody.transform,
+            rightShape.points,
+            rightBody.transform
+          );
+        }
+      }
+
+      console.log(left, right);
 
       for (const contact of manifold) {
         contacts.push({

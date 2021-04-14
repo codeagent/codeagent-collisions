@@ -1,6 +1,13 @@
-import { vec2, mat3 } from "gl-matrix";
+import { vec2, mat3, vec3 } from "gl-matrix";
 
-import { ContactManifold, Body, World } from "./physics";
+import {
+  ContactManifold,
+  Body,
+  World,
+  PolygonShape,
+  Poly,
+  CircleShape
+} from "./physics";
 import {
   ConstraintInterface,
   ContactConstraint,
@@ -17,23 +24,24 @@ export const clear = (): void => {
 
 const projMat = mat3.fromValues(40, 0, 0, 0, -40, 0, 400, 400, 0);
 
-export const drawBody = (body: Body, color: string, dashed = false) => {
+export const drawPolyShape = (
+  poly: Poly,
+  transform: mat3,
+  color: string,
+  dashed = false
+) => {
   context.lineWidth = 1;
   context.strokeStyle = color;
   context.setLineDash(dashed ? [1, 1] : []);
 
   context.beginPath();
-  for (let i = 0; i < body.shape.length; i++) {
+  for (let i = 0; i < poly.length; i++) {
     const p0 = vec2.create();
     const p1 = vec2.create();
 
-    vec2.transformMat3(p0, body.shape[i], body.transform);
+    vec2.transformMat3(p0, poly[i], transform);
     vec2.transformMat3(p0, p0, projMat);
-    vec2.transformMat3(
-      p1,
-      body.shape[(i + 1) % body.shape.length],
-      body.transform
-    );
+    vec2.transformMat3(p1, poly[(i + 1) % poly.length], transform);
     vec2.transformMat3(p1, p1, projMat);
 
     if (i === 0) {
@@ -43,6 +51,22 @@ export const drawBody = (body: Body, color: string, dashed = false) => {
   }
   context.stroke();
   context.setLineDash([]);
+};
+
+export const drawCircleShape = (
+  radius: number,
+  center: vec2,
+  color: string
+) => {
+  context.beginPath();
+  const c = vec2.transformMat3(vec2.create(), center, projMat);
+  // const r = vec2.length(
+  //   vec2.transformMat3(vec2.create(), vec2.fromValues(radius, 0.0), projMat)
+  // );
+  const r = radius * 40.0;
+  context.arc(c[0], c[1], r, 0, 2 * Math.PI, false);
+  context.fillStyle = color;
+  context.stroke();
 };
 
 export const drawDot = (position: vec2, color = "#666666") => {
@@ -112,6 +136,13 @@ export const drawConstraint = (constraint: ConstraintInterface) => {
 export const drawWorld = (world: World): void => {
   const DEFAULT_COLOR = "#666666";
 
-  world.bodies.forEach(body => drawBody(body, DEFAULT_COLOR));
+  world.bodies.forEach(body => {
+    const shape = world.bodyShapeLookup.get(body);
+    if (shape instanceof PolygonShape) {
+      drawPolyShape(shape.points, body.transform, DEFAULT_COLOR);
+    } else if (shape instanceof CircleShape) {
+      drawCircleShape(shape.radius, body.position, DEFAULT_COLOR);
+    }
+  });
   world.constraints.forEach(constraint => drawConstraint(constraint));
 };

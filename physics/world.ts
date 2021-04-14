@@ -23,9 +23,20 @@ import {
 } from "./solver";
 import { CollisionDetector } from "./detector";
 
+export class PolygonShape {
+  constructor(public points: vec2[]) {}
+}
+
+export class CircleShape {
+  constructor(public radius: number) {}
+}
+
+export type BodyShape = CircleShape | PolygonShape;
+
 export class World {
   public readonly bodies: Body[] = [];
-  public readonly _jointConstraints: ConstraintInterface[] = [];
+  public readonly bodyShapeLookup = new WeakMap<Body, BodyShape>();
+  private readonly _jointConstraints: ConstraintInterface[] = [];
   private readonly _contactConstraints: ConstraintInterface[] = [];
   private readonly collisionDetector: CollisionDetector;
 
@@ -59,15 +70,16 @@ export class World {
   }
 
   createBody(
-    shape: Shape,
+    shape: BodyShape,
     mass: number,
     intertia: number,
     position: vec2,
     angle: number
   ) {
     const bodyIndex = this.bodies.length;
-    const body = new Body(this, shape, bodyIndex);
+    const body = new Body(this, bodyIndex);
     this.bodies.push(body);
+    this.bodyShapeLookup.set(body, shape);
 
     const n = this.bodies.length * 3;
 

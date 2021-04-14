@@ -2,9 +2,15 @@
 import "./style.css";
 import { vec2 } from "gl-matrix";
 
-import { clear, canvas, drawWorld } from "./draw";
-import { Draggable, Rotatable } from "./controls";
-import { Shape, World, Body } from "./physics";
+import { clear, drawWorld } from "./draw";
+import {
+  Shape,
+  World,
+  Body,
+  PolygonShape,
+  BodyShape,
+  CircleShape
+} from "./physics";
 
 export const clamp = (t: number, from: number, to: number) =>
   Math.max(from, Math.min(to, t));
@@ -13,22 +19,22 @@ export const random = Math.random;
 export const rangeRandom = (from: number, to: number) =>
   lerp(from, to, random());
 
-const createQuadShape = (size: number): Shape => {
-  return [
+const createQuadShape = (size: number): BodyShape => {
+  return new PolygonShape([
     vec2.fromValues(size * 0.5, -size * 0.5),
     vec2.fromValues(size * 0.5, size * 0.5),
     vec2.fromValues(-size * 0.5, size * 0.5),
     vec2.fromValues(-size * 0.5, -size * 0.5)
-  ];
+  ]);
 };
 
-const createRectShape = (w: number, h): Shape => {
-  return [
+const createRectShape = (w: number, h: number): BodyShape => {
+  return new PolygonShape([
     vec2.fromValues(w * 0.5, -h * 0.5),
     vec2.fromValues(w * 0.5, h * 0.5),
     vec2.fromValues(-w * 0.5, h * 0.5),
     vec2.fromValues(-w * 0.5, -h * 0.5)
-  ];
+  ]);
 };
 
 // Animated scene
@@ -91,18 +97,26 @@ const createStackScene = (n: number) => {
     0.0
   );
 
-  let offset = -5.0;
-  while (n--) {
-    world.createBody(
-      createQuadShape(rangeRandom(1.0, 1.5)),
-      1.0,
-      1.0,
-      vec2.fromValues(0.0, offset),
-      0.0
-    );
+  world.createBody(
+    new CircleShape(1),
+    Number.POSITIVE_INFINITY,
+    Number.POSITIVE_INFINITY,
+    vec2.fromValues(0.0, -8),
+    0.0
+  );
 
-    offset += 2.2;
-  }
+  // let offset = -5.0;
+  // while (n--) {
+  //   world.createBody(
+  //     createQuadShape(rangeRandom(1.0, 1.5)),
+  //     1.0,
+  //     1.0,
+  //     vec2.fromValues(0.0, offset),
+  //     0.0
+  //   );
+
+  //   offset += 2.2;
+  // }
 };
 
 // createChainScene(16);

@@ -90,17 +90,12 @@ export class Body {
 
   constructor(
     private readonly world: World,
-    public readonly shape: Shape,
     public readonly bodyIndex: number
   ) {}
 
   updateTransform() {
     mat3.fromTranslation(this._transform, this.position);
     mat3.rotate(this._transform, this._transform, this.angle);
-  }
-
-  containsPoint(point: vec2) {
-    return testShapePoint(this.shape, this.transform, point);
   }
 
   applyForce(force: vec2, point: vec2) {
