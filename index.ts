@@ -98,7 +98,7 @@ const createStackScene = (n: number) => {
   );
 
   world.createBody(
-    new CircleShape(1),
+    new CircleShape(2),
     Number.POSITIVE_INFINITY,
     Number.POSITIVE_INFINITY,
     vec2.fromValues(0.0, -8),
@@ -108,10 +108,10 @@ const createStackScene = (n: number) => {
   // let offset = -5.0;
   // while (n--) {
   //   world.createBody(
-  //     createQuadShape(rangeRandom(1.0, 1.5)),
+  //      createQuadShape(rangeRandom(1.0, 1.5) ),
   //     1.0,
   //     1.0,
-  //     vec2.fromValues(0.0, offset),
+  //     vec2.fromValues(rangeRandom(-0.1, 0.1), offset),
   //     0.0
   //   );
 

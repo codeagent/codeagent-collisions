@@ -55,18 +55,31 @@ export const drawPolyShape = (
 
 export const drawCircleShape = (
   radius: number,
-  center: vec2,
+  transform: mat3,
   color: string
 ) => {
+  const c = vec2.transformMat3(
+    vec2.create(),
+    vec2.fromValues(0.0, 0.0),
+    transform
+  );
+
+  const r = vec2.transformMat3(
+    vec2.create(),
+    vec2.fromValues(radius , 0.0),
+    transform
+  );
+
+  vec2.transformMat3(c, c, projMat);
+  vec2.transformMat3(r, r, projMat);
+
   context.beginPath();
-  const c = vec2.transformMat3(vec2.create(), center, projMat);
-  // const r = vec2.length(
-  //   vec2.transformMat3(vec2.create(), vec2.fromValues(radius, 0.0), projMat)
-  // );
-  const r = radius * 40.0;
-  context.arc(c[0], c[1], r, 0, 2 * Math.PI, false);
+  context.arc(c[0], c[1], radius * 40, 0, 2 * Math.PI, false);
   context.fillStyle = color;
   context.stroke();
+  console.log(c, r)
+
+  drawLineSegment([c, r]);
 };
 
 export const drawDot = (position: vec2, color = "#666666") => {
@@ -141,7 +154,7 @@ export const drawWorld = (world: World): void => {
     if (shape instanceof PolygonShape) {
       drawPolyShape(shape.points, body.transform, DEFAULT_COLOR);
     } else if (shape instanceof CircleShape) {
-      drawCircleShape(shape.radius, body.position, DEFAULT_COLOR);
+      drawCircleShape(shape.radius, body.transform, DEFAULT_COLOR);
     }
   });
   world.constraints.forEach(constraint => drawConstraint(constraint));

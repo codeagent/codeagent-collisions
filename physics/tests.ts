@@ -103,12 +103,19 @@ export const testPolyCircle = (
 ): ContactManifold => {
   const p = vec2.create();
   const manifold: ContactManifold = [];
+  let e0 = vec2.create();
+  let e1 = vec2.create();
 
   for (let i = 0; i < poly.length; i++) {
-    vec2.transformMat3(p, poly[i], transform);
+    if (i === 0) {
+      vec2.transformMat3(e0, poly[i], transform);
+    }
+    vec2.transformMat3(e1, poly[(i + 1) % poly.length], transform);
+
+    const t = clamp(projectToLine([e0, e1], center), 0.0, 1.0);
+    vec2.lerp(p, e0, e1, t);
     const normal = vec2.create();
     vec2.sub(normal, p, center);
-
     const len = vec2.len(normal);
 
     if (len < radius) {
@@ -123,6 +130,8 @@ export const testPolyCircle = (
         index: 1
       });
     }
+
+    e0 = e1;
   }
 
   return manifold;
@@ -194,7 +203,10 @@ export const testPolyPoly = (
           continue;
         }
 
-        const proj = projectionToLine(segmentB, testP);
+        const proj = vec2.create();
+        const t = projectToLine(segmentB, testP);
+        vec2.lerp(proj, segmentB[0], segmentB[1], t);
+
         const dist = vec2.dist(proj, testP);
         if (dist < minDistance) {
           minProj = proj;
@@ -259,11 +271,10 @@ const areIntesect = (intersection: LineLineIntersection) =>
   intersection[1] >= 0.0 &&
   intersection[1] <= 1.0;
 
-const projectionToLine = (line: LineSegment, point: vec2): vec2 => {
+const projectToLine = (line: LineSegment, point: vec2): number => {
   const d = vec2.fromValues(line[1][0] - line[0][0], line[1][1] - line[0][1]);
   const p = vec2.sub(vec2.create(), point, line[0]);
-  const proj = vec2.dot(p, d) / vec2.squaredLength(d);
-  return vec2.scaleAndAdd(vec2.create(), line[0], d, proj);
+  return vec2.dot(p, d) / vec2.squaredLength(d);
 };
 
 const testLineLine = (
@@ -288,3 +299,6 @@ const testLineLine = (
 
   return [cross(q, s) / denom, cross(q, r) / denom];
 };
+
+const clamp = (v: number, min: number, max: number) =>
+  Math.max(min, Math.min(max, v));

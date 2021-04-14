@@ -114,7 +114,6 @@ export class CollisionDetector {
         }
       }
 
-      console.log(left, right);
 
       for (const contact of manifold) {
         contacts.push({
