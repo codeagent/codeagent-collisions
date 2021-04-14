@@ -1,11 +1,11 @@
 import { vec2 } from "gl-matrix";
 
-import { Shape } from "./tests";
 import { Body } from "./body";
 import {
   DistanceConstraint,
   ConstraintInterface,
-  ContactConstraint
+  ContactConstraint,
+  FrictionConstraint
 } from "./constraints";
 import {
   D,
@@ -38,6 +38,7 @@ export class World {
   public readonly bodyShapeLookup = new WeakMap<Body, BodyShape>();
   private readonly _jointConstraints: ConstraintInterface[] = [];
   private readonly _contactConstraints: ConstraintInterface[] = [];
+  private readonly _frictionConstraints: ConstraintInterface[] = [];
   private readonly collisionDetector: CollisionDetector;
 
   // "read"/"write" variables
@@ -47,7 +48,10 @@ export class World {
   public invMasses = new Float32Array();
 
   public get constraints() {
-    return this._jointConstraints.concat(this._contactConstraints);
+    return this._jointConstraints.concat(
+      this._contactConstraints,
+      this._frictionConstraints
+    );
   }
 
   // "helper" variables
@@ -64,7 +68,8 @@ export class World {
   constructor(
     public readonly gravity = vec2.fromValues(0.0, -9.8),
     public readonly pushFactor = 0.6,
-    public readonly iterations = 50
+    public readonly iterations = 50,
+    public readonly friction = 0.5
   ) {
     this.collisionDetector = new CollisionDetector(this);
   }
@@ -198,6 +203,7 @@ export class World {
 
   private detectCollisions() {
     this._contactConstraints.length = 0;
+    this._frictionConstraints.length = 0;
 
     for (const contact of this.collisionDetector.detectCollisions()) {
       this._contactConstraints.push(
@@ -210,12 +216,27 @@ export class World {
           contact.depth
         )
       );
+
+      this._frictionConstraints.push(
+        new FrictionConstraint(
+          this,
+          contact.bodyAIndex,
+          contact.bodyBIndex,
+          contact.point,
+          contact.normal,
+          this.friction
+        )
+      );
     }
   }
 
   private solveConstraints(out: Vector, dt: number, pushFactor: number) {
+    const constraints = this._jointConstraints
+      .concat(this._contactConstraints)
+      .concat(!pushFactor ? this._frictionConstraints : []);
+
     const n = this.bodies.length * 3;
-    const c = this.constraints.length;
+    const c = constraints.length;
 
     const J = new Float32Array(n * c);
     const v = new Float32Array(c);
@@ -232,7 +253,7 @@ export class World {
 
     let i = 0;
     let j = 0;
-    for (const constraint of this.constraints) {
+    for (const constraint of constraints) {
       J.set(constraint.getJacobian(), i);
       v[j] = pushFactor ? constraint.getPushFactor(dt, pushFactor) : 0.0;
       const { min, max } = constraint.getClamping();

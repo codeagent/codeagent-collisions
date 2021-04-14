@@ -94,7 +94,7 @@ const createStackScene = (n: number) => {
     0.0
   );
 
-  let offset = -5.0;
+  let offset = 2.0;
   while (n--) {
     world.createBody(
       n % 2 == 1
@@ -111,7 +111,7 @@ const createStackScene = (n: number) => {
 };
 
 // createChainScene(14);
-createStackScene(16);
+createStackScene(32);
 
 self["world"] = world;
 
