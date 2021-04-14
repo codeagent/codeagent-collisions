@@ -98,7 +98,7 @@ const createStackScene = (n: number) => {
   while (n--) {
     world.createBody(
       n % 2 == 1
-        ? createQuadShape(rangeRandom(1.0, 1.5))
+        ? createRectShape(rangeRandom(1.0, 2.5), rangeRandom(1.0, 2.5))
         : new CircleShape(rangeRandom(1.0, 1.5) * 0.5),
       1.0,
       1.0,
@@ -114,6 +114,9 @@ export const createPendulumScene = (n: number) => {
   const step = 1.0;
   const length = 8;
   const m = 1.0;
+
+  world.restitution = 1.0; //elastic bounces
+  world.pushFactor = 0.6;
 
   // ceil
   const ceil = world.createBody(
@@ -164,8 +167,8 @@ export const createPendulumScene = (n: number) => {
 };
 
 // createChainScene(14);
-createStackScene(1);
-// createPendulumScene(2);
+// createStackScene(64);
+createPendulumScene(8);
 
 self["world"] = world;
 

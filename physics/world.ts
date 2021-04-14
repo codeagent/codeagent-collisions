@@ -66,10 +66,11 @@ export class World {
   private _lambdaCache1 = new Float32Array();
 
   constructor(
-    public readonly gravity = vec2.fromValues(0.0, -9.8),
-    public readonly pushFactor = 0.6,
-    public readonly iterations = 50,
-    public readonly friction = 0.5
+    public gravity = vec2.fromValues(0.0, -9.8),
+    public pushFactor = 0.6,
+    public iterations = 50,
+    public friction = 0.5,
+    public restitution = 0.5
   ) {
     this.collisionDetector = new CollisionDetector(this);
   }
@@ -255,7 +256,7 @@ export class World {
     let j = 0;
     for (const constraint of constraints) {
       J.set(constraint.getJacobian(), i);
-      v[j] = pushFactor ? constraint.getPushFactor(dt, pushFactor) : 0.0;
+      v[j] = constraint.getPushFactor(dt, pushFactor);
       const { min, max } = constraint.getClamping();
       cMin[j] = min;
       cMax[j] = max;

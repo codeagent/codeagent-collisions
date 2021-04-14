@@ -108,9 +108,10 @@ export class ContactConstraint implements ConstraintInterface {
   }
 
   getPushFactor(dt: number, strength: number): number {
-    const J = this.getJacobian();
-    const v = this.world.velocities;
-    return (this.penetration / dt) * strength - VxV(J, v) * 4;
+    return strength
+      ? (this.penetration / dt) * strength
+      : -VxV(this.getJacobian(), this.world.velocities) *
+          this.world.restitution;
   }
 
   getClamping() {
