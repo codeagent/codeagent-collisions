@@ -119,19 +119,17 @@ export const testPolyCircle = (
     const len = vec2.len(normal);
 
     if (len < radius) {
-      vec2.scale(normal, normal, 1.0 / len);
-      const point = vec2.create();
-      vec2.scaleAndAdd(point, center, normal, radius);
-      const depth = radius - len;
+      vec2.scale(normal, normal, -1.0 / len);
+      const depth = Math.abs(radius - len);
       manifold.push({
-        point,
+        point: vec2.fromValues(p[0], p[1]),
         normal,
         depth,
-        index: 1
+        index: 0
       });
     }
 
-    e0 = e1;
+    vec2.copy(e0, e1);
   }
 
   return manifold;

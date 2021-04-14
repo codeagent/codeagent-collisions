@@ -77,7 +77,7 @@ export const drawCircleShape = (
   context.arc(c[0], c[1], radius * 40, 0, 2 * Math.PI, false);
   context.fillStyle = color;
   context.stroke();
-  console.log(c, r)
+  
 
   drawLineSegment([c, r]);
 };

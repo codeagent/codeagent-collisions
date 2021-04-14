@@ -69,10 +69,10 @@ export class CollisionDetector {
     return candidates;
   }
 
-  private narrowPhase(paris: [number, number][]): ContactPoint[] {
+  private narrowPhase(pairs: [number, number][]): ContactPoint[] {
     const contacts: ContactPoint[] = [];
 
-    for (const [left, right] of paris) {
+    for (const [left, right] of pairs) {
       const leftBody = this.world.bodies[left];
       const rightBody = this.world.bodies[right];
       const leftShape = this.world.bodyShapeLookup.get(leftBody);
@@ -88,6 +88,16 @@ export class CollisionDetector {
             rightShape.radius,
             rightBody.position
           );
+
+          for (const contact of manifold) {
+            contacts.push({
+              bodyAIndex: contact.index === 0 ? left : right,
+              bodyBIndex: contact.index === 0 ? right : left,
+              point: vec2.fromValues(contact.point[0], contact.point[1]),
+              normal: vec2.fromValues(contact.normal[0], contact.normal[1]),
+              depth: contact.depth
+            });
+          }
         } else if (rightShape instanceof PolygonShape) {
           manifold = testPolyCircle(
             rightShape.points,
@@ -95,6 +105,16 @@ export class CollisionDetector {
             leftShape.radius,
             leftBody.position
           );
+
+          for (const contact of manifold) {
+            contacts.push({
+              bodyAIndex: contact.index === 1 ? left : right,
+              bodyBIndex: contact.index === 1 ? right : left,
+              point: vec2.fromValues(contact.point[0], contact.point[1]),
+              normal: vec2.fromValues(contact.normal[0], contact.normal[1]),
+              depth: contact.depth
+            });
+          }
         }
       } else if (leftShape instanceof PolygonShape) {
         if (rightShape instanceof CircleShape) {
@@ -104,6 +124,16 @@ export class CollisionDetector {
             rightShape.radius,
             rightBody.position
           );
+
+          for (const contact of manifold) {
+            contacts.push({
+              bodyAIndex: contact.index === 0 ? left : right,
+              bodyBIndex: contact.index === 0 ? right : left,
+              point: vec2.fromValues(contact.point[0], contact.point[1]),
+              normal: vec2.fromValues(contact.normal[0], contact.normal[1]),
+              depth: contact.depth
+            });
+          }
         } else if (rightShape instanceof PolygonShape) {
           manifold = testPolyPoly(
             leftShape.points,
@@ -111,18 +141,17 @@ export class CollisionDetector {
             rightShape.points,
             rightBody.transform
           );
+
+          for (const contact of manifold) {
+            contacts.push({
+              bodyAIndex: contact.index === 0 ? left : right,
+              bodyBIndex: contact.index === 0 ? right : left,
+              point: vec2.fromValues(contact.point[0], contact.point[1]),
+              normal: vec2.fromValues(contact.normal[0], contact.normal[1]),
+              depth: contact.depth
+            });
+          }
         }
-      }
-
-
-      for (const contact of manifold) {
-        contacts.push({
-          bodyAIndex: contact.index === 0 ? left : right,
-          bodyBIndex: contact.index === 0 ? right : left,
-          point: vec2.fromValues(contact.point[0], contact.point[1]),
-          normal: vec2.fromValues(contact.normal[0], contact.normal[1]),
-          depth: contact.depth
-        });
       }
     }
 

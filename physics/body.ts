@@ -1,5 +1,5 @@
 import { mat3, vec2 } from "gl-matrix";
-import { cross, Shape, testShapePoint } from "./tests";
+import { cross } from "./tests";
 import { World } from "./world";
 
 const ZERO = vec2.fromValues(0.0, 0.0);

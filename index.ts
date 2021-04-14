@@ -101,25 +101,26 @@ const createStackScene = (n: number) => {
     new CircleShape(2),
     Number.POSITIVE_INFINITY,
     Number.POSITIVE_INFINITY,
-    vec2.fromValues(0.0, -8),
+    vec2.fromValues(0, 0),
     0.0
   );
 
-  // let offset = -5.0;
-  // while (n--) {
-  //   world.createBody(
-  //      createQuadShape(rangeRandom(1.0, 1.5) ),
-  //     1.0,
-  //     1.0,
-  //     vec2.fromValues(rangeRandom(-0.1, 0.1), offset),
-  //     0.0
-  //   );
+  let offset = -5.0;
+  while (n--) {
+    world.createBody(
+      n % 2 == 1
+        ? createQuadShape(rangeRandom(1.0, 1.5))
+        : new CircleShape(rangeRandom(1.0, 1.5) * 0.5),
+      1.0,
+      1.0,
+      vec2.fromValues(rangeRandom(-0.1, 0.1), offset),
+      0.0
+    );
 
-  //   offset += 2.2;
-  // }
+    offset += 2.2;
+  }
 };
 
-// createChainScene(16);
 createStackScene(128);
 
 self["world"] = world;
