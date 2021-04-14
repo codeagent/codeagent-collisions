@@ -3,21 +3,10 @@ import "./style.css";
 import { vec2 } from "gl-matrix";
 
 import { clear, drawWorld } from "./draw";
-import {
-  Shape,
-  World,
-  Body,
-  PolygonShape,
-  BodyShape,
-  CircleShape
-} from "./physics";
+import { World, Body, PolygonShape, BodyShape, CircleShape } from "./physics";
 
-export const clamp = (t: number, from: number, to: number) =>
-  Math.max(from, Math.min(to, t));
-export const lerp = (a: number, b: number, t: number) => a * (1.0 - t) + b * t;
-export const random = Math.random;
-export const rangeRandom = (from: number, to: number) =>
-  lerp(from, to, random());
+const lerp = (a: number, b: number, t: number) => a * (1.0 - t) + b * t;
+const rangeRandom = (from: number, to: number) => lerp(from, to, Math.random());
 
 const createQuadShape = (size: number): BodyShape => {
   return new PolygonShape([
@@ -121,7 +110,8 @@ const createStackScene = (n: number) => {
   }
 };
 
-createStackScene(128);
+// createChainScene(14);
+createStackScene(16);
 
 self["world"] = world;
 

@@ -1,28 +1,29 @@
-import { vec2, mat3, vec3 } from "gl-matrix";
+import { vec2, mat3 } from "gl-matrix";
 
 import {
   ContactManifold,
-  Body,
   World,
   PolygonShape,
   Poly,
-  CircleShape
-} from "./physics";
-import {
+  CircleShape,
   ConstraintInterface,
   ContactConstraint,
   DistanceConstraint
-} from "./physics/constraints";
+} from "./physics";
 
-export const canvas = document.getElementById("canvas") as HTMLCanvasElement;
-export const context = canvas.getContext("2d") as CanvasRenderingContext2D;
-export const container = document.getElementById("container") as HTMLDivElement;
+const canvas = document.getElementById("canvas") as HTMLCanvasElement;
+const context = canvas.getContext("2d") as CanvasRenderingContext2D;
+
+const DEFAULT_COLOR = "#666666";
+const REDISH_COLOR = "#ff0000";
+const BLUISH_COLOR = "#0356fc";
+const LINE_COLOR = "#f5ad42";
+
+const projMat = mat3.fromValues(40, 0, 0, 0, -40, 0, 400, 400, 0);
 
 export const clear = (): void => {
   context.clearRect(0, 0, canvas.width, canvas.height);
 };
-
-const projMat = mat3.fromValues(40, 0, 0, 0, -40, 0, 400, 400, 0);
 
 export const drawPolyShape = (
   poly: Poly,
@@ -66,20 +67,29 @@ export const drawCircleShape = (
 
   const r = vec2.transformMat3(
     vec2.create(),
-    vec2.fromValues(radius , 0.0),
+    vec2.fromValues(radius, 0.0),
     transform
   );
 
   vec2.transformMat3(c, c, projMat);
   vec2.transformMat3(r, r, projMat);
 
+  context.lineWidth = 0.5;
+
+  context.setLineDash([6, 2]);
+  context.beginPath();
+  context.strokeStyle = color;
+  context.moveTo(c[0], c[1]);
+  context.lineTo(r[0], r[1]);
+  context.stroke();
+
+  context.lineWidth = 1.0;
+
+  context.setLineDash([]);
   context.beginPath();
   context.arc(c[0], c[1], radius * 40, 0, 2 * Math.PI, false);
   context.fillStyle = color;
   context.stroke();
-  
-
-  drawLineSegment([c, r]);
 };
 
 export const drawDot = (position: vec2, color = "#666666") => {
@@ -92,7 +102,6 @@ export const drawDot = (position: vec2, color = "#666666") => {
 };
 
 export const drawLineSegment = (ed: [vec2, vec2], color = "#666666") => {
-  context.lineWidth = 1;
   context.setLineDash([]);
 
   context.beginPath();
@@ -106,23 +115,17 @@ export const drawLineSegment = (ed: [vec2, vec2], color = "#666666") => {
 };
 
 export const drawManifold = (manifold: ContactManifold) => {
-  const RED_COLOR = "#ff0000";
-  const BLUISH_COLOR = "#0356fc";
-  const LINE_COLOR = "#f5ad42";
-
+  context.lineWidth = 0.5;
   const t = vec2.create();
   manifold.forEach(({ point, normal, depth, index }) => {
     vec2.add(t, point, normal);
     drawLineSegment([point, t], LINE_COLOR);
-    drawDot(point, index === 0 ? RED_COLOR : BLUISH_COLOR);
+    drawDot(point, REDISH_COLOR);
   });
 };
 
 export const drawConstraint = (constraint: ConstraintInterface) => {
-  const OUTER_COLOR = "#fc3503";
-  const INNER_COLOR = "#0356fc";
-  const LINE_COLOR = "#f5ad42";
-
+  context.lineWidth = 1;
   if (constraint instanceof DistanceConstraint) {
     const bodyA = constraint.world.bodies[constraint.bodyAIndex];
     const bodyB = constraint.world.bodies[constraint.bodyBIndex];
@@ -133,8 +136,8 @@ export const drawConstraint = (constraint: ConstraintInterface) => {
     const pb = vec2.create();
     vec2.transformMat3(pb, constraint.jointB, bodyB.transform);
     drawLineSegment([pa, pb], LINE_COLOR);
-    drawDot(pa, INNER_COLOR);
-    drawDot(pb, OUTER_COLOR);
+    drawDot(pa, BLUISH_COLOR);
+    drawDot(pb, BLUISH_COLOR);
   } else if (constraint instanceof ContactConstraint) {
     const p = vec2.fromValues(constraint.joint[0], constraint.joint[1]);
     const n = vec2.fromValues(
@@ -142,15 +145,31 @@ export const drawConstraint = (constraint: ConstraintInterface) => {
       p[1] + constraint.normal[1]
     );
     drawLineSegment([p, n], LINE_COLOR);
-    drawDot(p, OUTER_COLOR);
+    drawDot(p, REDISH_COLOR);
   }
 };
 
-export const drawWorld = (world: World): void => {
-  const DEFAULT_COLOR = "#666666";
+export const drawCross = (transform: mat3) => {
+  context.lineWidth = 0.5;
+  const a: [vec2, vec2] = [
+    vec2.fromValues(-0.1, 0.0),
+    vec2.fromValues(0.1, 0.0)
+  ];
+  const b: [vec2, vec2] = [
+    vec2.fromValues(0.0, -0.1),
+    vec2.fromValues(0.0, 0.1)
+  ];
+  a.forEach(p => vec2.transformMat3(p, p, transform));
+  b.forEach(p => vec2.transformMat3(p, p, transform));
 
+  drawLineSegment(a);
+  drawLineSegment(b);
+};
+
+export const drawWorld = (world: World): void => {
   world.bodies.forEach(body => {
     const shape = world.bodyShapeLookup.get(body);
+    drawCross(body.transform);
     if (shape instanceof PolygonShape) {
       drawPolyShape(shape.points, body.transform, DEFAULT_COLOR);
     } else if (shape instanceof CircleShape) {
