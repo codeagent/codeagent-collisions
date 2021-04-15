@@ -1,13 +1,6 @@
 export type Vector = Float32Array;
 export type Matrix = Float32Array;
 
-export const D = (out: Matrix, elements: Vector) => {
-  const n = elements.length;
-  for (let i = 0; i < n; i++) {
-    out[i * n + i] = elements[i];
-  }
-};
-
 export const MxV = (out: Vector, M: Matrix, V: Vector) => {
   const n = V.length;
   const m = M.length / n;
@@ -40,25 +33,18 @@ export const MtxV = (out: Vector, M: Matrix, V: Vector) => {
   }
 };
 
-export const JxDxJt = (out: Matrix, J: Matrix, D: Matrix) => {
-  const n = Math.sqrt(D.length);
+export const JxDxJt = (out: Matrix, J: Matrix, D: Vector) => {
+  const n = D.length;
   const c = J.length / n;
-
+  out.fill(0.0);
   for (let i = 0; i < c; i++) {
     for (let j = i; j < c; j++) {
       let v = 0.0;
       for (let k = 0; k < n; k++) {
-        v += D[k * n + k] * J[i * n + k] * J[j * n + k];
+        v += D[k] * J[i * n + k] * J[j * n + k];
       }
       out[i * c + j] = out[j * c + i] = v;
     }
-  }
-};
-
-export const DxV = (out: Vector, D: Matrix, V: Vector) => {
-  const n = out.length;
-  for (let j = 0; j < n; j++) {
-    out[j] = V[j] * D[j * n + j];
   }
 };
 
@@ -119,7 +105,7 @@ export const projectedGussSeidel = (
         out[j] -= A[n * j + i] * out[i];
       }
 
-      if (Math.abs(A[n * j + j]) <= 1e-2) {
+      if (Math.abs(A[n * j + j]) <= 1e-6) {
         continue;
       }
 

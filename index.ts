@@ -7,7 +7,8 @@ import {
   createStackScene,
   createStairsScene,
   world,
-  createGuassianScene
+  createGuassianScene,
+  createChainScene
 } from "./scene";
 
 self["world"] = world;
@@ -22,9 +23,10 @@ const step = () => {
 };
 
 setTimeout(() => {
+  // createChainScene(16);
   // createPendulumScene(8)
   // createStairsScene(8);
-  // createStackScene(32);
-  createGuassianScene()
+  createStackScene(64);
+  // createGuassianScene()
   step();
 }, 1000);

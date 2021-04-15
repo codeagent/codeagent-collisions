@@ -8,9 +8,7 @@ import {
   FrictionConstraint
 } from "./constraints";
 import {
-  D,
   JxDxJt,
-  DxV,
   VxSpVxS,
   MxV,
   projectedGussSeidel,
@@ -60,7 +58,6 @@ export class World {
   private _cvForces = new Float32Array();
   private _tmpForces = new Float32Array();
   private _tmpVelocities = new Float32Array();
-  private MInv: Float32Array;
 
   private _lambdaCache0 = new Float32Array();
   private _lambdaCache1 = new Float32Array();
@@ -126,7 +123,6 @@ export class World {
     this._cvForces = new Float32Array(n);
     this._tmpVelocities = new Float32Array(n);
     this._tmpForces = new Float32Array(n);
-    this.MInv = new Float32Array(n * n);
 
     body.updateTransform();
 
@@ -269,9 +265,8 @@ export class World {
     // A = J * Minv * Jt
     // b = 1.0 / ∆t * v − J * (1 / ∆t * v1 + Minv * fext)
 
-    D(this.MInv, this.invMasses);
-    JxDxJt(A, J, this.MInv);
-    DxV(bhat, this.MInv, this.forces);
+    JxDxJt(A, J, this.invMasses);
+    VmV(bhat, this.invMasses, this.forces);
     VpVxS(bhat, bhat, this.velocities, 1.0 / dt);
     MxV(b, J, bhat);
     VxSpVxS(b, v, 1.0 / dt, b, -1.0);
