@@ -251,3 +251,125 @@ export const createStairsScene = (n: number) => {
 
   spawn();
 };
+
+export const createGuassianScene = () => {
+  const n = 256;
+  let columns = 15;
+  let band = 1.0;
+  const colW = 0.25;
+  const sinkSlope = Math.PI * 0.35;
+  let obstacleBands = 10;
+  let obstacleMarginX = 2.0;
+  let obstacleMarginY = 0.75;
+  let obstacleSize = 0.25;
+  let ballR = 0.2;
+
+  world.restitution = 0.5;
+  world.pushFactor = 0.4;
+  world.friction = 0.0;
+
+  // floor
+  world.createBody(
+    createRectShape(20, 1),
+    Number.POSITIVE_INFINITY,
+    Number.POSITIVE_INFINITY,
+    vec2.fromValues(0.0, -10),
+    0.0
+  );
+
+  // left wall
+  world.createBody(
+    createRectShape(0.5, 12),
+    Number.POSITIVE_INFINITY,
+    Number.POSITIVE_INFINITY,
+    vec2.fromValues(-10, -3.5),
+    0.0
+  );
+
+  // right wall
+  world.createBody(
+    createRectShape(0.5, 12),
+    Number.POSITIVE_INFINITY,
+    Number.POSITIVE_INFINITY,
+    vec2.fromValues(10, -3.5),
+    0.0
+  );
+
+  // columns
+  let x = 0.0;
+  while (columns--) {
+    if (columns % 2 == 1) {
+      x += band + colW;
+    }
+    world.createBody(
+      createRectShape(colW, 7),
+      Number.POSITIVE_INFINITY,
+      Number.POSITIVE_INFINITY,
+      vec2.fromValues(columns % 2 ? x : -x, -6.0),
+      0.0
+    );
+  }
+
+  // sink
+  world.createBody(
+    createRectShape(10, 0.5),
+    Number.POSITIVE_INFINITY,
+    Number.POSITIVE_INFINITY,
+    vec2.fromValues(3, 10),
+    sinkSlope
+  );
+
+  world.createBody(
+    createRectShape(10, 0.5),
+    Number.POSITIVE_INFINITY,
+    Number.POSITIVE_INFINITY,
+    vec2.fromValues(-3, 10),
+    -sinkSlope
+  );
+
+  // obstacles
+  let u = 0.0;
+  let v = 5.0;
+
+  for (let i = 0; i < obstacleBands; i++) {
+    u = -i * obstacleMarginX * 0.5;
+
+    for (let j = 0; j <= i; j++) {
+      world.createBody(
+        createQuadShape(obstacleSize),
+        Number.POSITIVE_INFINITY,
+        Number.POSITIVE_INFINITY,
+        vec2.fromValues(u, v),
+        Math.PI * 0.25
+      );
+
+      u += obstacleMarginX;
+    }
+
+    v -= obstacleMarginY;
+  }
+
+  // balls
+  const r = Math.floor(Math.sqrt(n));
+
+  u = 0.0;
+  v = 13.0;
+
+  for (let i = r; i > 0; i--) {
+    u = -i * ballR;
+
+    for (let j = i; j >= 0; j--) {
+      world.createBody(
+        new CircleShape(ballR),
+        1.0,
+        1.0,
+        vec2.fromValues(u, v),
+        0.0
+      );
+
+      u += 2.0 * ballR;
+    }
+
+    v -= 2.0 * ballR;
+  }
+};

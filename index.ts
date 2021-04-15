@@ -2,7 +2,13 @@
 import "./style.css";
 
 import { clear, drawWorld } from "./draw";
-import { createPendulumScene, createStackScene, createStairsScene, world } from "./scene";
+import {
+  createPendulumScene,
+  createStackScene,
+  createStairsScene,
+  world,
+  createGuassianScene
+} from "./scene";
 
 self["world"] = world;
 
@@ -17,7 +23,8 @@ const step = () => {
 
 setTimeout(() => {
   // createPendulumScene(8)
-  createStairsScene(8);
+  // createStairsScene(8);
   // createStackScene(32);
+  createGuassianScene()
   step();
 }, 1000);

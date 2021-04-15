@@ -176,5 +176,5 @@ export const drawWorld = (world: World): void => {
       drawCircleShape(shape.radius, body.transform, DEFAULT_COLOR);
     }
   });
-  world.constraints.forEach(constraint => drawConstraint(constraint));
+  // world.constraints.forEach(constraint => drawConstraint(constraint));
 };
