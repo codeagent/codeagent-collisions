@@ -218,16 +218,18 @@ export class World {
         )
       );
 
-      this._frictionConstraints.push(
-        new FrictionConstraint(
-          this,
-          contact.bodyAIndex,
-          contact.bodyBIndex,
-          contact.point,
-          contact.normal,
-          this.friction
-        )
-      );
+      if (this.friction) {
+        this._frictionConstraints.push(
+          new FrictionConstraint(
+            this,
+            contact.bodyAIndex,
+            contact.bodyBIndex,
+            contact.point,
+            contact.normal,
+            this.friction
+          )
+        );
+      }
     }
   }
 
