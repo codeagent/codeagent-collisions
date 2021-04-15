@@ -120,20 +120,6 @@ export const VcV = (out: Vector, from: Vector) => {
   out.set(from, 0);
 };
 
-export const removeRange = (
-  out: Vector,
-  from: Vector,
-  start: number,
-  len: number,
-  n: number
-) => {
-  let i = start;
-  while (i < n - len) {
-    out[i] = from[i + len];
-    i++;
-  }
-};
-
 export const debugVector = (v: Vector) => {
   console.table(v);
 };

@@ -1,7 +1,7 @@
 // Import stylesheets
 import "./style.css";
 
-import { clear, drawWorld } from "./draw";
+import { canvas, clear, drawWorld } from "./draw";
 import {
   createPendulumScene,
   createStackScene,
@@ -10,6 +10,7 @@ import {
   createGuassianScene,
   createChainScene
 } from "./scene";
+import { Draggable, Rotatable } from "./controls";
 
 self["world"] = world;
 
@@ -23,10 +24,14 @@ const step = () => {
 };
 
 setTimeout(() => {
-  // createChainScene(16);
-  // createPendulumScene(8)
+  createChainScene(16);
+  // createPendulumScene(8);
   // createStairsScene(8);
-  createStackScene(64);
+  // createStackScene(64);
   // createGuassianScene()
+
+  world.bodies.forEach(b => new Draggable(canvas, world, b));
+  world.bodies.forEach(b => new Rotatable(canvas, world, b));
+
   step();
 }, 1000);

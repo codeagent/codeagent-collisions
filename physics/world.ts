@@ -230,6 +230,7 @@ export class World {
   }
 
   private solveConstraints(out: Vector, dt: number, pushFactor: number) {
+    // friction constraints are not involved in position correction
     const constraints = this._jointConstraints
       .concat(this._contactConstraints)
       .concat(!pushFactor ? this._frictionConstraints : []);

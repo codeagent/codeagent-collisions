@@ -48,12 +48,13 @@ export const createChainScene = (links: number, x = 0.0) => {
   const size = 0.5;
   const distance = 0.5;
   let offset = Math.SQRT2 * size;
+  const m = 1.0;
 
   for (let i = 0; i < links; i++) {
     const body = world.createBody(
       createQuadShape(size),
-      i === 0 ? Number.POSITIVE_INFINITY : i == links - 1 ? 5 : 1.0,
-      i === 0 ? Number.POSITIVE_INFINITY : i == links - 1 ? 5 : 1.0,
+      i === 0 ? Number.POSITIVE_INFINITY : i == links - 1 ? m * 0.1 : m,
+      i === 0 ? Number.POSITIVE_INFINITY : i == links - 1 ? m * 0.5 : m * 5,
       vec2.fromValues(offset - Math.SQRT2 * size + x, 10),
       -Math.PI * 0.25
     );

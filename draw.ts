@@ -11,7 +11,7 @@ import {
   DistanceConstraint
 } from "./physics";
 
-const canvas = document.getElementById("canvas") as HTMLCanvasElement;
+export const canvas = document.getElementById("canvas") as HTMLCanvasElement;
 const context = canvas.getContext("2d") as CanvasRenderingContext2D;
 
 const DEFAULT_COLOR = "#666666";
@@ -19,7 +19,7 @@ const REDISH_COLOR = "#ff0000";
 const BLUISH_COLOR = "#0356fc";
 const LINE_COLOR = "#f5ad42";
 
-const projMat = mat3.fromValues(40, 0, 0, 0, -40, 0, 400, 400, 0);
+export const projMat = mat3.fromValues(40, 0, 0, 0, -40, 0, 400, 400, 1);
 
 export const clear = (): void => {
   context.clearRect(0, 0, canvas.width, canvas.height);
