@@ -53,8 +53,8 @@ export const createChainScene = (links: number, x = 0.0) => {
   for (let i = 0; i < links; i++) {
     const body = world.createBody(
       createQuadShape(size),
-      i === 0 ? Number.POSITIVE_INFINITY : i == links - 1 ? m * 0.1 : m,
-      i === 0 ? Number.POSITIVE_INFINITY : i == links - 1 ? m * 0.5 : m * 5,
+      i === 0 ? Number.POSITIVE_INFINITY : m,
+      i === 0 ? Number.POSITIVE_INFINITY : m,
       vec2.fromValues(offset - Math.SQRT2 * size + x, 10),
       -Math.PI * 0.25
     );
