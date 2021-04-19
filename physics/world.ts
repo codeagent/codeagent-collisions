@@ -130,9 +130,45 @@ export class World {
   }
 
   destroyBody(body: Body) {
-    // todo:
     const bodyIndex = this.bodies.indexOf(body);
+    if (bodyIndex === -1) {
+      return;
+    }
     this.bodies.splice(bodyIndex, 1);
+
+    const size = this.bodies.length * 3;
+    const newPositions = new Float32Array(size);
+    const newVelocities = new Float32Array(size);
+    const newForces = new Float32Array(size);
+    const newInvMasses = new Float32Array(size);
+
+    this._accelerations = new Float32Array(size);
+    this._c0Forces = new Float32Array(size);
+    this._cvForces = new Float32Array(size);
+    this._tmpForces = new Float32Array(size);
+    this._tmpVelocities = new Float32Array(size);
+
+    newPositions.set([
+      ...this.positions.subarray(0, bodyIndex * 3),
+      ...this.positions.subarray((bodyIndex + 1) * 3)
+    ]);
+    newVelocities.set([
+      ...this.velocities.subarray(0, bodyIndex * 3),
+      ...this.velocities.subarray((bodyIndex + 1) * 3)
+    ]);
+    newForces.set([
+      ...this.forces.subarray(0, bodyIndex * 3),
+      ...this.forces.subarray((bodyIndex + 1) * 3)
+    ]);
+    newInvMasses.set([
+      ...this.invMasses.subarray(0, bodyIndex * 3),
+      ...this.invMasses.subarray((bodyIndex + 1) * 3)
+    ]);
+
+    this.positions = newPositions;
+    this.velocities = newVelocities;
+    this.forces = newForces;
+    this.invMasses = newInvMasses;
   }
 
   simulate(dt: number) {
@@ -188,10 +224,13 @@ export class World {
   }
 
   removeConstraint(constraint: ConstraintInterface) {
-    this._jointConstraints.splice(
-      this._jointConstraints.indexOf(constraint),
-      1
-    );
+    const indexOf = this._jointConstraints.indexOf(constraint);
+
+    if (indexOf === -1) {
+      return;
+    }
+
+    this._jointConstraints.splice(indexOf, 1);
     this._lambdaCache0 = new Float32Array(this._jointConstraints.length);
     this._lambdaCache1 = new Float32Array(this._jointConstraints.length);
   }

@@ -19,7 +19,17 @@ const REDISH_COLOR = "#ff0000";
 const BLUISH_COLOR = "#0356fc";
 const LINE_COLOR = "#f5ad42";
 
-export const projMat = mat3.fromValues(40, 0, 0, 0, -40, 0, 400, 400, 1);
+export const projMat = mat3.fromValues(
+  canvas.width / 30.0,
+  0,
+  0,
+  0,
+  -canvas.height / 20.0,
+  0,
+  canvas.width * 0.5,
+  canvas.height * 0.5,
+  1
+);
 
 export const clear = (): void => {
   context.clearRect(0, 0, canvas.width, canvas.height);
