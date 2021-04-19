@@ -7,7 +7,7 @@ import {
   createStackScene,
   createStairsScene,
   world,
-  createGuassianScene,
+  createGaussianScene,
   createChainScene
 } from "./scene";
 import { Draggable, Rotatable } from "./controls";
@@ -25,10 +25,10 @@ const step = () => {
 
 setTimeout(() => {
   createChainScene(16);
-  // createPendulumScene(8);
+  // createPendulumScene(12);
   // createStairsScene(8);
-  // createStackScene(64);
-  // createGuassianScene()
+  // createStackScene(128);
+  // createGaussianScene()
 
   world.bodies.forEach(b => new Draggable(canvas, world, b));
   world.bodies.forEach(b => new Rotatable(canvas, world, b));

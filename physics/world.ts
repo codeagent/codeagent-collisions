@@ -1,5 +1,6 @@
 import { vec2 } from "gl-matrix";
 
+import { csr } from "./csr";
 import { Body } from "./body";
 import {
   DistanceConstraint,
@@ -8,11 +9,8 @@ import {
   FrictionConstraint
 } from "./constraints";
 import {
-  JxDxJt,
   VxSpVxS,
-  MxV,
   projectedGussSeidel,
-  MtxV,
   Vector,
   VcV,
   VpV,
@@ -266,16 +264,25 @@ export class World {
     // A = J * Minv * Jt
     // b = 1.0 / ∆t * v − J * (1 / ∆t * v1 + Minv * fext)
 
-    JxDxJt(A, J, this.invMasses);
+    const csrJ = csr.compress(J, c);
+    csr.MxDxMt(A, csrJ, this.invMasses);
+
     VmV(bhat, this.invMasses, this.forces);
     VpVxS(bhat, bhat, this.velocities, 1.0 / dt);
-    MxV(b, J, bhat);
+    csr.MxV(b, csrJ, bhat);
     VxSpVxS(b, v, 1.0 / dt, b, -1.0);
 
-    projectedGussSeidel(lambdas, A, b, cache, cMin, cMax, this.iterations);
+    projectedGussSeidel(
+      lambdas,
+      csr.compress(A, c),
+      b,
+      cache,
+      cMin,
+      cMax,
+      this.iterations
+    );
     cache.set(lambdas.subarray(0, this._jointConstraints.length));
-
-    MtxV(out, J, lambdas);
+    csr.MtxV(out, csrJ, lambdas);
   }
 
   private applyGlobalForces() {

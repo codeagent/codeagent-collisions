@@ -1,4 +1,5 @@
 import { mat3, vec2 } from "gl-matrix";
+
 import { cross } from "./tests";
 import { World } from "./world";
 

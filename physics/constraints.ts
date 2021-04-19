@@ -1,5 +1,6 @@
 import { vec2 } from "gl-matrix";
-import { MxV, Vector, VxV } from "./solver";
+
+import { Vector, VxV } from "./solver";
 import { cross } from "./tests";
 import { World } from "./world";
 

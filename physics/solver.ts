@@ -1,3 +1,5 @@
+import { csr } from "./csr";
+
 export type Vector = Float32Array;
 export type Matrix = Float32Array;
 
@@ -84,7 +86,7 @@ export const VxSpVxS = (
 
 export const projectedGussSeidel = (
   out: Vector,
-  A: Matrix,
+  A: csr.Matrix,
   b: Vector,
   initialGuess: Vector,
   cMin: Vector,
@@ -98,18 +100,17 @@ export const projectedGussSeidel = (
   while (maxIterations-- > 0) {
     for (let j = 0; j < n; j++) {
       out[j] = b[j];
-      for (let i = 0; i < out.length; i++) {
-        if (i === j) {
+      let denom = 1.0;
+
+      for (let k = A.rows[j]; k < A.rows[j + 1]; k++) {
+        if (A.columns[k] === j) {
+          denom = A.values[k];
           continue;
         }
-        out[j] -= A[n * j + i] * out[i];
+        out[j] -= A.values[k] * out[A.columns[k]];
       }
 
-      if (Math.abs(A[n * j + j]) <= 1e-6) {
-        continue;
-      }
-
-      out[j] /= A[n * j + j];
+      out[j] /= denom;
       out[j] = Math.min(out[j], cMax[j]);
       out[j] = Math.max(out[j], cMin[j]);
     }

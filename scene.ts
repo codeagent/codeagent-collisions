@@ -253,10 +253,10 @@ export const createStairsScene = (n: number) => {
   spawn();
 };
 
-export const createGuassianScene = () => {
-  const n = 256;
-  let columns = 15;
-  let band = 1.0;
+export const createGaussianScene = () => {
+  const n = 512;
+  let columns = 9;
+  let band = 2.0;
   const colW = 0.25;
   const sinkSlope = Math.PI * 0.35;
   let obstacleBands = 10;
@@ -300,7 +300,7 @@ export const createGuassianScene = () => {
   let x = 0.0;
   while (columns--) {
     if (columns % 2 == 1) {
-      x += band + colW;
+      x += band + 0.0;
     }
     world.createBody(
       createRectShape(colW, 7),
@@ -354,7 +354,7 @@ export const createGuassianScene = () => {
   const r = Math.floor(Math.sqrt(n));
 
   u = 0.0;
-  v = 13.0;
+  v = 14.0;
 
   for (let i = r; i > 0; i--) {
     u = -i * ballR;
