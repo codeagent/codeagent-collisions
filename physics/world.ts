@@ -1,13 +1,13 @@
-import { vec2 } from "gl-matrix";
+import { vec2 } from 'gl-matrix';
 
-import { csr } from "./csr";
-import { Body } from "./body";
+import { csr } from './csr';
+import { Body } from './body';
 import {
   DistanceConstraint,
   ConstraintInterface,
   ContactConstraint,
   FrictionConstraint
-} from "./constraints";
+} from './constraints';
 import {
   VxSpVxS,
   projectedGussSeidel,
@@ -16,8 +16,8 @@ import {
   VpV,
   VmV,
   VpVxS
-} from "./solver";
-import { CollisionDetector } from "./detector";
+} from './solver';
+import { CollisionDetector } from './detector';
 
 export class PolygonShape {
   constructor(public points: vec2[]) {}
@@ -279,7 +279,7 @@ export class World {
     const v = new Float32Array(c);
     const cMin = new Float32Array(c);
     const cMax = new Float32Array(c);
-    const A = new Float32Array(c * c);
+    // const A = new Float32Array(c * c);
     const lambdas = new Float32Array(c);
     const b = new Float32Array(c);
     const bhat = new Float32Array(n);
@@ -304,22 +304,17 @@ export class World {
     // b = 1.0 / ∆t * v − J * (1 / ∆t * v1 + Minv * fext)
 
     const csrJ = csr.compress(J, c);
-    csr.MxDxMt(A, csrJ, this.invMasses);
+
+    const csrA = csr.MxDxMtCsr(csrJ, this.invMasses);
+    // csr.MxDxMt(A, csrJ, this.invMasses);
+    // const csrA = csr.compress(A, c)
 
     VmV(bhat, this.invMasses, this.forces);
     VpVxS(bhat, bhat, this.velocities, 1.0 / dt);
     csr.MxV(b, csrJ, bhat);
     VxSpVxS(b, v, 1.0 / dt, b, -1.0);
 
-    projectedGussSeidel(
-      lambdas,
-      csr.compress(A, c),
-      b,
-      cache,
-      cMin,
-      cMax,
-      this.iterations
-    );
+    projectedGussSeidel(lambdas, csrA, b, cache, cMin, cMax, this.iterations);
     cache.set(lambdas.subarray(0, this._jointConstraints.length));
     csr.MtxV(out, csrJ, lambdas);
   }

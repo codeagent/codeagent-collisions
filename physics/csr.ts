@@ -92,6 +92,79 @@ export namespace csr {
     }
   };
 
+  export const MxMtCsr = (mat: Matrix): Matrix => {
+    const countIndex = new Map<number, number>(); // row:count
+    const columnsIndex = new Map<number, number[]>(); // row:columns
+    const valuesIndex = new Map<number, number[]>(); // row:values
+
+    // init indices
+    for (let i = 0; i < mat.m; i++) {
+      columnsIndex.set(i, []);
+      countIndex.set(i, 0);
+      valuesIndex.set(i, []);
+    }
+
+    let count = 0;
+    for (let i = 0; i < mat.m; i++) {
+      for (let j = i; j < mat.m; j++) {
+        let v = 0.0;
+        let k = mat.rows[i];
+        let kt = mat.rows[j];
+
+        while (k < mat.rows[i + 1] && kt < mat.rows[j + 1]) {
+          if (mat.columns[kt] < mat.columns[k]) {
+            kt++;
+          } else if (mat.columns[kt] > mat.columns[k]) {
+            k++;
+          } else {
+            v += mat.values[k] * mat.values[kt];
+            kt++;
+            k++;
+          }
+        }
+
+        //
+        if (v) {
+          count++;
+          countIndex.set(i, countIndex.get(i) + 1);
+          columnsIndex.get(i).push(j);
+          valuesIndex.get(i).push(v);
+
+          if (i !== j) {
+            count++;
+            countIndex.set(j, countIndex.get(j) + 1);
+            columnsIndex.get(j).push(i);
+            valuesIndex.get(j).push(v);
+          }
+        }
+      }
+    }
+
+    const rows = new Uint16Array(mat.m + 1);
+    const columns = new Uint16Array(count);
+    const values = new Float32Array(count);
+
+    let counter = 0;
+    let cOffset = 0;
+    let vOffset = 0;
+    for (let i = 0; i < mat.m; i++) {
+      counter += countIndex.get(i);
+      rows[i + 1] = counter;
+      columns.set(columnsIndex.get(i), cOffset);
+      values.set(valuesIndex.get(i), vOffset);
+      cOffset += columnsIndex.get(i).length;
+      vOffset += valuesIndex.get(i).length;
+    }
+
+    return {
+      m: mat.m,
+      n: mat.m,
+      rows,
+      columns,
+      values
+    };
+  };
+
   export const MxDxMt = (
     out: Float32Array,
     mat: Matrix,
@@ -120,6 +193,79 @@ export namespace csr {
         out[j * mat.m + i] = out[i * mat.m + j] = v;
       }
     }
+  };
+
+  export const MxDxMtCsr = (mat: Matrix, diag: Float32Array): Matrix => {
+    const countIndex = new Map<number, number>(); // row:count
+    const columnsIndex = new Map<number, number[]>(); // row:columns
+    const valuesIndex = new Map<number, number[]>(); // row:values
+
+    // init indices
+    for (let i = 0; i < mat.m; i++) {
+      columnsIndex.set(i, []);
+      countIndex.set(i, 0);
+      valuesIndex.set(i, []);
+    }
+
+    let count = 0;
+    for (let i = 0; i < mat.m; i++) {
+      for (let j = i; j < mat.m; j++) {
+        let v = 0.0;
+        let k = mat.rows[i];
+        let kt = mat.rows[j];
+
+        while (k < mat.rows[i + 1] && kt < mat.rows[j + 1]) {
+          if (mat.columns[kt] < mat.columns[k]) {
+            kt++;
+          } else if (mat.columns[kt] > mat.columns[k]) {
+            k++;
+          } else {
+            v += diag[mat.columns[k]] * mat.values[k] * mat.values[kt];
+            kt++;
+            k++;
+          }
+        }
+
+        //
+        if (v) {
+          count++;
+          countIndex.set(i, countIndex.get(i) + 1);
+          columnsIndex.get(i).push(j);
+          valuesIndex.get(i).push(v);
+
+          if (i !== j) {
+            count++;
+            countIndex.set(j, countIndex.get(j) + 1);
+            columnsIndex.get(j).push(i);
+            valuesIndex.get(j).push(v);
+          }
+        }
+      }
+    }
+
+    const rows = new Uint16Array(mat.m + 1);
+    const columns = new Uint16Array(count);
+    const values = new Float32Array(count);
+
+    let counter = 0;
+    let cOffset = 0;
+    let vOffset = 0;
+    for (let i = 0; i < mat.m; i++) {
+      counter += countIndex.get(i);
+      rows[i + 1] = counter;
+      columns.set(columnsIndex.get(i), cOffset);
+      values.set(valuesIndex.get(i), vOffset);
+      cOffset += columnsIndex.get(i).length;
+      vOffset += valuesIndex.get(i).length;
+    }
+
+    return {
+      m: mat.m,
+      n: mat.m,
+      rows,
+      columns,
+      values
+    };
   };
 
   export const MtxV = (out: Float32Array, mat: Matrix, vec: Float32Array) => {
