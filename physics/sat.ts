@@ -182,7 +182,7 @@ export namespace sat {
     }
 
     if (query0.distance > query1.distance) {
-      query.depth = query0.distance;
+      query.depth = -query0.distance;
       query.faceIndex = query0.faceIndex;
       query.polyIndex = 0;
       query.vector = vec2.transformMat2(
@@ -196,7 +196,7 @@ export namespace sat {
         )
       );
     } else {
-      query.depth = query1.distance;
+      query.depth = -query1.distance;
       query.faceIndex = query1.faceIndex;
       query.polyIndex = 1;
       query.vector = vec2.transformMat2(

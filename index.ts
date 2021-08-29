@@ -1,7 +1,7 @@
 // Import stylesheets
 import './style.css';
 
-import { canvas, clear, drawWorld } from './draw';
+import { canvas, clear, drawLineSegment, drawWorld } from './draw';
 import {
   createPendulumScene,
   createStackScene,
@@ -17,6 +17,7 @@ import { delay, map, tap } from 'rxjs/operators';
 import { sat } from './physics/sat';
 import { Body } from './physics/body';
 import { PolygonShape, World } from './physics';
+import { vec2 } from 'gl-matrix';
 
 self['world'] = world;
 
@@ -52,7 +53,7 @@ merge(
   fromEvent(document.getElementById('sat'), 'click').pipe(
     map(e => e.srcElement['id'])
   ),
-  of('chain').pipe(delay(1000))
+  of('sat').pipe(delay(1000))
 )
   .pipe(
     tap(id => {
@@ -79,14 +80,14 @@ const step = () => {
   clear();
   drawWorld(world);
   if (sceneId === 'sat') {
-    console.log(satTest(world));
+    satTest(world);
   }
   requestAnimationFrame(step);
 };
 
 step();
 
-const satTest = (world: World): boolean => {
+const satTest = (world: World) => {
   const shape0 = world.bodyShapeLookup.get(world.bodies[0]) as PolygonShape;
   const shape1 = world.bodyShapeLookup.get(world.bodies[1]) as PolygonShape;
   const poly0 = new sat.Polygon(shape0.points);
@@ -94,5 +95,19 @@ const satTest = (world: World): boolean => {
   const proxy0 = { shape: poly0, transformable: world.bodies[0] };
   const proxy1 = { shape: poly1, transformable: world.bodies[1] };
   const query = new sat.MTVQuery();
-  return sat.testPolyPoly(query, proxy0, proxy1);
+  if (sat.testPolyPoly(query, proxy0, proxy1)) {
+    const proxy = [proxy0, proxy1][query.polyIndex];
+    const p0 = vec2.clone(proxy.shape.points[query.faceIndex]);
+    const p1 = vec2.clone(
+      proxy.shape.points[(query.faceIndex + 1) % proxy.shape.points.length]
+    );
+    vec2.transformMat3(p0, p0, proxy.transformable.transform);
+    vec2.transformMat3(p1, p1, proxy.transformable.transform);
+    drawLineSegment([p0, p1], '#ff0000');
+
+    vec2.scale(query.vector, query.vector, query.depth);
+    vec2.add(p1, p0, query.vector);
+
+    drawLineSegment([p0, p1], '#0000ff');
+  }
 };
