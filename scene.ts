@@ -1,5 +1,5 @@
-import { vec2 } from "gl-matrix";
-import { BodyShape, PolygonShape, World, Body, CircleShape } from "./physics";
+import { vec2 } from 'gl-matrix';
+import { BodyShape, PolygonShape, World, Body, CircleShape } from './physics';
 
 const lerp = (a: number, b: number, t: number) => a * (1.0 - t) + b * t;
 const rangeRandom = (from: number, to: number) => lerp(from, to, Math.random());
@@ -22,27 +22,11 @@ const createRectShape = (w: number, h: number): BodyShape => {
   ]);
 };
 
-const createLeftTrapezoidShape = (w: number, h: number): BodyShape => {
-  return new PolygonShape([
-    vec2.fromValues(0.0, 0.0),
-    vec2.fromValues(w, 0.0),
-    vec2.fromValues(0.0, h)
-  ]);
-};
-
-const createRightTrapezoidShape = (w: number, h: number): BodyShape => {
-  return new PolygonShape([
-    vec2.fromValues(0.0, 0.0),
-    vec2.fromValues(0.0, h),
-    vec2.fromValues(-w, 0.0)
-  ]);
-};
-
 export const world = new World();
 
 export const createChainScene = (links: number, x = 0.0) => {
   world.restitution = 0.5;
-  world.pushFactor = 0.4;
+  world.pushFactor = 0.075;
 
   const chain = new Array<Body>(links);
   const size = 0.5;
@@ -54,7 +38,7 @@ export const createChainScene = (links: number, x = 0.0) => {
     const body = world.createBody(
       createQuadShape(size),
       i === 0 ? Number.POSITIVE_INFINITY : m,
-      i === 0 ? Number.POSITIVE_INFINITY : m,
+      i === 0 ? Number.POSITIVE_INFINITY : m * 0.1,
       vec2.fromValues(offset - Math.SQRT2 * size + x, 10),
       -Math.PI * 0.25
     );
@@ -373,4 +357,22 @@ export const createGaussianScene = () => {
 
     v -= 2.0 * ballR;
   }
+};
+
+export const createSATScene = () => {
+  world.createBody(
+    createRectShape(5, 2),
+    Number.POSITIVE_INFINITY,
+    Number.POSITIVE_INFINITY,
+    vec2.fromValues(0.0, -5),
+    0.0
+  );
+
+  world.createBody(
+    createRectShape(2, 5),
+    Number.POSITIVE_INFINITY,
+    Number.POSITIVE_INFINITY,
+    vec2.fromValues(3, -5),
+    0.0
+  );
 };
