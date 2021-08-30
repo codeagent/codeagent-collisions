@@ -1,95 +1,12 @@
-import { mat2, mat3, vec2, vec3 } from 'gl-matrix';
+import { mat2, mat3, vec2 } from 'gl-matrix';
+import { MTV } from './mtv';
+import { ShapeProxy } from './proxy';
+import { Shape, Circle, Polygon } from './shape';
 
 export namespace sat {
-  export interface Shape {
-    /**
-     * @param out result will be placed here
-     * @param dir normalized direction to search support point along
-     * @returns support point on local frame of reference
-     */
-    support(out: vec2, dir: vec2): vec2;
-  }
-
-  export interface Transformable {
-    readonly transform: mat3;
-  }
-
-  export interface ShapeProxy<T = Shape> {
-    shape: T;
-    transformable: Transformable;
-  }
-
   class FaceDistanceQuery {
     public faceIndex = -1;
     public distance = Number.NEGATIVE_INFINITY;
-  }
-
-  export class MTVQuery {
-    vector: vec2 = null;
-    depth: number = Number.NEGATIVE_INFINITY;
-    shapeIndex: -1 | 0 | 1 = -1;
-    faceIndex: number = -1;
-  }
-
-  export class Circle implements Shape {
-    constructor(public readonly radius: number) {}
-
-    public support(out: vec2, dir: vec2): vec2 {
-      vec2.normalize(out, dir);
-      return vec2.scale(out, out, this.radius);
-    }
-  }
-
-  export class Polygon implements Shape {
-    public readonly normals: vec2[];
-
-    /**
-     * @param hull array of couter-clock wise oriented loop of points
-     */
-    constructor(public readonly points: vec2[]) {
-      this.normals = this.getNormals(points);
-    }
-
-    public support(out: vec2, dir: vec2): vec2 {
-      // @todo: hill climbing
-      let bestDot = Number.NEGATIVE_INFINITY;
-      vec2.copy(out, this.points[0]);
-
-      for (const p of this.points) {
-        const dot = vec2.dot(p, dir);
-        if (dot > bestDot) {
-          bestDot = dot;
-          vec2.copy(out, p);
-        }
-      }
-
-      return out;
-    }
-
-    private getNormals(loop: vec2[]): vec2[] {
-      const normals: vec2[] = [];
-      for (let i = 0; i < loop.length; i++) {
-        const a = loop[i];
-        const b = loop[(i + 1) % loop.length];
-        const n = vec2.create();
-        vec2.sub(n, b, a);
-        vec2.set(n, n[1], -n[0]);
-        vec2.normalize(n, n);
-        normals.push(n);
-      }
-      return normals;
-    }
-  }
-
-  export class Box extends Polygon {
-    constructor(public readonly width: number, public readonly height: number) {
-      super([
-        vec2.fromValues(-width * 0.5, height * 0.5),
-        vec2.fromValues(-width * 0.5, -height * 0.5),
-        vec2.fromValues(width * 0.5, -height * 0.5),
-        vec2.fromValues(width * 0.5, height * 0.5)
-      ]);
-    }
   }
 
   const queryBestFace = (
@@ -176,20 +93,8 @@ export namespace sat {
     }
   };
 
-  const fromBarycentric = <T extends ArrayLike<number>>(
-    out: vec2,
-    barycentric: T,
-    ...points: vec2[]
-  ) => {
-    vec2.set(out, 0.0, 0.0);
-    for (let i = 0; i < barycentric.length; i++) {
-      vec2.scaleAndAdd(out, out, points[i], barycentric[i]);
-    }
-    return out;
-  };
-
   export const testPolyPoly = (
-    query: MTVQuery,
+    query: MTV,
     poly0: ShapeProxy<Polygon>,
     poly1: ShapeProxy<Polygon>
   ): boolean => {
@@ -249,7 +154,7 @@ export namespace sat {
   };
 
   export const testPolyCircle = (
-    query: MTVQuery,
+    query: MTV,
     poly: ShapeProxy<Polygon>,
     circle: ShapeProxy<Circle>
   ): boolean => {

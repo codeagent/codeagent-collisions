@@ -1,6 +1,10 @@
 // Import stylesheets
 import './style.css';
 
+import { vec2 } from 'gl-matrix';
+import { fromEvent, merge, of } from 'rxjs';
+import { delay, map, tap } from 'rxjs/operators';
+
 import { canvas, clear, drawLineSegment, drawWorld } from './draw';
 import {
   createPendulumScene,
@@ -12,13 +16,8 @@ import {
   createSATScene
 } from './scene';
 import { Draggable, Rotatable } from './controls';
-import { fromEvent, merge, of } from 'rxjs';
-import { delay, map, tap } from 'rxjs/operators';
-import { sat } from './physics/sat';
-import { Body } from './physics/body';
-import { PolygonShape, World } from './physics';
-import { vec2 } from 'gl-matrix';
-import { CircleShape } from './physics/world';
+import { sat, ShapeProxy, Polygon, Circle, MTV } from './physics/collision';
+import { PolygonShape, World, Body, CircleShape } from './physics';
 
 self['world'] = world;
 
@@ -89,18 +88,18 @@ const step = () => {
 step();
 
 const satTest = (world: World) => {
-  const createProxy = (body: Body): sat.ShapeProxy => {
+  const createProxy = (body: Body): ShapeProxy => {
     const shape = world.bodyShapeLookup.get(body);
     if (shape instanceof CircleShape) {
       return {
-        shape: new sat.Circle(shape.radius),
+        shape: new Circle(shape.radius),
         transformable: body
-      } as sat.ShapeProxy<sat.Circle>;
+      } as ShapeProxy<Circle>;
     } else if (shape instanceof PolygonShape) {
       return {
-        shape: new sat.Polygon(shape.points),
+        shape: new Polygon(shape.points),
         transformable: body
-      } as sat.ShapeProxy<sat.Polygon>;
+      } as ShapeProxy<Polygon>;
     }
     return null;
   };
@@ -112,24 +111,24 @@ const satTest = (world: World) => {
       const leftProxy = createProxy(leftBody);
       const rightProxy = createProxy(rightBody);
 
-      const query = new sat.MTVQuery();
+      const query = new MTV();
       if (
-        leftProxy.shape instanceof sat.Circle &&
-        rightProxy.shape instanceof sat.Circle
+        leftProxy.shape instanceof Circle &&
+        rightProxy.shape instanceof Circle
       ) {
       } else if (
-        leftProxy.shape instanceof sat.Circle &&
-        rightProxy.shape instanceof sat.Polygon
+        leftProxy.shape instanceof Circle &&
+        rightProxy.shape instanceof Polygon
       ) {
         sat.testPolyCircle(query, rightProxy, leftProxy);
       } else if (
-        leftProxy.shape instanceof sat.Polygon &&
-        rightProxy.shape instanceof sat.Circle
+        leftProxy.shape instanceof Polygon &&
+        rightProxy.shape instanceof Circle
       ) {
         sat.testPolyCircle(query, leftProxy, rightProxy);
       } else if (
-        leftProxy.shape instanceof sat.Polygon &&
-        rightProxy.shape instanceof sat.Polygon
+        leftProxy.shape instanceof Polygon &&
+        rightProxy.shape instanceof Polygon
       ) {
         sat.testPolyPoly(query, leftProxy, rightProxy);
       }
