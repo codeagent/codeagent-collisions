@@ -27,7 +27,7 @@ export namespace sat {
   export class MTVQuery {
     vector: vec2 = null;
     depth: number = Number.NEGATIVE_INFINITY;
-    polyIndex: -1 | 0 | 1 = -1;
+    shapeIndex: -1 | 0 | 1 = -1;
     faceIndex: number = -1;
   }
 
@@ -165,7 +165,7 @@ export namespace sat {
     if (query0.distance >= 0) {
       query.depth = Number.NEGATIVE_INFINITY;
       query.faceIndex = -1;
-      query.polyIndex = -1;
+      query.shapeIndex = -1;
       query.vector = null;
       return false;
     }
@@ -176,7 +176,7 @@ export namespace sat {
     if (query1.distance >= 0) {
       query.depth = Number.NEGATIVE_INFINITY;
       query.faceIndex = -1;
-      query.polyIndex = -1;
+      query.shapeIndex = -1;
       query.vector = null;
       return false;
     }
@@ -184,7 +184,7 @@ export namespace sat {
     if (query0.distance > query1.distance) {
       query.depth = -query0.distance;
       query.faceIndex = query0.faceIndex;
-      query.polyIndex = 0;
+      query.shapeIndex = 0;
       query.vector = vec2.transformMat2(
         vec2.create(),
         poly0.shape.normals[query0.faceIndex],
@@ -198,7 +198,7 @@ export namespace sat {
     } else {
       query.depth = -query1.distance;
       query.faceIndex = query1.faceIndex;
-      query.polyIndex = 1;
+      query.shapeIndex = 1;
       query.vector = vec2.transformMat2(
         vec2.create(),
         poly1.shape.normals[query1.faceIndex],
@@ -210,6 +210,39 @@ export namespace sat {
         )
       );
     }
+
+    return true;
+  };
+
+  export const testPolyCircle = (
+    query: MTVQuery,
+    poly: ShapeProxy<Polygon>,
+    circle: ShapeProxy<Circle>
+  ): boolean => {
+    const query0 = new FaceDistanceQuery();
+    queryBestFace(query0, poly, circle);
+
+    if (query0.distance >= 0) {
+      query.depth = Number.NEGATIVE_INFINITY;
+      query.faceIndex = -1;
+      query.shapeIndex = -1;
+      query.vector = null;
+      return false;
+    }
+
+    query.depth = -query0.distance;
+    query.faceIndex = query0.faceIndex;
+    query.shapeIndex = 0;
+    query.vector = vec2.transformMat2(
+      vec2.create(),
+      poly.shape.normals[query0.faceIndex],
+      mat2.fromValues(
+        poly.transformable.transform[0],
+        poly.transformable.transform[1],
+        poly.transformable.transform[3],
+        poly.transformable.transform[4]
+      )
+    );
 
     return true;
   };

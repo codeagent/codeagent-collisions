@@ -364,15 +364,31 @@ export const createSATScene = () => {
     createRectShape(5, 2),
     Number.POSITIVE_INFINITY,
     Number.POSITIVE_INFINITY,
-    vec2.fromValues(0.0, -5),
+    vec2.fromValues(-2.0, -5),
+    0.0
+  );
+
+   world.createBody(
+    createRectShape(2, 3),
+    Number.POSITIVE_INFINITY,
+    Number.POSITIVE_INFINITY,
+    vec2.fromValues(2.0, 0),
     0.0
   );
 
   world.createBody(
-    createRectShape(2, 5),
+    new CircleShape(2),
     Number.POSITIVE_INFINITY,
     Number.POSITIVE_INFINITY,
-    vec2.fromValues(3, -5),
+    vec2.fromValues(4, -2),
+    0.0
+  );
+
+  world.createBody(
+    new CircleShape(3),
+    Number.POSITIVE_INFINITY,
+    Number.POSITIVE_INFINITY,
+    vec2.fromValues(0.0, -5),
     0.0
   );
 };
