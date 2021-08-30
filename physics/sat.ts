@@ -154,6 +154,40 @@ export namespace sat {
     return query;
   };
 
+  const closestPointToLineSegment = (
+    out: vec2,
+    a: vec2,
+    b: vec2,
+    p: vec2
+  ): vec2 => {
+    const ab = vec2.sub(vec2.create(), b, a);
+    const ap = vec2.sub(vec2.create(), p, a);
+
+    // Project c onto ab, computing parameterized position d(t)=a+ t*(b – a)
+    let t = vec2.dot(ap, ab) / vec2.dot(ab, ab);
+
+    if (t < 0.0) {
+      vec2.copy(out, a);
+    } else if (t > 1.0) {
+      vec2.copy(out, b);
+    } else {
+      vec2.copy(out, a);
+      return vec2.scaleAndAdd(out, a, ab, t);
+    }
+  };
+
+  const fromBarycentric = <T extends ArrayLike<number>>(
+    out: vec2,
+    barycentric: T,
+    ...points: vec2[]
+  ) => {
+    vec2.set(out, 0.0, 0.0);
+    for (let i = 0; i < barycentric.length; i++) {
+      vec2.scaleAndAdd(out, out, points[i], barycentric[i]);
+    }
+    return out;
+  };
+
   export const testPolyPoly = (
     query: MTVQuery,
     poly0: ShapeProxy<Polygon>,
@@ -230,19 +264,40 @@ export namespace sat {
       return false;
     }
 
-    query.depth = -query0.distance;
-    query.faceIndex = query0.faceIndex;
-    query.shapeIndex = 0;
-    query.vector = vec2.transformMat2(
-      vec2.create(),
-      poly.shape.normals[query0.faceIndex],
-      mat2.fromValues(
-        poly.transformable.transform[0],
-        poly.transformable.transform[1],
-        poly.transformable.transform[3],
-        poly.transformable.transform[4]
-      )
+    const v = vec2.create();
+    const a = vec2.create();
+    vec2.transformMat3(
+      a,
+      poly.shape.points[query0.faceIndex],
+      poly.transformable.transform
     );
+    const b = vec2.create();
+    vec2.transformMat3(
+      b,
+      poly.shape.points[(query0.faceIndex + 1) % poly.shape.points.length],
+      poly.transformable.transform
+    );
+    const c = vec2.fromValues(
+      circle.transformable.transform[6],
+      circle.transformable.transform[7]
+    );
+    closestPointToLineSegment(v, a, b, c);
+    vec2.sub(v, v, c);
+    const length2 = vec2.dot(v, v);
+    if (length2 < circle.shape.radius * circle.shape.radius) {
+      const length = Math.sqrt(length2);
+      query.depth = length - circle.shape.radius;
+      query.faceIndex = query0.faceIndex;
+      query.shapeIndex = 0;
+      query.vector = vec2.scale(v, v, 1.0 / length);
+
+      return true;
+    }
+
+    query.depth = Number.NEGATIVE_INFINITY;
+    query.faceIndex = -1;
+    query.shapeIndex = -1;
+    query.vector = null;
 
     return true;
   };
