@@ -20,12 +20,14 @@ export class Circle implements Shape {
 
 export class Polygon implements Shape {
   public readonly normals: vec2[];
+  public readonly lookup = new Map<vec2, [vec2, vec2]>();
 
   /**
    * @param hull array of couter-clock wise oriented loop of points
    */
   constructor(public readonly points: vec2[]) {
     this.normals = this.getNormals(points);
+    // this.lookup = this.getNeighborLookup(ponits);
   }
 
   public support(out: vec2, dir: vec2): vec2 {
@@ -44,6 +46,12 @@ export class Polygon implements Shape {
     return out;
   }
 
+  // public getNext(point: vec2): vec2 {
+  //   return this.lookup.get(point);
+  // }
+
+  // public getPrev(point: vec2): vec2 {}
+
   private getNormals(loop: vec2[]): vec2[] {
     const normals: vec2[] = [];
     for (let i = 0; i < loop.length; i++) {
@@ -56,6 +64,10 @@ export class Polygon implements Shape {
       normals.push(n);
     }
     return normals;
+  }
+
+  private getNeighborLookup(loop: vec2[]) {
+    const lookup = new Map<vec2, [vec2, vec2]>();
   }
 }
 
