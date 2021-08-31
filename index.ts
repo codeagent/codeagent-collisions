@@ -5,7 +5,13 @@ import { vec2 } from 'gl-matrix';
 import { fromEvent, merge, of } from 'rxjs';
 import { delay, map, tap } from 'rxjs/operators';
 
-import { canvas, clear, drawLineSegment, drawWorld } from './draw';
+import {
+  canvas,
+  clear,
+  drawLineSegment,
+  drawManifold,
+  drawWorld
+} from './draw';
 import {
   createPendulumScene,
   createStackScene,
@@ -16,7 +22,15 @@ import {
   createSATScene
 } from './scene';
 import { Draggable, Rotatable } from './controls';
-import { sat, ShapeProxy, Polygon, Circle, MTV } from './physics/collision';
+import {
+  sat,
+  ShapeProxy,
+  Polygon,
+  Circle,
+  MTV,
+  getPolyPolyContactManifold,
+  ContactManifold
+} from './physics/collision';
 import { PolygonShape, World, Body, CircleShape } from './physics';
 
 self['world'] = world;
@@ -112,6 +126,7 @@ const satTest = (world: World) => {
       const rightProxy = createProxy(rightBody);
 
       const query = new MTV();
+      const manifold: ContactManifold = [];
       if (
         leftProxy.shape instanceof Circle &&
         rightProxy.shape instanceof Circle
@@ -130,11 +145,8 @@ const satTest = (world: World) => {
         leftProxy.shape instanceof Polygon &&
         rightProxy.shape instanceof Polygon
       ) {
-        sat.testPolyPoly(query, leftProxy, rightProxy);
-      }
-
-      if (query.vector) {
-        if (query.faceIndex !== -1) {
+        if (sat.testPolyPoly(query, leftProxy, rightProxy)) {
+          getPolyPolyContactManifold(manifold, query, leftProxy, rightProxy);
           const proxy = [leftProxy, rightProxy][query.shapeIndex];
           const p0 = vec2.clone(proxy.shape.points[query.faceIndex]);
           const p1 = vec2.clone(
@@ -145,14 +157,31 @@ const satTest = (world: World) => {
           vec2.transformMat3(p0, p0, proxy.transformable.transform);
           vec2.transformMat3(p1, p1, proxy.transformable.transform);
           drawLineSegment([p0, p1], '#ff0000');
-
           vec2.scale(query.vector, query.vector, -query.depth);
           vec2.add(p1, p0, query.vector);
-
           drawLineSegment([p0, p1], '#0000ff');
-        } else {
         }
       }
+
+      drawManifold(manifold);
+
+      // if (query.vector) {
+      //   if (query.faceIndex !== -1) {
+      //     const proxy = [leftProxy, rightProxy][query.shapeIndex];
+      //     const p0 = vec2.clone(proxy.shape.points[query.faceIndex]);
+      //     const p1 = vec2.clone(
+      //       proxy.shape.points[
+      //         (query.faceIndex + 1) % proxy.shape.points.length
+      //       ]
+      //     );
+      //     vec2.transformMat3(p0, p0, proxy.transformable.transform);
+      //     vec2.transformMat3(p1, p1, proxy.transformable.transform);
+      //     drawLineSegment([p0, p1], '#ff0000');
+      //     vec2.scale(query.vector, query.vector, -query.depth);
+      //     vec2.add(p1, p0, query.vector);
+      //     drawLineSegment([p0, p1], '#0000ff');
+      //   }
+      // }
     }
   }
 };
