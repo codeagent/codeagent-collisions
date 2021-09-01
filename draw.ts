@@ -1,4 +1,4 @@
-import { vec2, mat3 } from "gl-matrix";
+import { vec2, mat3 } from 'gl-matrix';
 
 import {
   ContactManifold,
@@ -9,15 +9,17 @@ import {
   ConstraintInterface,
   ContactConstraint,
   DistanceConstraint
-} from "./physics";
+} from './physics';
 
-export const canvas = document.getElementById("canvas") as HTMLCanvasElement;
-const context = canvas.getContext("2d") as CanvasRenderingContext2D;
+import { ContactManifold as NewContactManifold } from './physics/collision';
 
-const DEFAULT_COLOR = "#666666";
-const REDISH_COLOR = "#ff0000";
-const BLUISH_COLOR = "#0356fc";
-const LINE_COLOR = "#f5ad42";
+export const canvas = document.getElementById('canvas') as HTMLCanvasElement;
+const context = canvas.getContext('2d') as CanvasRenderingContext2D;
+
+const DEFAULT_COLOR = '#666666';
+const REDISH_COLOR = '#ff0000';
+const BLUISH_COLOR = '#0356fc';
+const LINE_COLOR = '#f5ad42';
 
 export const projMat = mat3.fromValues(
   canvas.width / 30.0,
@@ -102,7 +104,7 @@ export const drawCircleShape = (
   context.stroke();
 };
 
-export const drawDot = (position: vec2, color = "#666666") => {
+export const drawDot = (position: vec2, color = '#666666') => {
   const INNER_RADIUS = 2;
   context.beginPath();
   const p = vec2.transformMat3(vec2.create(), position, projMat);
@@ -111,7 +113,7 @@ export const drawDot = (position: vec2, color = "#666666") => {
   context.fill();
 };
 
-export const drawLineSegment = (ed: [vec2, vec2], color = "#666666") => {
+export const drawLineSegment = (ed: [vec2, vec2], color = '#666666') => {
   context.setLineDash([]);
 
   context.beginPath();
@@ -132,6 +134,29 @@ export const drawManifold = (manifold: ContactManifold) => {
     drawLineSegment([point, t], LINE_COLOR);
     drawDot(point, REDISH_COLOR);
   });
+};
+
+export const drawManifoldNew = (manifold: NewContactManifold) => {
+  context.lineWidth = 0.5;
+  const t = vec2.create();
+  manifold.forEach(
+    ({
+      shape0,
+      shape1,
+      point0,
+      localPoint0,
+      point1,
+      localPoint1,
+      normal,
+      depth
+    }) => {
+      drawDot(point0, '#00AA00');
+      vec2.add(t, point0, normal);
+      drawLineSegment([point0, t], LINE_COLOR);
+
+      drawDot(point1, REDISH_COLOR);
+    }
+  );
 };
 
 export const drawConstraint = (constraint: ConstraintInterface) => {

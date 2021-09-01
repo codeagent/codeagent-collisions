@@ -1,13 +1,17 @@
 import { mat2, mat3, vec2 } from 'gl-matrix';
 import { MTV } from './mtv';
 import { ShapeProxy } from './proxy';
-import { Polygon } from './shape';
+import { Circle, Polygon } from './shape';
 
 export interface ContactPoint {
-  point: vec2;
-  normal: vec2;
+  shape0: ShapeProxy;
+  shape1: ShapeProxy;
+  point0: vec2;
+  localPoint0: vec2;
+  point1: vec2;
+  localPoint1: vec2;
+  normal: vec2; // from point0 at point1
   depth: number;
-  index: 0 | 1;
 }
 export type ContactManifold = ContactPoint[];
 
@@ -28,7 +32,7 @@ const getIncidentFace = (mtv: MTV, incident: ShapeProxy<Polygon>): number => {
   let bestDot = Number.NEGATIVE_INFINITY;
   let bestPoint = 0;
   const length = incident.shape.points.length;
-  for (let i = 0; i < length; i++) {
+  for (let i = 1; i < length; i++) {
     const dot = vec2.dot(incident.shape.points[i], dir);
     if (dot > bestDot) {
       bestDot = dot;
@@ -80,6 +84,7 @@ export const getPolyPolyContactManifold = (
     reference.shape.points[(mtv.faceIndex + 1) % reference.shape.points.length];
 
   const incI = getIncidentFace(mtv, incident);
+
   const inc0 = vec2.clone(incident.shape.points[incI]);
   const inc1 = vec2.clone(
     incident.shape.points[(incI + 1) % incident.shape.points.length]
@@ -89,30 +94,72 @@ export const getPolyPolyContactManifold = (
 
   // cliping
   const refN = vec2.create();
-  vec2.sub(refN, ref1, ref0);
-  clipByPlane(inc0, inc1, refN, ref0);
+  vec2.sub(refN, ref0, ref1);
+  clipByPlane(inc0, inc1, refN, ref1);
   vec2.negate(refN, refN);
-  clipByPlane(inc1, inc0, refN, ref1);
+  clipByPlane(inc1, inc0, refN, ref0);
 
   out.length = 0;
+
+  const invTransform = mat3.create();
+  mat3.invert(invTransform, incident.transformable.transform);
 
   const n = reference.shape.normals[mtv.faceIndex];
   for (let c of [inc0, inc1]) {
     vec2.sub(refN, c, ref0);
     const depth = vec2.dot(refN, n);
-    if (depth < 0) {
-      const point = vec2.create();
-      vec2.transformMat3(point, c, reference.transformable.transform);
-      const normal = mtv.vector;
-      const index = mtv.shapeIndex;
-      out.push({
-        point,
-        normal,
-        depth,
-        index: index as 0 | 1
-      });
+    if (depth >= 0) {
+      continue;
     }
+    const shape0 = reference;
+    const shape1 = incident;
+    const point0 = vec2.create();
+
+    // @todo: invTransform
+
+    vec2.transformMat3(point0, c, reference.transformable.transform);
+    const localPoint0 = vec2.clone(c);
+    const normal = vec2.clone(mtv.vector);
+    const point1 = vec2.create();
+    vec2.scaleAndAdd(point1, point0, normal, -depth);
+    const localPoint1 = vec2.clone(point1);
+    vec2.transformMat3(localPoint1, localPoint1, invTransform);
+
+    out.push({
+      shape0,
+      shape1,
+      point0,
+      localPoint0,
+      point1,
+      normal,
+      localPoint1,
+      depth
+    });
   }
 
   return out;
 };
+
+
+export const getPolyCircleContactManifold = (
+  out: ContactManifold,
+  mtv: MTV,
+  poly0: ShapeProxy<Polygon>,
+  poly1: ShapeProxy<Circle>
+): ContactManifold => {
+  const reference = [poly0, poly1][mtv.shapeIndex];
+  const incident = [poly1, poly0][mtv.shapeIndex];
+
+  const incidentToRreferenceMat = mat3.create();
+  mat3.invert(incidentToRreferenceMat, reference.transformable.transform);
+  mat3.multiply(
+    incidentToRreferenceMat,
+    incidentToRreferenceMat,
+    incident.transformable.transform
+  );
+
+ 
+
+  return out;
+};
+

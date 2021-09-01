@@ -10,6 +10,7 @@ import {
   clear,
   drawLineSegment,
   drawManifold,
+  drawManifoldNew,
   drawWorld
 } from './draw';
 import {
@@ -135,53 +136,48 @@ const satTest = (world: World) => {
         leftProxy.shape instanceof Circle &&
         rightProxy.shape instanceof Polygon
       ) {
-        sat.testPolyCircle(query, rightProxy, leftProxy);
+        if (sat.testPolyCircle(query, rightProxy, leftProxy)) {
+          // markEdges(query, rightProxy, leftProxy);
+        }
       } else if (
         leftProxy.shape instanceof Polygon &&
         rightProxy.shape instanceof Circle
       ) {
-        sat.testPolyCircle(query, leftProxy, rightProxy);
+        if (sat.testPolyCircle(query, leftProxy, rightProxy)) {
+          // markEdges(query, leftProxy, rightProxy);
+        }
       } else if (
         leftProxy.shape instanceof Polygon &&
         rightProxy.shape instanceof Polygon
       ) {
         if (sat.testPolyPoly(query, leftProxy, rightProxy)) {
           getPolyPolyContactManifold(manifold, query, leftProxy, rightProxy);
-          const proxy = [leftProxy, rightProxy][query.shapeIndex];
-          const p0 = vec2.clone(proxy.shape.points[query.faceIndex]);
-          const p1 = vec2.clone(
-            proxy.shape.points[
-              (query.faceIndex + 1) % proxy.shape.points.length
-            ]
-          );
-          vec2.transformMat3(p0, p0, proxy.transformable.transform);
-          vec2.transformMat3(p1, p1, proxy.transformable.transform);
-          drawLineSegment([p0, p1], '#ff0000');
-          vec2.scale(query.vector, query.vector, -query.depth);
-          vec2.add(p1, p0, query.vector);
-          drawLineSegment([p0, p1], '#0000ff');
+
+          markEdges(query, leftProxy, rightProxy);
         }
       }
 
-      drawManifold(manifold);
-
-      // if (query.vector) {
-      //   if (query.faceIndex !== -1) {
-      //     const proxy = [leftProxy, rightProxy][query.shapeIndex];
-      //     const p0 = vec2.clone(proxy.shape.points[query.faceIndex]);
-      //     const p1 = vec2.clone(
-      //       proxy.shape.points[
-      //         (query.faceIndex + 1) % proxy.shape.points.length
-      //       ]
-      //     );
-      //     vec2.transformMat3(p0, p0, proxy.transformable.transform);
-      //     vec2.transformMat3(p1, p1, proxy.transformable.transform);
-      //     drawLineSegment([p0, p1], '#ff0000');
-      //     vec2.scale(query.vector, query.vector, -query.depth);
-      //     vec2.add(p1, p0, query.vector);
-      //     drawLineSegment([p0, p1], '#0000ff');
-      //   }
-      // }
+      drawManifoldNew(manifold);
     }
+  }
+};
+
+const markEdges = (
+  query: MTV,
+  leftProxy: ShapeProxy<Polygon>,
+  rightProxy: ShapeProxy<Polygon>
+) => {
+  {
+    const proxy = [leftProxy, rightProxy][query.shapeIndex];
+    const p0 = vec2.clone(proxy.shape.points[query.faceIndex]);
+    const p1 = vec2.clone(
+      proxy.shape.points[(query.faceIndex + 1) % proxy.shape.points.length]
+    );
+    vec2.transformMat3(p0, p0, proxy.transformable.transform);
+    vec2.transformMat3(p1, p1, proxy.transformable.transform);
+    drawLineSegment([p0, p1], '#ff0000');
+    vec2.scale(query.vector, query.vector, -query.depth);
+    vec2.add(p1, p0, query.vector);
+    drawLineSegment([p0, p1], '#0000ff');
   }
 };
