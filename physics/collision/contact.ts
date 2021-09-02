@@ -2,6 +2,7 @@ import { mat2, mat3, vec2 } from 'gl-matrix';
 import { MTV } from './mtv';
 import { ShapeProxy } from './proxy';
 import { Circle, Polygon } from './shape';
+import { sat } from './sat';
 
 export interface ContactPoint {
   shape0: ShapeProxy;
@@ -140,26 +141,94 @@ export const getPolyPolyContactManifold = (
   return out;
 };
 
-
 export const getPolyCircleContactManifold = (
   out: ContactManifold,
   mtv: MTV,
-  poly0: ShapeProxy<Polygon>,
-  poly1: ShapeProxy<Circle>
+  poly: ShapeProxy<Polygon>,
+  circle: ShapeProxy<Circle>
 ): ContactManifold => {
-  const reference = [poly0, poly1][mtv.shapeIndex];
-  const incident = [poly1, poly0][mtv.shapeIndex];
-
-  const incidentToRreferenceMat = mat3.create();
-  mat3.invert(incidentToRreferenceMat, reference.transformable.transform);
-  mat3.multiply(
-    incidentToRreferenceMat,
-    incidentToRreferenceMat,
-    incident.transformable.transform
+  const p0 = vec2.clone(poly.shape.points[mtv.faceIndex]);
+  const p1 = vec2.clone(
+    poly.shape.points[(mtv.faceIndex + 1) % poly.shape.points.length]
   );
+  vec2.transformMat3(p0, p0, poly.transformable.transform);
+  vec2.transformMat3(p1, p1, poly.transformable.transform);
 
- 
+  const c = vec2.fromValues(
+    circle.transformable.transform[6],
+    circle.transformable.transform[7]
+  );
+  const point0 = vec2.create();
+  sat.closestPointToLineSegment(point0, p0, p1, c);
+
+  const point1 = vec2.create();
+  vec2.scaleAndAdd(point1, point0, mtv.vector, -mtv.depth);
+
+  const localPoint0 = vec2.create();
+  const invert = mat3.create();
+  mat3.invert(invert, poly.transformable.transform);
+  vec2.transformMat3(localPoint0, point0, invert);
+
+  const localPoint1 = vec2.create();
+  mat3.invert(invert, circle.transformable.transform);
+  vec2.transformMat3(localPoint1, point1, invert);
+
+  out.length = 0;
+  out.push({
+    shape0: poly,
+    shape1: circle,
+    point0,
+    localPoint0,
+    point1,
+    localPoint1,
+    normal: mtv.vector,
+    depth: mtv.depth
+  });
 
   return out;
 };
 
+export const getCircleCircleContactManifold = (
+  out: ContactManifold,
+  mtv: MTV,
+  circle0: ShapeProxy<Circle>,
+  circle1: ShapeProxy<Circle>
+): ContactManifold => {
+  const center0 = vec2.fromValues(
+    circle0.transformable.transform[6],
+    circle0.transformable.transform[7]
+  );
+  const center1 = vec2.fromValues(
+    circle1.transformable.transform[6],
+    circle1.transformable.transform[7]
+  );
+
+  const point0 = vec2.create();
+  vec2.scaleAndAdd(point0, center0, mtv.vector, -circle0.shape.radius);
+
+  const point1 = vec2.create();
+  vec2.scaleAndAdd(point1, center1, mtv.vector, circle1.shape.radius);
+
+  const localPoint0 = vec2.create();
+  const invert = mat3.create();
+  mat3.invert(invert, circle0.transformable.transform);
+  vec2.transformMat3(localPoint0, point0, invert);
+
+  const localPoint1 = vec2.create();
+  mat3.invert(invert, circle1.transformable.transform);
+  vec2.transformMat3(localPoint1, point1, invert);
+
+  out.length = 0;
+  out.push({
+    shape0: circle0,
+    shape1: circle0,
+    point0,
+    localPoint0,
+    point1,
+    localPoint1,
+    normal: mtv.vector,
+    depth: mtv.depth
+  });
+
+  return out;
+};

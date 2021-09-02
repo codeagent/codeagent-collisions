@@ -71,7 +71,7 @@ export namespace sat {
     return query;
   };
 
-  const closestPointToLineSegment = (
+  export const closestPointToLineSegment = (
     out: vec2,
     a: vec2,
     b: vec2,
@@ -204,6 +204,45 @@ export namespace sat {
     query.shapeIndex = -1;
     query.vector = null;
 
-    return true;
+    return false;
+  };
+
+  export const testCircleCircle = (
+    query: MTV,
+    circle0: ShapeProxy<Circle>,
+    circle1: ShapeProxy<Circle>
+  ): boolean => {
+    const center0 = vec2.fromValues(
+      circle0.transformable.transform[6],
+      circle0.transformable.transform[7]
+    );
+    const center1 = vec2.fromValues(
+      circle1.transformable.transform[6],
+      circle1.transformable.transform[7]
+    );
+
+    const depth =
+      circle0.shape.radius +
+      circle1.shape.radius -
+      vec2.distance(center0, center1);
+
+    if (depth > 0) {
+      const normal = vec2.create();
+      vec2.sub(normal, center1, center0);
+      vec2.normalize(normal, normal);
+      vec2.negate(normal, normal);
+      query.depth = depth;
+      query.faceIndex = -1;
+      query.shapeIndex = 0;
+      query.vector = normal;
+      return true;
+    }
+
+    query.depth = Number.NEGATIVE_INFINITY;
+    query.faceIndex = -1;
+    query.shapeIndex = -1;
+    query.vector = null;
+
+    return false;
   };
 }

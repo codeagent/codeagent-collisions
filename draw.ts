@@ -150,11 +150,11 @@ export const drawManifoldNew = (manifold: NewContactManifold) => {
       normal,
       depth
     }) => {
-      drawDot(point0, '#00AA00');
+      drawDot(point0, '#FF0000');
       vec2.add(t, point0, normal);
       drawLineSegment([point0, t], LINE_COLOR);
 
-      drawDot(point1, REDISH_COLOR);
+      drawDot(point1, '#0000FF');
     }
   );
 };

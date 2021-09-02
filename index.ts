@@ -33,6 +33,10 @@ import {
   ContactManifold
 } from './physics/collision';
 import { PolygonShape, World, Body, CircleShape } from './physics';
+import {
+  getCircleCircleContactManifold,
+  getPolyCircleContactManifold
+} from './physics/collision/contact';
 
 self['world'] = world;
 
@@ -132,19 +136,27 @@ const satTest = (world: World) => {
         leftProxy.shape instanceof Circle &&
         rightProxy.shape instanceof Circle
       ) {
+        if (sat.testCircleCircle(query, leftProxy, rightProxy)) {
+          getCircleCircleContactManifold(
+            manifold,
+            query,
+            leftProxy,
+            rightProxy
+          );
+        }
       } else if (
         leftProxy.shape instanceof Circle &&
         rightProxy.shape instanceof Polygon
       ) {
         if (sat.testPolyCircle(query, rightProxy, leftProxy)) {
-          // markEdges(query, rightProxy, leftProxy);
+          getPolyCircleContactManifold(manifold, query, rightProxy, leftProxy);
         }
       } else if (
         leftProxy.shape instanceof Polygon &&
         rightProxy.shape instanceof Circle
       ) {
         if (sat.testPolyCircle(query, leftProxy, rightProxy)) {
-          // markEdges(query, leftProxy, rightProxy);
+          getPolyCircleContactManifold(manifold, query, leftProxy, rightProxy);
         }
       } else if (
         leftProxy.shape instanceof Polygon &&
@@ -153,7 +165,7 @@ const satTest = (world: World) => {
         if (sat.testPolyPoly(query, leftProxy, rightProxy)) {
           getPolyPolyContactManifold(manifold, query, leftProxy, rightProxy);
 
-          markEdges(query, leftProxy, rightProxy);
+          markPolyEdges(query, leftProxy, rightProxy);
         }
       }
 
@@ -162,13 +174,28 @@ const satTest = (world: World) => {
   }
 };
 
-const markEdges = (
+const markPolyEdges = (
   query: MTV,
   leftProxy: ShapeProxy<Polygon>,
   rightProxy: ShapeProxy<Polygon>
 ) => {
   {
     const proxy = [leftProxy, rightProxy][query.shapeIndex];
+    const p0 = vec2.clone(proxy.shape.points[query.faceIndex]);
+    const p1 = vec2.clone(
+      proxy.shape.points[(query.faceIndex + 1) % proxy.shape.points.length]
+    );
+    vec2.transformMat3(p0, p0, proxy.transformable.transform);
+    vec2.transformMat3(p1, p1, proxy.transformable.transform);
+    drawLineSegment([p0, p1], '#ff0000');
+    vec2.scale(query.vector, query.vector, -query.depth);
+    vec2.add(p1, p0, query.vector);
+    drawLineSegment([p0, p1], '#0000ff');
+  }
+};
+
+const markEdge = (query: MTV, proxy: ShapeProxy<Polygon>) => {
+  {
     const p0 = vec2.clone(proxy.shape.points[query.faceIndex]);
     const p1 = vec2.clone(
       proxy.shape.points[(query.faceIndex + 1) % proxy.shape.points.length]
