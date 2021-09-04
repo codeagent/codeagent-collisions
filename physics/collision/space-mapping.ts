@@ -24,9 +24,8 @@ export class SpaceMapping implements SpaceMappingInterface {
   private readonly invSecondFirst = mat3.create();
 
   constructor(private readonly first: mat3, private readonly second: mat3) {
-    // @todo: affineInverse
-    mat3.invert(this.invFirst, first);
-    mat3.invert(this.invSecond, second);
+    affineInverse(this.invFirst, first);
+    affineInverse(this.invSecond, second);
     mat3.multiply(this.invFirstSecond, this.invFirst, second);
     mat3.multiply(this.invSecondFirst, this.invSecond, first);
   }

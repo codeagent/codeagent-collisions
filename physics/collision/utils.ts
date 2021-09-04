@@ -12,8 +12,8 @@ export const affineInverse = (out: mat3, m: mat3): mat3 => {
     m[4],
     0.0,
 
-    -m[0] * m[6] - m[3] * m[7],
-    -m[1] * m[6] - m[4] * m[7],
+    -m[0] * m[6] - m[1] * m[7],
+    -m[3] * m[6] - m[4] * m[7],
     1.0
   );
 };

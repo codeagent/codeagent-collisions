@@ -38,10 +38,10 @@ export class World {
   private readonly collisionDetector: CollisionDetector;
 
   // "read"/"write" variables
-  public positions = new Float32Array();
-  public velocities = new Float32Array();
-  public forces = new Float32Array();
-  public invMasses = new Float32Array();
+  public positions = new Float32Array(0);
+  public velocities = new Float32Array(0);
+  public forces = new Float32Array(0);
+  public invMasses = new Float32Array(0);
 
   public get constraints() {
     return this._jointConstraints.concat(
@@ -51,14 +51,14 @@ export class World {
   }
 
   // "helper" variables
-  private _accelerations = new Float32Array();
-  private _c0Forces = new Float32Array();
-  private _cvForces = new Float32Array();
-  private _tmpForces = new Float32Array();
-  private _tmpVelocities = new Float32Array();
+  private _accelerations = new Float32Array(0);
+  private _c0Forces = new Float32Array(0);
+  private _cvForces = new Float32Array(0);
+  private _tmpForces = new Float32Array(0);
+  private _tmpVelocities = new Float32Array(0);
 
-  private _lambdaCache0 = new Float32Array();
-  private _lambdaCache1 = new Float32Array();
+  private _lambdaCache0 = new Float32Array(0);
+  private _lambdaCache1 = new Float32Array(0);
 
   constructor(
     public gravity = vec2.fromValues(0.0, -9.8),
