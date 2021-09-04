@@ -29,14 +29,15 @@ import {
   Polygon,
   Circle,
   MTV,
+  ContactManifold,
   getPolyPolyContactManifold,
-  ContactManifold
-} from './physics/collision';
-import { PolygonShape, World, Body, CircleShape } from './physics';
-import {
   getCircleCircleContactManifold,
-  getPolyCircleContactManifold
-} from './physics/collision/contact';
+  getPolyCircleContactManifold,
+  SpaceMapping,
+  inverse
+} from './physics/collision';
+
+import { PolygonShape, World, Body, CircleShape } from './physics';
 
 self['world'] = world;
 
@@ -131,6 +132,10 @@ const satTest = (world: World) => {
       const rightProxy = createProxy(rightBody);
 
       const query = new MTV();
+      const spaceMapping = new SpaceMapping(
+        leftBody.transform,
+        rightBody.transform
+      );
       const manifold: ContactManifold = [];
       if (
         leftProxy.shape instanceof Circle &&
@@ -148,21 +153,21 @@ const satTest = (world: World) => {
         leftProxy.shape instanceof Circle &&
         rightProxy.shape instanceof Polygon
       ) {
-        if (sat.testPolyCircle(query, rightProxy, leftProxy)) {
+        if (sat.testPolyCircle(query, rightProxy, leftProxy, inverse(spaceMapping))) {
           getPolyCircleContactManifold(manifold, query, rightProxy, leftProxy);
         }
       } else if (
         leftProxy.shape instanceof Polygon &&
         rightProxy.shape instanceof Circle
       ) {
-        if (sat.testPolyCircle(query, leftProxy, rightProxy)) {
+        if (sat.testPolyCircle(query, leftProxy, rightProxy, spaceMapping)) {
           getPolyCircleContactManifold(manifold, query, leftProxy, rightProxy);
         }
       } else if (
         leftProxy.shape instanceof Polygon &&
         rightProxy.shape instanceof Polygon
       ) {
-        if (sat.testPolyPoly(query, leftProxy, rightProxy)) {
+        if (sat.testPolyPoly(query, leftProxy, rightProxy, spaceMapping)) {
           getPolyPolyContactManifold(manifold, query, leftProxy, rightProxy);
 
           markPolyEdges(query, leftProxy, rightProxy);

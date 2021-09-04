@@ -2,6 +2,7 @@ import { mat2, mat3, vec2 } from 'gl-matrix';
 import { MTV } from './mtv';
 import { ShapeProxy } from './proxy';
 import { Shape, Circle, Polygon } from './shape';
+import { inverse, SpaceMappingInterface } from './space-mapping';
 
 export namespace sat {
   class FaceDistanceQuery {
@@ -11,48 +12,51 @@ export namespace sat {
 
   const queryBestFace = (
     query: FaceDistanceQuery,
-    poly: ShapeProxy<Polygon>,
-    shape: ShapeProxy<Shape>
+    poly: Polygon,
+    shape: Shape,
+    spaceMapping: SpaceMappingInterface
   ): FaceDistanceQuery => {
-    const polyToShapeMat = mat2.create();
-    mat2.set(
-      polyToShapeMat,
-      poly.transformable.transform[0],
-      poly.transformable.transform[1],
-      poly.transformable.transform[3],
-      poly.transformable.transform[4]
-    );
-    mat2.multiply(
-      polyToShapeMat,
-      mat2.fromValues(
-        shape.transformable.transform[0],
-        shape.transformable.transform[3],
-        shape.transformable.transform[1],
-        shape.transformable.transform[4]
-      ),
-      polyToShapeMat
-    );
+    // const polyToShapeMat = mat2.create();
+    // mat2.set(
+    //   polyToShapeMat,
+    //   poly.transformable.transform[0],
+    //   poly.transformable.transform[1],
+    //   poly.transformable.transform[3],
+    //   poly.transformable.transform[4]
+    // );
+    // mat2.multiply(
+    //   polyToShapeMat,
+    //   mat2.fromValues(
+    //     shape.transformable.transform[0],
+    //     shape.transformable.transform[3],
+    //     shape.transformable.transform[1],
+    //     shape.transformable.transform[4]
+    //   ),
+    //   polyToShapeMat
+    // );
 
-    const shapeToPolyMat = mat3.create();
-    mat3.invert(shapeToPolyMat, poly.transformable.transform);
-    mat3.multiply(
-      shapeToPolyMat,
-      shapeToPolyMat,
-      shape.transformable.transform
-    );
+    // const shapeToPolyMat = mat3.create();
+    // mat3.invert(shapeToPolyMat, poly.transformable.transform);
+    // mat3.multiply(
+    //   shapeToPolyMat,
+    //   shapeToPolyMat,
+    //   shape.transformable.transform
+    // );
 
     query.distance = Number.NEGATIVE_INFINITY;
     query.faceIndex = -1;
 
     const d = vec2.create();
     const s = vec2.create();
-    for (let i = 0; i < poly.shape.points.length; i++) {
-      const n = poly.shape.normals[i];
-      const p = poly.shape.points[i];
+    for (let i = 0; i < poly.points.length; i++) {
+      const n = poly.normals[i];
+      const p = poly.points[i];
       vec2.negate(d, n);
-      vec2.transformMat2(d, d, polyToShapeMat);
-      shape.shape.support(s, d);
-      vec2.transformMat3(s, s, shapeToPolyMat); // support point is given in local space of polygon
+      // vec2.transformMat2(d, d, polyToShapeMat);
+      spaceMapping.fromFirstToSecondVector(d, d);
+      shape.support(s, d);
+      // vec2.transformMat3(s, s, shapeToPolyMat); // support point is given in local space of polygon
+      spaceMapping.fromSecondToFirstPoint(s, s);
       vec2.sub(s, s, p);
       let proj = vec2.dot(n, s);
       // separating axis was found - early exit
@@ -96,10 +100,11 @@ export namespace sat {
   export const testPolyPoly = (
     query: MTV,
     poly0: ShapeProxy<Polygon>,
-    poly1: ShapeProxy<Polygon>
+    poly1: ShapeProxy<Polygon>,
+    spaceMapping: SpaceMappingInterface
   ): boolean => {
     const query0 = new FaceDistanceQuery();
-    queryBestFace(query0, poly0, poly1);
+    queryBestFace(query0, poly0.shape, poly1.shape, spaceMapping);
 
     if (query0.distance >= 0) {
       query.depth = Number.NEGATIVE_INFINITY;
@@ -110,7 +115,7 @@ export namespace sat {
     }
 
     const query1 = new FaceDistanceQuery();
-    queryBestFace(query1, poly1, poly0);
+    queryBestFace(query1, poly1.shape, poly0.shape, inverse(spaceMapping));
 
     if (query1.distance >= 0) {
       query.depth = Number.NEGATIVE_INFINITY;
@@ -124,30 +129,29 @@ export namespace sat {
       query.depth = -query0.distance;
       query.faceIndex = query0.faceIndex;
       query.shapeIndex = 0;
-      query.vector = vec2.transformMat2(
+      query.vector = spaceMapping.fromFirstVector(
         vec2.create(),
-        poly0.shape.normals[query0.faceIndex],
-        mat2.fromValues(
-          poly0.transformable.transform[0],
-          poly0.transformable.transform[1],
-          poly0.transformable.transform[3],
-          poly0.transformable.transform[4]
-        )
+        poly0.shape.normals[query0.faceIndex]
       );
     } else {
       query.depth = -query1.distance;
       query.faceIndex = query1.faceIndex;
       query.shapeIndex = 1;
-      query.vector = vec2.transformMat2(
+      query.vector = spaceMapping.fromSecondVector(
         vec2.create(),
-        poly1.shape.normals[query1.faceIndex],
-        mat2.fromValues(
-          poly1.transformable.transform[0],
-          poly1.transformable.transform[1],
-          poly1.transformable.transform[3],
-          poly1.transformable.transform[4]
-        )
+        poly1.shape.normals[query1.faceIndex]
       );
+
+      // query.vector = vec2.transformMat2(
+      //   vec2.create(),
+      //   poly1.shape.normals[query1.faceIndex],
+      //   mat2.fromValues(
+      //     poly1.transformable.transform[0],
+      //     poly1.transformable.transform[1],
+      //     poly1.transformable.transform[3],
+      //     poly1.transformable.transform[4]
+      //   )
+      // );
     }
 
     return true;
@@ -156,10 +160,11 @@ export namespace sat {
   export const testPolyCircle = (
     query: MTV,
     poly: ShapeProxy<Polygon>,
-    circle: ShapeProxy<Circle>
+    circle: ShapeProxy<Circle>,
+    spaceMapping: SpaceMappingInterface
   ): boolean => {
     const query0 = new FaceDistanceQuery();
-    queryBestFace(query0, poly, circle);
+    queryBestFace(query0, poly.shape, circle.shape, spaceMapping);
 
     if (query0.distance >= 0) {
       query.depth = Number.NEGATIVE_INFINITY;

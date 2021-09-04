@@ -30,16 +30,8 @@ const getIncidentFace = (mtv: MTV, incident: ShapeProxy<Polygon>): number => {
   vec2.negate(dir, dir);
   vec2.transformMat2(dir, dir, toIncidentMat);
 
-  let bestDot = Number.NEGATIVE_INFINITY;
-  let bestPoint = 0;
   const length = incident.shape.points.length;
-  for (let i = 1; i < length; i++) {
-    const dot = vec2.dot(incident.shape.points[i], dir);
-    if (dot > bestDot) {
-      bestDot = dot;
-      bestPoint = i;
-    }
-  }
+  let bestPoint = incident.shape.indexOfFarhestPoint(dir);
 
   const i0 = (bestPoint - 1 + length) % length;
   const n0 = incident.shape.normals[i0];

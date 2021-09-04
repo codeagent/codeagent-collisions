@@ -368,8 +368,24 @@ export const createSATScene = () => {
     0.0
   );
 
-   world.createBody(
+  world.createBody(
     createRectShape(2, 3),
+    Number.POSITIVE_INFINITY,
+    Number.POSITIVE_INFINITY,
+    vec2.fromValues(2.0, 0),
+    0.0
+  );
+
+  const w = 3;
+  const h = 5;
+  world.createBody(
+    new PolygonShape([
+      vec2.fromValues(w * 0.5, -h * 0.5),
+      vec2.fromValues(w * 0.5, h * 0.5),
+      vec2.fromValues(0, h),
+      vec2.fromValues(-w * 0.5, h * 0.75),
+      vec2.fromValues(-w * 1.0, h * 0.25)
+    ]),
     Number.POSITIVE_INFINITY,
     Number.POSITIVE_INFINITY,
     vec2.fromValues(2.0, 0),

@@ -26,23 +26,25 @@ export class Polygon implements Shape {
    */
   constructor(public readonly points: vec2[]) {
     this.normals = this.getNormals(points);
-    // this.lookup = this.getNeighborLookup(ponits);
   }
 
   public support(out: vec2, dir: vec2): vec2 {
+    const index = this.indexOfFarhestPoint(dir);
+    return vec2.copy(out, this.points[index]);
+  }
+
+  public indexOfFarhestPoint(dir: vec2): number {
     // @todo: hill climbing
     let bestDot = Number.NEGATIVE_INFINITY;
-    vec2.copy(out, this.points[0]);
-
-    for (const p of this.points) {
-      const dot = vec2.dot(p, dir);
+    let index = -1;
+    for (let i = 0; i < this.points.length; i++) {
+      const dot = vec2.dot(this.points[i], dir);
       if (dot > bestDot) {
         bestDot = dot;
-        vec2.copy(out, p);
+        index = i;
       }
     }
-
-    return out;
+    return index;
   }
 
   private getNormals(loop: vec2[]): vec2[] {
