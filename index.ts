@@ -25,7 +25,6 @@ import {
 import { Draggable, Rotatable } from './controls';
 import {
   sat,
-  ShapeProxy,
   Polygon,
   Circle,
   MTV,
@@ -38,6 +37,8 @@ import {
 } from './physics/collision';
 
 import { PolygonShape, World, Body, CircleShape } from './physics';
+import { SpaceMappingInterface } from './physics/collision/space-mapping';
+import { Shape } from './physics/collision/shape';
 
 self['world'] = world;
 
@@ -108,18 +109,12 @@ const step = () => {
 step();
 
 const satTest = (world: World) => {
-  const createProxy = (body: Body): ShapeProxy => {
+  const createShape = (body: Body): Shape => {
     const shape = world.bodyShapeLookup.get(body);
     if (shape instanceof CircleShape) {
-      return {
-        shape: new Circle(shape.radius),
-        transformable: body
-      } as ShapeProxy<Circle>;
+      return new Circle(shape.radius);
     } else if (shape instanceof PolygonShape) {
-      return {
-        shape: new Polygon(shape.points),
-        transformable: body
-      } as ShapeProxy<Polygon>;
+      return new Polygon(shape.points);
     }
     return null;
   };
@@ -128,77 +123,60 @@ const satTest = (world: World) => {
     for (let r = l + 1; r < world.bodies.length; r++) {
       const leftBody = world.bodies[l];
       const rightBody = world.bodies[r];
-      const leftProxy = createProxy(leftBody);
-      const rightProxy = createProxy(rightBody);
+      const leftShape = createShape(leftBody);
+      const rightShape = createShape(rightBody);
 
       const query = new MTV();
-      const spaceMapping = new SpaceMapping(
+      let spaceMapping: SpaceMappingInterface = new SpaceMapping(
         leftBody.transform,
         rightBody.transform
       );
       const manifold: ContactManifold = [];
-      if (
-        leftProxy.shape instanceof Circle &&
-        rightProxy.shape instanceof Circle
-      ) {
-        if (
-          sat.testCircleCircle(
-            query,
-            leftProxy.shape,
-            rightProxy.shape,
-            spaceMapping
-          )
-        ) {
+      if (leftShape instanceof Circle && rightShape instanceof Circle) {
+        if (sat.testCircleCircle(query, leftShape, rightShape, spaceMapping)) {
           getCircleCircleContactManifold(
             manifold,
             query,
-            leftProxy,
-            rightProxy
+            leftShape,
+            rightShape,
+            spaceMapping
+          );
+        }
+      } else if (leftShape instanceof Circle && rightShape instanceof Polygon) {
+        spaceMapping = inverse(spaceMapping);
+        if (sat.testPolyCircle(query, rightShape, leftShape, spaceMapping)) {
+          getPolyCircleContactManifold(
+            manifold,
+            query,
+            rightShape,
+            leftShape,
+            spaceMapping
+          );
+        }
+      } else if (leftShape instanceof Polygon && rightShape instanceof Circle) {
+        if (sat.testPolyCircle(query, leftShape, rightShape, spaceMapping)) {
+          getPolyCircleContactManifold(
+            manifold,
+            query,
+            leftShape,
+            rightShape,
+            spaceMapping
           );
         }
       } else if (
-        leftProxy.shape instanceof Circle &&
-        rightProxy.shape instanceof Polygon
+        leftShape instanceof Polygon &&
+        rightShape instanceof Polygon
       ) {
-        if (
-          sat.testPolyCircle(
+        if (sat.testPolyPoly(query, leftShape, rightShape, spaceMapping)) {
+          getPolyPolyContactManifold(
+            manifold,
             query,
-            rightProxy.shape,
-            leftProxy.shape,
-            inverse(spaceMapping)
-          )
-        ) {
-          getPolyCircleContactManifold(manifold, query, rightProxy, leftProxy);
-        }
-      } else if (
-        leftProxy.shape instanceof Polygon &&
-        rightProxy.shape instanceof Circle
-      ) {
-        if (
-          sat.testPolyCircle(
-            query,
-            leftProxy.shape,
-            rightProxy.shape,
+            leftShape,
+            rightShape,
             spaceMapping
-          )
-        ) {
-          getPolyCircleContactManifold(manifold, query, leftProxy, rightProxy);
-        }
-      } else if (
-        leftProxy.shape instanceof Polygon &&
-        rightProxy.shape instanceof Polygon
-      ) {
-        if (
-          sat.testPolyPoly(
-            query,
-            leftProxy.shape,
-            rightProxy.shape,
-            spaceMapping
-          )
-        ) {
-          getPolyPolyContactManifold(manifold, query, leftProxy, rightProxy);
+          );
 
-          markPolyEdges(query, leftProxy, rightProxy);
+          markPolyEdges(query, leftShape, rightShape, spaceMapping);
         }
       }
 
@@ -208,36 +186,32 @@ const satTest = (world: World) => {
 };
 
 const markPolyEdges = (
-  query: MTV,
-  leftProxy: ShapeProxy<Polygon>,
-  rightProxy: ShapeProxy<Polygon>
+  mtv: MTV,
+  leftShape: Polygon,
+  rightShape: Polygon,
+  spaceMapping: SpaceMappingInterface
 ) => {
   {
-    const proxy = [leftProxy, rightProxy][query.shapeIndex];
-    const p0 = vec2.clone(proxy.shape.points[query.faceIndex]);
-    const p1 = vec2.clone(
-      proxy.shape.points[(query.faceIndex + 1) % proxy.shape.points.length]
-    );
-    vec2.transformMat3(p0, p0, proxy.transformable.transform);
-    vec2.transformMat3(p1, p1, proxy.transformable.transform);
-    drawLineSegment([p0, p1], '#ff0000');
-    vec2.scale(query.vector, query.vector, -query.depth);
-    vec2.add(p1, p0, query.vector);
-    drawLineSegment([p0, p1], '#0000ff');
-  }
-};
+    let reference: Polygon;
 
-const markEdge = (query: MTV, proxy: ShapeProxy<Polygon>) => {
-  {
-    const p0 = vec2.clone(proxy.shape.points[query.faceIndex]);
+    if (mtv.shapeIndex === 0) {
+      reference = leftShape;
+    } else {
+      reference = rightShape;
+      spaceMapping = inverse(spaceMapping); // first=reference second=incident
+    }
+
+    const p0 = vec2.clone(reference.points[mtv.faceIndex]);
+    spaceMapping.fromFirstPoint(p0, p0);
+
     const p1 = vec2.clone(
-      proxy.shape.points[(query.faceIndex + 1) % proxy.shape.points.length]
+      reference.points[(mtv.faceIndex + 1) % reference.points.length]
     );
-    vec2.transformMat3(p0, p0, proxy.transformable.transform);
-    vec2.transformMat3(p1, p1, proxy.transformable.transform);
+    spaceMapping.fromFirstPoint(p1, p1);
+
     drawLineSegment([p0, p1], '#ff0000');
-    vec2.scale(query.vector, query.vector, -query.depth);
-    vec2.add(p1, p0, query.vector);
+    vec2.scale(mtv.vector, mtv.vector, -mtv.depth);
+    vec2.add(p1, p0, mtv.vector);
     drawLineSegment([p0, p1], '#0000ff');
   }
 };

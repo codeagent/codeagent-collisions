@@ -1,4 +1,5 @@
 import { vec2 } from 'gl-matrix';
+
 import { MTV } from './mtv';
 import { Shape, Circle, Polygon } from './shape';
 import { inverse, SpaceMappingInterface } from './space-mapping';
@@ -34,8 +35,8 @@ export namespace sat {
 
       vec2.sub(s, s, p);
       let proj = vec2.dot(n, s);
-      // separating axis was found - early exit
       if (proj >= 0) {
+        // separating axis was found - early exit
         query.distance = proj;
         query.faceIndex = i;
         return query;

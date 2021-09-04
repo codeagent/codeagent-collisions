@@ -1,4 +1,5 @@
-import { mat2, mat3, vec2 } from 'gl-matrix';
+import { mat3, vec2 } from 'gl-matrix';
+
 import { transformMat3Vec, affineInverse } from './utils';
 
 export interface SpaceMappingInterface {

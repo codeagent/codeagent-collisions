@@ -1,13 +1,12 @@
-import { mat2, mat3, vec2 } from 'gl-matrix';
+import { vec2 } from 'gl-matrix';
+import { SpaceMappingInterface, inverse } from './space-mapping';
 import { MTV } from './mtv';
-import { ShapeProxy } from './proxy';
-import { Circle, Polygon } from './shape';
-import { sat } from './sat';
+import { Shape, Circle, Polygon } from './shape';
 import { closestPointToLineSegment } from './utils';
 
 export interface ContactPoint {
-  shape0: ShapeProxy;
-  shape1: ShapeProxy;
+  shape0: Shape;
+  shape1: Shape;
   point0: vec2;
   localPoint0: vec2;
   point1: vec2;
@@ -17,26 +16,21 @@ export interface ContactPoint {
 }
 export type ContactManifold = ContactPoint[];
 
-const getIncidentFace = (mtv: MTV, incident: ShapeProxy<Polygon>): number => {
-  const toIncidentMat = mat2.create();
-  mat2.set(
-    toIncidentMat,
-    incident.transformable.transform[0],
-    incident.transformable.transform[3],
-    incident.transformable.transform[1],
-    incident.transformable.transform[4]
-  );
-
+const getIncidentFace = (
+  mtv: MTV,
+  incident: Polygon,
+  spaceMapping: SpaceMappingInterface
+): number => {
   const dir = vec2.clone(mtv.vector);
   vec2.negate(dir, dir);
-  vec2.transformMat2(dir, dir, toIncidentMat);
+  spaceMapping.toSecondVector(dir, dir); // to incident space
 
-  const length = incident.shape.points.length;
-  let bestPoint = incident.shape.indexOfFarhestPoint(dir);
+  const length = incident.points.length;
+  let bestPoint = incident.indexOfFarhestPoint(dir);
 
   const i0 = (bestPoint - 1 + length) % length;
-  const n0 = incident.shape.normals[i0];
-  const n1 = incident.shape.normals[bestPoint];
+  const n0 = incident.normals[i0];
+  const n1 = incident.normals[bestPoint];
 
   if (vec2.dot(dir, n0) > vec2.dot(dir, n1)) {
     return i0;
@@ -59,32 +53,30 @@ const clipByPlane = (p0: vec2, p1: vec2, n: vec2, o: vec2) => {
 export const getPolyPolyContactManifold = (
   out: ContactManifold,
   mtv: MTV,
-  poly0: ShapeProxy<Polygon>,
-  poly1: ShapeProxy<Polygon>
+  poly0: Polygon,
+  poly1: Polygon,
+  spaceMapping: SpaceMappingInterface
 ): ContactManifold => {
-  const reference = [poly0, poly1][mtv.shapeIndex];
-  const incident = [poly1, poly0][mtv.shapeIndex];
+  let reference: Polygon;
+  let incident: Polygon;
 
-  const incidentToRreferenceMat = mat3.create();
-  mat3.invert(incidentToRreferenceMat, reference.transformable.transform);
-  mat3.multiply(
-    incidentToRreferenceMat,
-    incidentToRreferenceMat,
-    incident.transformable.transform
-  );
+  if (mtv.shapeIndex === 0) {
+    reference = poly0;
+    incident = poly1;
+  } else {
+    reference = poly1;
+    incident = poly0;
+    spaceMapping = inverse(spaceMapping); // first=reference second=incident
+  }
 
-  const ref0 = reference.shape.points[mtv.faceIndex];
-  const ref1 =
-    reference.shape.points[(mtv.faceIndex + 1) % reference.shape.points.length];
+  const ref0 = reference.points[mtv.faceIndex];
+  const ref1 = reference.points[(mtv.faceIndex + 1) % reference.points.length];
 
-  const incI = getIncidentFace(mtv, incident);
-
-  const inc0 = vec2.clone(incident.shape.points[incI]);
-  const inc1 = vec2.clone(
-    incident.shape.points[(incI + 1) % incident.shape.points.length]
-  );
-  vec2.transformMat3(inc0, inc0, incidentToRreferenceMat);
-  vec2.transformMat3(inc1, inc1, incidentToRreferenceMat);
+  const incI = getIncidentFace(mtv, incident, spaceMapping);
+  const inc0 = vec2.clone(incident.points[incI]);
+  const inc1 = vec2.clone(incident.points[(incI + 1) % incident.points.length]);
+  spaceMapping.fromSecondToFirstPoint(inc0, inc0); // from incident to reference
+  spaceMapping.fromSecondToFirstPoint(inc1, inc1); // from incident to reference
 
   // cliping
   const refN = vec2.create();
@@ -95,35 +87,29 @@ export const getPolyPolyContactManifold = (
 
   out.length = 0;
 
-  const invTransform = mat3.create();
-  mat3.invert(invTransform, incident.transformable.transform);
-
-  const n = reference.shape.normals[mtv.faceIndex];
-  for (let c of [inc0, inc1]) {
-    vec2.sub(refN, c, ref0);
+  const n = reference.normals[mtv.faceIndex];
+  for (let contact of [inc0, inc1]) {
+    vec2.sub(refN, contact, ref0);
     const depth = vec2.dot(refN, n);
     if (depth >= 0) {
       continue;
     }
-    const shape0 = reference;
-    const shape1 = incident;
+
     const point0 = vec2.create();
 
-    // @todo: invTransform
+    spaceMapping.fromFirstPoint(point0, contact);
 
-    vec2.transformMat3(point0, c, reference.transformable.transform);
-    const localPoint0 = vec2.clone(c);
     const normal = vec2.clone(mtv.vector);
     const point1 = vec2.create();
     vec2.scaleAndAdd(point1, point0, normal, -depth);
     const localPoint1 = vec2.clone(point1);
-    vec2.transformMat3(localPoint1, localPoint1, invTransform);
+    spaceMapping.toSecondPoint(localPoint1, localPoint1);
 
     out.push({
-      shape0,
-      shape1,
+      shape0: reference,
+      shape1: incident,
       point0,
-      localPoint0,
+      localPoint0: vec2.clone(contact),
       point1,
       normal,
       localPoint1,
@@ -137,34 +123,30 @@ export const getPolyPolyContactManifold = (
 export const getPolyCircleContactManifold = (
   out: ContactManifold,
   mtv: MTV,
-  poly: ShapeProxy<Polygon>,
-  circle: ShapeProxy<Circle>
+  poly: Polygon,
+  circle: Circle,
+  spaceMapping: SpaceMappingInterface
 ): ContactManifold => {
-  const p0 = vec2.clone(poly.shape.points[mtv.faceIndex]);
-  const p1 = vec2.clone(
-    poly.shape.points[(mtv.faceIndex + 1) % poly.shape.points.length]
-  );
-  vec2.transformMat3(p0, p0, poly.transformable.transform);
-  vec2.transformMat3(p1, p1, poly.transformable.transform);
+  const p0 = vec2.clone(poly.points[mtv.faceIndex]);
+  spaceMapping.fromFirstPoint(p0, p0);
 
-  const c = vec2.fromValues(
-    circle.transformable.transform[6],
-    circle.transformable.transform[7]
-  );
+  const p1 = vec2.clone(poly.points[(mtv.faceIndex + 1) % poly.points.length]);
+  spaceMapping.fromFirstPoint(p1, p1);
+
+  const center = vec2.create();
+  spaceMapping.fromSecondPoint(center, center);
+
   const point0 = vec2.create();
-  closestPointToLineSegment(point0, p0, p1, c);
+  closestPointToLineSegment(point0, p0, p1, center);
 
   const point1 = vec2.create();
   vec2.scaleAndAdd(point1, point0, mtv.vector, -mtv.depth);
 
   const localPoint0 = vec2.create();
-  const invert = mat3.create();
-  mat3.invert(invert, poly.transformable.transform);
-  vec2.transformMat3(localPoint0, point0, invert);
+  spaceMapping.toFirstPoint(localPoint0, point0);
 
   const localPoint1 = vec2.create();
-  mat3.invert(invert, circle.transformable.transform);
-  vec2.transformMat3(localPoint1, point1, invert);
+  spaceMapping.toSecondPoint(localPoint1, point1);
 
   out.length = 0;
   out.push({
@@ -184,32 +166,27 @@ export const getPolyCircleContactManifold = (
 export const getCircleCircleContactManifold = (
   out: ContactManifold,
   mtv: MTV,
-  circle0: ShapeProxy<Circle>,
-  circle1: ShapeProxy<Circle>
+  circle0: Circle,
+  circle1: Circle,
+  spaceMapping: SpaceMappingInterface
 ): ContactManifold => {
-  const center0 = vec2.fromValues(
-    circle0.transformable.transform[6],
-    circle0.transformable.transform[7]
-  );
-  const center1 = vec2.fromValues(
-    circle1.transformable.transform[6],
-    circle1.transformable.transform[7]
-  );
+  const center0 = vec2.create();
+  spaceMapping.fromFirstPoint(center0, center0);
+
+  const center1 = vec2.create();
+  spaceMapping.fromSecondPoint(center1, center1);
 
   const point0 = vec2.create();
-  vec2.scaleAndAdd(point0, center0, mtv.vector, -circle0.shape.radius);
+  vec2.scaleAndAdd(point0, center0, mtv.vector, -circle0.radius);
 
   const point1 = vec2.create();
-  vec2.scaleAndAdd(point1, center1, mtv.vector, circle1.shape.radius);
+  vec2.scaleAndAdd(point1, center1, mtv.vector, circle1.radius);
 
   const localPoint0 = vec2.create();
-  const invert = mat3.create();
-  mat3.invert(invert, circle0.transformable.transform);
-  vec2.transformMat3(localPoint0, point0, invert);
+  spaceMapping.toFirstPoint(localPoint0, point0);
 
   const localPoint1 = vec2.create();
-  mat3.invert(invert, circle1.transformable.transform);
-  vec2.transformMat3(localPoint1, point1, invert);
+  spaceMapping.toSecondPoint(localPoint1, point1);
 
   out.length = 0;
   out.push({
