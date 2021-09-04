@@ -3,6 +3,7 @@ import { MTV } from './mtv';
 import { ShapeProxy } from './proxy';
 import { Circle, Polygon } from './shape';
 import { sat } from './sat';
+import { closestPointToLineSegment } from './utils';
 
 export interface ContactPoint {
   shape0: ShapeProxy;
@@ -151,7 +152,7 @@ export const getPolyCircleContactManifold = (
     circle.transformable.transform[7]
   );
   const point0 = vec2.create();
-  sat.closestPointToLineSegment(point0, p0, p1, c);
+  closestPointToLineSegment(point0, p0, p1, c);
 
   const point1 = vec2.create();
   vec2.scaleAndAdd(point1, point0, mtv.vector, -mtv.depth);

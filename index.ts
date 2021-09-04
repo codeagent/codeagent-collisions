@@ -141,7 +141,14 @@ const satTest = (world: World) => {
         leftProxy.shape instanceof Circle &&
         rightProxy.shape instanceof Circle
       ) {
-        if (sat.testCircleCircle(query, leftProxy, rightProxy)) {
+        if (
+          sat.testCircleCircle(
+            query,
+            leftProxy.shape,
+            rightProxy.shape,
+            spaceMapping
+          )
+        ) {
           getCircleCircleContactManifold(
             manifold,
             query,
@@ -153,21 +160,42 @@ const satTest = (world: World) => {
         leftProxy.shape instanceof Circle &&
         rightProxy.shape instanceof Polygon
       ) {
-        if (sat.testPolyCircle(query, rightProxy, leftProxy, inverse(spaceMapping))) {
+        if (
+          sat.testPolyCircle(
+            query,
+            rightProxy.shape,
+            leftProxy.shape,
+            inverse(spaceMapping)
+          )
+        ) {
           getPolyCircleContactManifold(manifold, query, rightProxy, leftProxy);
         }
       } else if (
         leftProxy.shape instanceof Polygon &&
         rightProxy.shape instanceof Circle
       ) {
-        if (sat.testPolyCircle(query, leftProxy, rightProxy, spaceMapping)) {
+        if (
+          sat.testPolyCircle(
+            query,
+            leftProxy.shape,
+            rightProxy.shape,
+            spaceMapping
+          )
+        ) {
           getPolyCircleContactManifold(manifold, query, leftProxy, rightProxy);
         }
       } else if (
         leftProxy.shape instanceof Polygon &&
         rightProxy.shape instanceof Polygon
       ) {
-        if (sat.testPolyPoly(query, leftProxy, rightProxy, spaceMapping)) {
+        if (
+          sat.testPolyPoly(
+            query,
+            leftProxy.shape,
+            rightProxy.shape,
+            spaceMapping
+          )
+        ) {
           getPolyPolyContactManifold(manifold, query, leftProxy, rightProxy);
 
           markPolyEdges(query, leftProxy, rightProxy);
