@@ -95,13 +95,15 @@ export const getPolyPolyContactManifold = (
       continue;
     }
 
-    const point0 = vec2.create();
-
-    spaceMapping.fromFirstPoint(point0, contact);
-
     const normal = vec2.clone(mtv.vector);
+    vec2.negate(normal, normal);
+
     const point1 = vec2.create();
-    vec2.scaleAndAdd(point1, point0, normal, -depth);
+    spaceMapping.fromFirstPoint(point1, contact);
+
+    const point0 = vec2.create();
+    vec2.scaleAndAdd(point0, point1, normal, depth);
+
     const localPoint1 = vec2.clone(point1);
     spaceMapping.toSecondPoint(localPoint1, localPoint1);
 
@@ -111,9 +113,9 @@ export const getPolyPolyContactManifold = (
       point0,
       localPoint0: vec2.clone(contact),
       point1,
-      normal,
       localPoint1,
-      depth
+      normal,
+      depth: -depth
     });
   }
 
@@ -140,7 +142,7 @@ export const getPolyCircleContactManifold = (
   closestPointToLineSegment(point0, p0, p1, center);
 
   const point1 = vec2.create();
-  vec2.scaleAndAdd(point1, point0, mtv.vector, -mtv.depth);
+  vec2.scaleAndAdd(point1, point0, mtv.vector, mtv.depth);
 
   const localPoint0 = vec2.create();
   spaceMapping.toFirstPoint(localPoint0, point0);
@@ -191,7 +193,7 @@ export const getCircleCircleContactManifold = (
   out.length = 0;
   out.push({
     shape0: circle0,
-    shape1: circle0,
+    shape1: circle1,
     point0,
     localPoint0,
     point1,

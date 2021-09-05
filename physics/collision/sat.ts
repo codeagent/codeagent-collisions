@@ -130,14 +130,13 @@ export namespace sat {
     spaceMapping.fromSecondPoint(c, c);
 
     const v = vec2.create();
-
     closestPointToLineSegment(v, a, b, c);
 
     vec2.sub(v, v, c);
     const length2 = vec2.dot(v, v);
     if (length2 < circle.radius * circle.radius) {
       const length = Math.sqrt(length2);
-      query.depth = length - circle.radius;
+      query.depth = circle.radius - length;
       query.faceIndex = query0.faceIndex;
       query.shapeIndex = 0;
       query.vector = vec2.scale(v, v, 1.0 / length);

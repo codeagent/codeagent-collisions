@@ -58,6 +58,7 @@ export const createChainScene = (links: number, x = 0.0) => {
 export const createStackScene = (n: number) => {
   world.restitution = 0.5;
   world.pushFactor = 0.4;
+  world.friction = 0.05;
 
   // floor
   world.createBody(
