@@ -1,17 +1,7 @@
 import { vec2 } from 'gl-matrix';
 
 import { Body } from './body';
-import {
-  AABB,
-  getCircleAABB,
-  getPolyAABB,
-  testAABBAABB,
-  testCircleCircle as _testCircleCircle,
-  testPolyCircle as _testPolyCircle,
-  testPolyPoly as _testPolyPoly
-} from './tests';
-import { CircleShape, PolygonShape, World } from './world';
-
+import { World } from './world';
 import {
   sat,
   MTV,
@@ -23,9 +13,9 @@ import {
   getCircleCircleContactManifold,
   SpaceMapping,
   SpaceMappingInterface,
-  inverse as inverseSpaceMapping
+  inverse as inverseSpaceMapping,
+  AABB
 } from './collision';
-import { Shape } from './collision/shape';
 
 export interface BodiesContactPoint {
   bodyAIndex: number;
@@ -50,21 +40,20 @@ export class CollisionDetector {
     return this.narrowPhase(candidates);
   }
 
+  private testAABBAABB(aabb1: AABB, aabb2: AABB) {
+    return (
+      aabb2[0][0] < aabb1[1][0] &&
+      aabb2[1][0] > aabb1[0][0] &&
+      aabb2[0][1] < aabb1[1][1] &&
+      aabb2[1][1] > aabb1[0][1]
+    );
+  }
+
   private updateAABBs() {
     for (const body of this.world.bodies) {
       const shape = this.world.bodyShapeLookup.get(body);
       const aabb = this.bodyAABBLookup.get(body);
-
-      if (shape instanceof CircleShape) {
-        const box = getCircleAABB(shape.radius, body.position);
-        vec2.copy(aabb[0], box[0]);
-        vec2.copy(aabb[1], box[1]);
-      } else if (shape instanceof PolygonShape) {
-        const box = getPolyAABB(shape.points, body.transform);
-        vec2.copy(aabb[0], box[0]);
-        vec2.copy(aabb[1], box[1]);
-      } else {
-      }
+      shape.aabb(aabb, body.transform);
     }
   }
 
@@ -74,7 +63,7 @@ export class CollisionDetector {
       for (let j = i + 1; j < this.world.bodies.length; j++) {
         const leftAABB = this.bodyAABBLookup.get(this.world.bodies[i]);
         const rightAABB = this.bodyAABBLookup.get(this.world.bodies[j]);
-        if (testAABBAABB(leftAABB, rightAABB)) {
+        if (this.testAABBAABB(leftAABB, rightAABB)) {
           candidates.push([i, j]);
         }
       }
@@ -85,22 +74,11 @@ export class CollisionDetector {
   private narrowPhase(pairs: [number, number][]): BodiesContactPoint[] {
     const contacts: BodiesContactPoint[] = [];
 
-    // @todo:
-    const createShape = (body: Body): Shape => {
-      const shape = this.world.bodyShapeLookup.get(body);
-      if (shape instanceof CircleShape) {
-        return new Circle(shape.radius);
-      } else if (shape instanceof PolygonShape) {
-        return new Polygon(shape.points);
-      }
-      return null;
-    };
-
     for (let [left, right] of pairs) {
       const leftBody = this.world.bodies[left];
       const rightBody = this.world.bodies[right];
-      const leftShape = createShape(leftBody);
-      const rightShape = createShape(rightBody);
+      const leftShape = this.world.bodyShapeLookup.get(leftBody);
+      const rightShape = this.world.bodyShapeLookup.get(rightBody);
 
       let manifold: ContactManifold = [];
       const mtv = new MTV();
@@ -156,6 +134,7 @@ export class CollisionDetector {
       }
 
       for (const contact of manifold) {
+        // @todo: get rid of junk
         contacts.push({
           bodyAIndex: contact.shape0 === leftShape ? left : right,
           bodyBIndex: contact.shape1 === rightShape ? right : left,

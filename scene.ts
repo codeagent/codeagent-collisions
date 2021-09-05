@@ -1,11 +1,11 @@
 import { vec2 } from 'gl-matrix';
-import { BodyShape, PolygonShape, World, Body, CircleShape } from './physics';
+import { World, Body, Shape, Polygon, Circle } from './physics';
 
 const lerp = (a: number, b: number, t: number) => a * (1.0 - t) + b * t;
 const rangeRandom = (from: number, to: number) => lerp(from, to, Math.random());
 
-const createQuadShape = (size: number): BodyShape => {
-  return new PolygonShape([
+const createQuadShape = (size: number): Shape => {
+  return new Polygon([
     vec2.fromValues(size * 0.5, -size * 0.5),
     vec2.fromValues(size * 0.5, size * 0.5),
     vec2.fromValues(-size * 0.5, size * 0.5),
@@ -13,8 +13,8 @@ const createQuadShape = (size: number): BodyShape => {
   ]);
 };
 
-const createRectShape = (w: number, h: number): BodyShape => {
-  return new PolygonShape([
+const createRectShape = (w: number, h: number): Shape => {
+  return new Polygon([
     vec2.fromValues(w * 0.5, -h * 0.5),
     vec2.fromValues(w * 0.5, h * 0.5),
     vec2.fromValues(-w * 0.5, h * 0.5),
@@ -89,7 +89,7 @@ export const createStackScene = (n: number) => {
   );
 
   world.createBody(
-    new CircleShape(2),
+    new Circle(2),
     Number.POSITIVE_INFINITY,
     Number.POSITIVE_INFINITY,
     vec2.fromValues(0, 0),
@@ -101,7 +101,7 @@ export const createStackScene = (n: number) => {
     world.createBody(
       n % 2 == 1
         ? createRectShape(rangeRandom(1.0, 2.5), rangeRandom(1.0, 2.5))
-        : new CircleShape(rangeRandom(1.0, 1.5) * 0.5),
+        : new Circle(rangeRandom(1.0, 1.5) * 0.5),
       1.0,
       1.0,
       vec2.fromValues(rangeRandom(-0.1, 0.1), offset),
@@ -135,7 +135,7 @@ export const createPendulumScene = (n: number) => {
     let pendulum: Body;
     if (n === 1) {
       pendulum = world.createBody(
-        new CircleShape(step * 0.5),
+        new Circle(step * 0.5),
         m,
         m,
         vec2.fromValues(
@@ -146,7 +146,7 @@ export const createPendulumScene = (n: number) => {
       );
     } else {
       pendulum = world.createBody(
-        new CircleShape(step * 0.5),
+        new Circle(step * 0.5),
         m,
         m,
         vec2.fromValues(n % 2 ? offset : -offset, 0),
@@ -184,7 +184,7 @@ export const createStairsScene = (n: number) => {
 
   const spawn = () => {
     world.createBody(
-      new CircleShape(0.5),
+      new Circle(0.5),
       m,
       m * 0.015,
       vec2.fromValues(w * 0.5, 12),
@@ -345,13 +345,7 @@ export const createGaussianScene = () => {
     u = -i * ballR;
 
     for (let j = i; j >= 0; j--) {
-      world.createBody(
-        new CircleShape(ballR),
-        1.0,
-        1.0,
-        vec2.fromValues(u, v),
-        0.0
-      );
+      world.createBody(new Circle(ballR), 1.0, 1.0, vec2.fromValues(u, v), 0.0);
 
       u += 2.0 * ballR;
     }
@@ -380,7 +374,7 @@ export const createSATScene = () => {
   const w = 3;
   const h = 5;
   world.createBody(
-    new PolygonShape([
+    new Polygon([
       vec2.fromValues(w * 0.5, -h * 0.5),
       vec2.fromValues(w * 0.5, h * 0.5),
       vec2.fromValues(0, h),
@@ -394,7 +388,7 @@ export const createSATScene = () => {
   );
 
   world.createBody(
-    new CircleShape(2),
+    new Circle(2),
     Number.POSITIVE_INFINITY,
     Number.POSITIVE_INFINITY,
     vec2.fromValues(4, -2),
@@ -402,7 +396,7 @@ export const createSATScene = () => {
   );
 
   world.createBody(
-    new CircleShape(3),
+    new Circle(3),
     Number.POSITIVE_INFINITY,
     Number.POSITIVE_INFINITY,
     vec2.fromValues(0.0, -5),

@@ -1,28 +1,19 @@
-import { mat3, vec2, vec3 } from "gl-matrix";
-import { Observable, Subject, fromEvent } from "rxjs";
-import { takeUntil, map, filter, tap } from "rxjs/operators";
+import { mat3, vec2, vec3 } from 'gl-matrix';
+import { Observable, Subject, fromEvent } from 'rxjs';
+import { takeUntil, map, filter, tap } from 'rxjs/operators';
 
-import { projMat } from "./draw";
-import {
-  Body,
-  CircleShape,
-  PolygonShape,
-  testCirclePoint,
-  testPolyPoint,
-  World
-} from "./physics";
+import { projMat } from './draw';
+import { Body, World } from './physics';
 
 const invProjMat = mat3.create();
 mat3.invert(invProjMat, projMat);
 
 const containsPoint = (world: World, body: Body, point: vec2) => {
   const shape = world.bodyShapeLookup.get(body);
-  if (shape instanceof CircleShape) {
-    return testCirclePoint(shape.radius, body.position, point);
-  } else if (shape instanceof PolygonShape) {
-    return testPolyPoint(shape.points, body.transform, point);
-  }
-  return false;
+  const invTransform = mat3.create();
+  mat3.invert(invTransform, body.transform);
+  vec2.transformMat3(point, point, invTransform);
+  return shape.testPoint(point);
 };
 
 export class Draggable {
@@ -55,7 +46,7 @@ export class Draggable {
   }
 
   init() {
-    fromEvent(this.element, "mousedown")
+    fromEvent(this.element, 'mousedown')
       .pipe(
         takeUntil(this.destroy$),
         tap((e: MouseEvent) =>
@@ -74,14 +65,14 @@ export class Draggable {
   }
 
   private onMouseDown() {
-    fromEvent(self.document, "mouseup")
+    fromEvent(self.document, 'mouseup')
       .pipe(
         takeUntil(this.destroy$),
         takeUntil(this.stop$)
       )
       .subscribe(() => this.onMouseUp());
 
-    fromEvent(self.document, "mousemove")
+    fromEvent(self.document, 'mousemove')
       .pipe(
         takeUntil(this.destroy$),
         takeUntil(this.stop$),
@@ -135,7 +126,7 @@ export class Rotatable {
   }
 
   init() {
-    fromEvent(this.element, "wheel")
+    fromEvent(this.element, 'wheel')
       .pipe(
         takeUntil(this.destroy$),
         filter((e: WheelEvent) => {

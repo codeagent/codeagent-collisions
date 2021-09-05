@@ -1,4 +1,6 @@
-import { vec2 } from 'gl-matrix';
+import { mat3, vec2, vec3 } from 'gl-matrix';
+
+export type AABB = [vec2, vec2];
 
 export interface Shape {
   /**
@@ -7,6 +9,19 @@ export interface Shape {
    * @returns support point on local frame of reference
    */
   support(out: vec2, dir: vec2): vec2;
+
+  /**
+   * @param out result will be place here
+   * @param transform transformation to be used for calculating net result
+   * @returns net result
+   */
+  aabb(out: AABB, transform: mat3): AABB;
+
+  /**
+   * @param point 2d local point to test against
+   * @return result of examine
+   */
+  testPoint(point: vec2): boolean;
 }
 
 export class Circle implements Shape {
@@ -15,6 +30,17 @@ export class Circle implements Shape {
   public support(out: vec2, dir: vec2): vec2 {
     vec2.normalize(out, dir);
     return vec2.scale(out, out, this.radius);
+  }
+
+  public aabb(out: AABB, transform: mat3): AABB {
+    const center = vec2.fromValues(transform[6], transform[7]);
+    vec2.set(out[0], center[0] - this.radius, center[1] - this.radius);
+    vec2.set(out[1], center[0] + this.radius, center[1] + this.radius);
+    return out;
+  }
+
+  public testPoint(point: vec2): boolean {
+    return vec2.dot(point, point) < this.radius * this.radius;
   }
 }
 
@@ -31,6 +57,56 @@ export class Polygon implements Shape {
   public support(out: vec2, dir: vec2): vec2 {
     const index = this.indexOfFarhestPoint(dir);
     return vec2.copy(out, this.points[index]);
+  }
+
+  public aabb(out: AABB, transform: mat3): AABB {
+    const v = vec2.create();
+
+    let minX = Number.POSITIVE_INFINITY;
+    let minY = Number.POSITIVE_INFINITY;
+    let maxX = Number.NEGATIVE_INFINITY;
+    let maxY = Number.NEGATIVE_INFINITY;
+
+    for (const p of this.points) {
+      vec2.transformMat3(v, p, transform);
+
+      if (v[0] < minX) {
+        minX = v[0];
+      }
+      if (v[1] < minY) {
+        minY = v[1];
+      }
+      if (v[0] > maxX) {
+        maxX = v[0];
+      }
+      if (v[1] > maxY) {
+        maxY = v[1];
+      }
+    }
+
+    vec2.set(out[0], minX, minY);
+    vec2.set(out[1], maxX, maxY);
+
+    return out;
+  }
+
+  public testPoint(point: vec2): boolean {
+    const e = vec2.create();
+    const r = vec2.create();
+    const x = vec3.create();
+
+    for (let i = 0; i < this.points.length; i++) {
+      const p0 = this.points[i];
+      const p1 = this.points[(i + 1) % this.points.length];
+      vec2.sub(e, p1, p0);
+      vec2.sub(r, point, p0);
+      vec2.cross(x, e, r);
+      if (x[2] < 0) {
+        return false;
+      }
+    }
+
+    return true;
   }
 
   public indexOfFarhestPoint(dir: vec2): number {

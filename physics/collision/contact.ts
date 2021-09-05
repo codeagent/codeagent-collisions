@@ -1,4 +1,5 @@
 import { vec2 } from 'gl-matrix';
+
 import { SpaceMappingInterface, inverse } from './space-mapping';
 import { MTV } from './mtv';
 import { Shape, Circle, Polygon } from './shape';

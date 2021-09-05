@@ -18,20 +18,11 @@ import {
   VpVxS
 } from './solver';
 import { CollisionDetector } from './detector';
-
-export class PolygonShape {
-  constructor(public points: vec2[]) {}
-}
-
-export class CircleShape {
-  constructor(public radius: number) {}
-}
-
-export type BodyShape = CircleShape | PolygonShape;
+import { Shape } from './collision';
 
 export class World {
   public readonly bodies: Body[] = [];
-  public readonly bodyShapeLookup = new WeakMap<Body, BodyShape>();
+  public readonly bodyShapeLookup = new WeakMap<Body, Shape>();
   private readonly _jointConstraints: ConstraintInterface[] = [];
   private readonly _contactConstraints: ConstraintInterface[] = [];
   private readonly _frictionConstraints: ConstraintInterface[] = [];
@@ -71,7 +62,7 @@ export class World {
   }
 
   createBody(
-    shape: BodyShape,
+    shape: Shape,
     mass: number,
     intertia: number,
     position: vec2,

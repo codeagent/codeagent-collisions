@@ -1,8 +1,7 @@
-import { vec2 } from "gl-matrix";
+import { vec2, vec3 } from 'gl-matrix';
 
-import { Vector, VxV } from "./solver";
-import { cross } from "./tests";
-import { World } from "./world";
+import { Vector, VxV } from './solver';
+import { World } from './world';
 
 export interface ConstraintClamping {
   min: number;
@@ -46,13 +45,15 @@ export class DistanceConstraint implements ConstraintInterface {
     const pbpa = vec2.create();
     vec2.sub(pbpa, pb, pa);
 
+    const x = vec3.create();
+
     J[this.bodyAIndex * 3] = -pbpa[0] * 2.0;
     J[this.bodyAIndex * 3 + 1] = -pbpa[1] * 2.0;
-    J[this.bodyAIndex * 3 + 2] = -cross(ra, pbpa) * 2.0;
+    J[this.bodyAIndex * 3 + 2] = -vec2.cross(x, ra, pbpa)[2] * 2.0;
 
     J[this.bodyBIndex * 3] = pbpa[0] * 2.0;
     J[this.bodyBIndex * 3 + 1] = pbpa[1] * 2.0;
-    J[this.bodyBIndex * 3 + 2] = cross(rb, pbpa) * 2.0;
+    J[this.bodyBIndex * 3 + 2] = vec2.cross(x, rb, pbpa)[2] * 2.0;
 
     return J;
   }
@@ -97,13 +98,15 @@ export class ContactConstraint implements ConstraintInterface {
     const rb = vec2.create();
     vec2.sub(rb, this.joint, bodyB.position);
 
+    const x = vec3.create();
+
     J[this.bodyAIndex * 3] = -this.normal[0];
     J[this.bodyAIndex * 3 + 1] = -this.normal[1];
-    J[this.bodyAIndex * 3 + 2] = -cross(ra, this.normal);
+    J[this.bodyAIndex * 3 + 2] = -vec2.cross(x, ra, this.normal)[2];
 
     J[this.bodyBIndex * 3] = this.normal[0];
     J[this.bodyBIndex * 3 + 1] = this.normal[1];
-    J[this.bodyBIndex * 3 + 2] = cross(rb, this.normal);
+    J[this.bodyBIndex * 3 + 2] = vec2.cross(x, rb, this.normal)[2];
 
     return J;
   }
@@ -142,15 +145,16 @@ export class FrictionConstraint {
     const rb = vec2.create();
     vec2.sub(rb, this.joint, bodyB.position);
 
+    const x = vec3.create();
     const normal = vec2.fromValues(-this.normal[1], this.normal[0]);
 
     J[this.bodyAIndex * 3] = -normal[0];
     J[this.bodyAIndex * 3 + 1] = -normal[1];
-    J[this.bodyAIndex * 3 + 2] = -cross(ra, normal);
+    J[this.bodyAIndex * 3 + 2] = -vec2.cross(x, ra, normal)[2];
 
     J[this.bodyBIndex * 3] = normal[0];
     J[this.bodyBIndex * 3 + 1] = normal[1];
-    J[this.bodyBIndex * 3 + 2] = cross(rb, normal);
+    J[this.bodyBIndex * 3 + 2] = vec2.cross(x, rb, normal)[2];
 
     return J;
   }

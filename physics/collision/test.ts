@@ -1,9 +1,9 @@
-import { CircleShape, PolygonShape, World } from '../world';
-import { Body } from '../body';
-import { Shape, Circle, Polygon } from './shape';
+import { vec2 } from 'gl-matrix';
+
+import { World } from '../world';
+import { Circle, Polygon } from './shape';
 import { MTV } from './mtv';
 import { inverse, SpaceMapping, SpaceMappingInterface } from './space-mapping';
-
 import { sat } from './sat';
 import {
   getCircleCircleContactManifold,
@@ -11,26 +11,15 @@ import {
   ContactManifold,
   getPolyPolyContactManifold
 } from './contact';
-import { drawLineSegment, drawManifoldNew } from '../../draw';
-import { vec2 } from 'gl-matrix';
+import { drawLineSegment } from '../../draw';
 
 export const satTest = (world: World) => {
-  const createShape = (body: Body): Shape => {
-    const shape = world.bodyShapeLookup.get(body);
-    if (shape instanceof CircleShape) {
-      return new Circle(shape.radius);
-    } else if (shape instanceof PolygonShape) {
-      return new Polygon(shape.points);
-    }
-    return null;
-  };
-
   for (let l = 0; l < world.bodies.length; l++) {
     for (let r = l + 1; r < world.bodies.length; r++) {
       const leftBody = world.bodies[l];
       const rightBody = world.bodies[r];
-      const leftShape = createShape(leftBody);
-      const rightShape = createShape(rightBody);
+      const leftShape = world.bodyShapeLookup.get(leftBody);
+      const rightShape = world.bodyShapeLookup.get(rightBody);
 
       const query = new MTV();
       let spaceMapping: SpaceMappingInterface = new SpaceMapping(
@@ -85,8 +74,6 @@ export const satTest = (world: World) => {
           markPolyEdges(query, leftShape, rightShape, spaceMapping);
         }
       }
-
-      // drawManifoldNew(manifold);
     }
   }
 };

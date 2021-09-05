@@ -3,15 +3,12 @@ import { vec2, mat3 } from 'gl-matrix';
 import {
   ContactManifold,
   World,
-  PolygonShape,
-  Poly,
-  CircleShape,
   ConstraintInterface,
   ContactConstraint,
-  DistanceConstraint
+  DistanceConstraint,
+  Polygon,
+  Circle
 } from './physics';
-
-import { ContactManifold as NewContactManifold } from './physics/collision';
 
 export const canvas = document.getElementById('canvas') as HTMLCanvasElement;
 const context = canvas.getContext('2d') as CanvasRenderingContext2D;
@@ -38,7 +35,7 @@ export const clear = (): void => {
 };
 
 export const drawPolyShape = (
-  poly: Poly,
+  poly: Polygon,
   transform: mat3,
   color: string,
   dashed = false
@@ -48,13 +45,13 @@ export const drawPolyShape = (
   context.setLineDash(dashed ? [1, 1] : []);
 
   context.beginPath();
-  for (let i = 0; i < poly.length; i++) {
+  for (let i = 0; i < poly.points.length; i++) {
     const p0 = vec2.create();
     const p1 = vec2.create();
 
-    vec2.transformMat3(p0, poly[i], transform);
+    vec2.transformMat3(p0, poly.points[i], transform);
     vec2.transformMat3(p0, p0, projMat);
-    vec2.transformMat3(p1, poly[(i + 1) % poly.length], transform);
+    vec2.transformMat3(p1, poly.points[(i + 1) % poly.points.length], transform);
     vec2.transformMat3(p1, p1, projMat);
 
     if (i === 0) {
@@ -129,16 +126,6 @@ export const drawLineSegment = (ed: [vec2, vec2], color = '#666666') => {
 export const drawManifold = (manifold: ContactManifold) => {
   context.lineWidth = 0.5;
   const t = vec2.create();
-  manifold.forEach(({ point, normal, depth, index }) => {
-    vec2.add(t, point, normal);
-    drawLineSegment([point, t], LINE_COLOR);
-    drawDot(point, REDISH_COLOR);
-  });
-};
-
-export const drawManifoldNew = (manifold: NewContactManifold) => {
-  context.lineWidth = 0.5;
-  const t = vec2.create();
   manifold.forEach(
     ({
       shape0,
@@ -153,7 +140,6 @@ export const drawManifoldNew = (manifold: NewContactManifold) => {
       drawDot(point0, '#FF0000');
       vec2.add(t, point0, normal);
       drawLineSegment([point0, t], LINE_COLOR);
-
       drawDot(point1, '#0000FF');
     }
   );
@@ -205,9 +191,9 @@ export const drawWorld = (world: World): void => {
   world.bodies.forEach(body => {
     const shape = world.bodyShapeLookup.get(body);
     drawCross(body.transform);
-    if (shape instanceof PolygonShape) {
-      drawPolyShape(shape.points, body.transform, DEFAULT_COLOR);
-    } else if (shape instanceof CircleShape) {
+    if (shape instanceof Polygon) {
+      drawPolyShape(shape, body.transform, DEFAULT_COLOR);
+    } else if (shape instanceof Circle) {
       drawCircleShape(shape.radius, body.transform, DEFAULT_COLOR);
     }
   });

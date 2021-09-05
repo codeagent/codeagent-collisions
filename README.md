@@ -7,4 +7,13 @@
 - distance, collision, friction constraints
 - special csr matrices for optimization
 
+
+## @todo:
+- [ ] gjk-epa contacts
+- [ ] capsule shape
+- [ ] motors
+- [ ] slide constrains
+- [ ] fix interpenetration
+- [ ] more demos
+
 [Edit on StackBlitz ⚡️](https://stackblitz.com/edit/codeagent-collisions)

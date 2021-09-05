@@ -1,7 +1,6 @@
-import { mat3, vec2 } from "gl-matrix";
+import { mat3, vec2, vec3 } from 'gl-matrix';
 
-import { cross } from "./tests";
-import { World } from "./world";
+import { World } from './world';
 
 const ZERO = vec2.fromValues(0.0, 0.0);
 
@@ -102,9 +101,10 @@ export class Body {
   applyForce(force: vec2, point: vec2) {
     this.force = force;
     const r = vec2.create();
+    const x = vec3.create();
     vec2.transformMat3(r, point, this.transform);
     vec2.sub(r, r, this.position);
-    this.torque = cross(r, force);
+    this.torque = vec2.cross(x, r, force)[2];
   }
 
   clearForces() {
