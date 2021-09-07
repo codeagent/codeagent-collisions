@@ -26,20 +26,20 @@ export const world = new World();
 
 export const createChainScene = (links: number, x = 0.0) => {
   world.restitution = 0.5;
-  world.pushFactor = 0.075;
+  world.pushFactor = 0.25;
 
   const chain = new Array<Body>(links);
   const size = 0.5;
-  const distance = 0.5;
+  const distance = 1.0;
   let offset = Math.SQRT2 * size;
   const m = 1.0;
 
   for (let i = 0; i < links; i++) {
     const body = world.createBody(
       createQuadShape(size),
-      i === 0 ? Number.POSITIVE_INFINITY : m,
-      i === 0 ? Number.POSITIVE_INFINITY : m * 0.1,
-      vec2.fromValues(offset - Math.SQRT2 * size + x, 10),
+      i === 0 || i == links - 1 ? Number.POSITIVE_INFINITY : m,
+      i === 0 || i == links - 1 ? Number.POSITIVE_INFINITY : m * 0.1,
+      vec2.fromValues(offset - Math.SQRT2 * size + x - 11, 10),
       -Math.PI * 0.25
     );
 
@@ -51,7 +51,7 @@ export const createChainScene = (links: number, x = 0.0) => {
     }
 
     chain[i] = body;
-    offset += Math.SQRT2 * size + distance;
+    offset += Math.SQRT2 * size + distance * 0.5;
   }
 };
 

@@ -19,7 +19,7 @@ import { satTest } from './physics/collision/test';
 self['world'] = world;
 
 const lookup = {
-  chain: () => createChainScene(16),
+  chain: () => createChainScene(20),
   pendulum: () => createPendulumScene(12),
   stairs: () => createStairsScene(8),
   stack: () => createStackScene(128),

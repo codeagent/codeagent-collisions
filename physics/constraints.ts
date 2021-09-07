@@ -44,16 +44,16 @@ export class DistanceConstraint implements ConstraintInterface {
 
     const pbpa = vec2.create();
     vec2.sub(pbpa, pb, pa);
-
+    vec2.normalize(pbpa, pbpa);
     const x = vec3.create();
 
-    J[this.bodyAIndex * 3] = -pbpa[0] * 2.0;
-    J[this.bodyAIndex * 3 + 1] = -pbpa[1] * 2.0;
-    J[this.bodyAIndex * 3 + 2] = -vec2.cross(x, ra, pbpa)[2] * 2.0;
+    J[this.bodyAIndex * 3] = -pbpa[0];
+    J[this.bodyAIndex * 3 + 1] = -pbpa[1];
+    J[this.bodyAIndex * 3 + 2] = -vec2.cross(x, ra, pbpa)[2];
 
-    J[this.bodyBIndex * 3] = pbpa[0] * 2.0;
-    J[this.bodyBIndex * 3 + 1] = pbpa[1] * 2.0;
-    J[this.bodyBIndex * 3 + 2] = vec2.cross(x, rb, pbpa)[2] * 2.0;
+    J[this.bodyBIndex * 3] = pbpa[0];
+    J[this.bodyBIndex * 3 + 1] = pbpa[1];
+    J[this.bodyBIndex * 3 + 2] = vec2.cross(x, rb, pbpa)[2];
 
     return J;
   }
@@ -68,7 +68,7 @@ export class DistanceConstraint implements ConstraintInterface {
     const pb = vec2.create();
     vec2.transformMat3(pb, this.jointB, bodyB.transform);
 
-    return ((this.distance - vec2.distance(pb, pa)) * strength * 2.0) / dt;
+    return ((this.distance - vec2.distance(pb, pa)) * strength) / dt;
   }
 
   getClamping() {
