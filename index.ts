@@ -11,7 +11,8 @@ import {
   world,
   createGaussianScene,
   createChainScene,
-  createSATScene
+  createSATScene,
+  createLineScene
 } from './scene';
 import { Draggable, Rotatable } from './controls';
 import { satTest } from './physics/collision/test';
@@ -24,7 +25,8 @@ const lookup = {
   stairs: () => createStairsScene(8),
   stack: () => createStackScene(128),
   gauss: () => createGaussianScene(),
-  sat: () => createSATScene()
+  sat: () => createSATScene(),
+  line: () => createLineScene()
 };
 
 let rotatables: Rotatable[] = [];
@@ -47,10 +49,14 @@ merge(
   fromEvent(document.getElementById('gauss'), 'click').pipe(
     map(e => e.srcElement['id'])
   ),
+  fromEvent(document.getElementById('line'), 'click').pipe(
+    map(e => e.srcElement['id'])
+  ),
   fromEvent(document.getElementById('sat'), 'click').pipe(
     map(e => e.srcElement['id'])
   ),
-  of('chain').pipe(delay(1000))
+
+  of('line').pipe(delay(1000))
 )
   .pipe(
     tap(id => {

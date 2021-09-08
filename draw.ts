@@ -6,9 +6,12 @@ import {
   ConstraintInterface,
   ContactConstraint,
   DistanceConstraint,
+  LineConstraint,
   Polygon,
   Circle
 } from './physics';
+import { closestPointToLineSegment } from './physics/collision/utils';
+import { HalfspaceConstraint } from './physics/constraints';
 
 export const canvas = document.getElementById('canvas') as HTMLCanvasElement;
 const context = canvas.getContext('2d') as CanvasRenderingContext2D;
@@ -51,7 +54,11 @@ export const drawPolyShape = (
 
     vec2.transformMat3(p0, poly.points[i], transform);
     vec2.transformMat3(p0, p0, projMat);
-    vec2.transformMat3(p1, poly.points[(i + 1) % poly.points.length], transform);
+    vec2.transformMat3(
+      p1,
+      poly.points[(i + 1) % poly.points.length],
+      transform
+    );
     vec2.transformMat3(p1, p1, projMat);
 
     if (i === 0) {
@@ -167,6 +174,18 @@ export const drawConstraint = (constraint: ConstraintInterface) => {
     );
     drawLineSegment([p, n], LINE_COLOR);
     drawDot(p, REDISH_COLOR);
+  } else if (constraint instanceof LineConstraint) {
+    const p = constraint.world.bodies[constraint.bodyIndex].position;
+    const ph = vec2.create();
+    closestPointToLineSegment(ph, constraint.lineA, constraint.lineB, p);
+
+    drawLineSegment([p, ph], LINE_COLOR);
+    drawDot(ph, REDISH_COLOR);
+    drawLineSegment([constraint.lineA, constraint.lineB], LINE_COLOR);
+    drawDot(constraint.lineA, BLUISH_COLOR);
+    drawDot(constraint.lineB, BLUISH_COLOR);
+  } else if (constraint instanceof HalfspaceConstraint) {
+    drawGround(constraint.origin, constraint.normal);
   }
 };
 
@@ -185,6 +204,36 @@ export const drawCross = (transform: mat3) => {
 
   drawLineSegment(a);
   drawLineSegment(b);
+};
+
+export const drawGround = (origin: vec2, normal: vec2) => {
+  context.lineWidth = 1.0;
+
+  const extend = 1.0;
+  const dashes = 8;
+  const skew = 0.2;
+  const dash = 0.2;
+  const dir = vec2.fromValues(-normal[1], normal[0]);
+  vec2.normalize(dir, dir);
+
+  const p0 = vec2.create();
+  vec2.scaleAndAdd(p0, origin, dir, extend);
+
+  const p1 = vec2.create();
+  vec2.scaleAndAdd(p1, origin, dir, -extend);
+
+  drawLineSegment([p0, p1], LINE_COLOR);
+
+  const delta = vec2.distance(p1, p0) / dashes;
+  vec2.scaleAndAdd(p1, p0, normal, -dash);
+  vec2.scaleAndAdd(p0, p0, dir, skew);
+
+  context.lineWidth = 0.5;
+  for (let i = 0; i < dashes; i++) {
+    vec2.scaleAndAdd(p0, p0, dir, -delta);
+    vec2.scaleAndAdd(p1, p1, dir, -delta);
+    drawLineSegment([p1, p0], LINE_COLOR);
+  }
 };
 
 export const drawWorld = (world: World): void => {

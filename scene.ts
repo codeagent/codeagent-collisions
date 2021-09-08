@@ -403,3 +403,42 @@ export const createSATScene = () => {
     0.0
   );
 };
+
+export const createLineScene = () => {
+  const lineA = vec2.fromValues(-10, -2);
+  const lineB = vec2.fromValues(10, 2);
+  const distance = -0.5;
+
+  world.restitution = 0.35;
+  world.pushFactor = 0.4;
+  world.friction = 0.4;
+
+  const box0 = world.createBody(
+    createRectShape(2, 2),
+    1,
+    1,
+    vec2.fromValues(2.0, 2.0),
+    0.0
+  );
+  world.addLineConstraint(box0, lineA, lineB, distance);
+
+  const box1 = world.createBody(
+    createRectShape(2, 2),
+    1,
+    1,
+    vec2.fromValues(6, 4.0),
+    45
+  );
+  world.addLineConstraint(box1, lineA, lineB, -distance);
+
+  const sphere = world.createBody(new Circle(1), 1, 1, lineB, 45);
+  world.addLineConstraint(sphere, lineA, lineB, 0);
+
+  world.createBody(
+    new Circle(2),
+    Number.POSITIVE_INFINITY,
+    Number.POSITIVE_INFINITY,
+    lineA,
+    0.0
+  );
+};

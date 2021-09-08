@@ -6,7 +6,9 @@ import {
   DistanceConstraint,
   ConstraintInterface,
   ContactConstraint,
-  FrictionConstraint
+  FrictionConstraint,
+  LineConstraint,
+  HalfspaceConstraint
 } from './constraints';
 import {
   VxSpVxS,
@@ -207,6 +209,44 @@ export class World {
         this.bodies.indexOf(bodyB),
         vec2.clone(positionB),
         distance
+      )
+    );
+
+    this._lambdaCache0 = new Float32Array(this._jointConstraints.length);
+    this._lambdaCache1 = new Float32Array(this._jointConstraints.length);
+  }
+
+  addLineConstraint(body: Body, lineA: vec2, lineB: vec2, distance: number) {
+    this._jointConstraints.push(
+      new LineConstraint(
+        this,
+        this.bodies.indexOf(body),
+        vec2.clone(lineA),
+        vec2.clone(lineB),
+        distance
+      )
+    );
+
+    const normal = vec2.create();
+    vec2.subtract(normal, lineB, lineA);
+    vec2.normalize(normal, normal);
+
+    this._jointConstraints.push(
+      new HalfspaceConstraint(
+        this,
+        this.bodies.indexOf(body),
+        vec2.clone(lineA),
+        vec2.clone(normal)
+      )
+    );
+
+    vec2.negate(normal, normal);
+    this._jointConstraints.push(
+      new HalfspaceConstraint(
+        this,
+        this.bodies.indexOf(body),
+        vec2.clone(lineB),
+        vec2.clone(normal)
       )
     );
 
