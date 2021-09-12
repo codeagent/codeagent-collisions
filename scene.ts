@@ -410,7 +410,7 @@ export const createLineScene = () => {
   const distance = -0.5;
 
   world.restitution = 0.35;
-  world.pushFactor = 0.4;
+  world.pushFactor = 0.94;
   world.friction = 0.4;
 
   const box0 = world.createBody(
@@ -434,7 +434,7 @@ export const createLineScene = () => {
     box1,
     vec2.fromValues(-1, 1),
     vec2.fromValues(1.0, 0),
-    Math.PI / 4
+    0
   );
 
   // const sphere = world.createBody(new Circle(1), 1, 1, lineB, 45);
