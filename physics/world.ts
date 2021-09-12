@@ -223,7 +223,7 @@ export class World {
     jointA: vec2,
     bodyB: Body,
     jointB: vec2,
-    axisB: vec2
+    localAxis: vec2
   ) {
     this._jointConstraints.push(
       new LineConstraint(
@@ -232,7 +232,7 @@ export class World {
         vec2.clone(jointA),
         this.bodies.indexOf(bodyB),
         vec2.clone(jointB),
-        vec2.clone(axisB)
+        vec2.clone(localAxis)
       )
     );
 

@@ -11,7 +11,7 @@ export class LineConstraint {
     public readonly jointA: vec2,
     public readonly bodyBIndex: number,
     public readonly jointB: vec2,
-    public readonly axisB: vec2
+    public readonly axisA: vec2
   ) {}
 
   getJacobian(): Vector {
@@ -23,8 +23,8 @@ export class LineConstraint {
     const t = vec2.create();
     transformMat3Vec(
       t,
-      vec2.fromValues(-this.axisB[1], this.axisB[0]),
-      bodyB.transform
+      vec2.fromValues(-this.axisA[1], this.axisA[0]),
+      bodyA.transform
     );
 
     const pa = vec2.create();
@@ -34,24 +34,24 @@ export class LineConstraint {
     vec2.transformMat3(pb, this.jointB, bodyB.transform);
 
     const u = vec2.create();
-    vec2.sub(u, pa, pb);
+    vec2.sub(u, pb, pa);
 
     const ra = vec2.create();
     vec2.sub(ra, pa, bodyA.position);
+    vec2.sub(ra, ra, u);
 
     const rb = vec2.create();
     vec2.sub(rb, pb, bodyB.position);
-    vec2.add(rb, rb, u);
 
     const x = vec3.create();
 
-    J[this.bodyAIndex * 3] = t[0];
-    J[this.bodyAIndex * 3 + 1] = t[1];
-    J[this.bodyAIndex * 3 + 2] = vec2.cross(x, ra, t)[2];
+    J[this.bodyAIndex * 3] = -t[0];
+    J[this.bodyAIndex * 3 + 1] = -t[1];
+    J[this.bodyAIndex * 3 + 2] = -vec2.cross(x, ra, t)[2];
 
-    J[this.bodyBIndex * 3] = -t[0];
-    J[this.bodyBIndex * 3 + 1] = -t[1];
-    J[this.bodyBIndex * 3 + 2] = -vec2.cross(x, rb, t)[2];
+    J[this.bodyBIndex * 3] = t[0];
+    J[this.bodyBIndex * 3 + 1] = t[1];
+    J[this.bodyBIndex * 3 + 2] = vec2.cross(x, rb, t)[2];
 
     return J;
   }
@@ -63,8 +63,8 @@ export class LineConstraint {
     const t = vec2.create();
     transformMat3Vec(
       t,
-      vec2.fromValues(-this.axisB[1], this.axisB[0]),
-      bodyB.transform
+      vec2.fromValues(-this.axisA[1], this.axisA[0]),
+      bodyA.transform
     );
 
     const pa = vec2.create();
@@ -74,9 +74,9 @@ export class LineConstraint {
     vec2.transformMat3(pb, this.jointB, bodyB.transform);
 
     const u = vec2.create();
-    vec2.sub(u, pa, pb);
+    vec2.sub(u, pb, pa);
 
-    return (-vec2.dot(t, u) / dt) * strength;
+    return (vec2.dot(t, u) / dt) * strength;
   }
 
   getClamping() {
