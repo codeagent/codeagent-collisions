@@ -56,7 +56,7 @@ merge(
     map(e => e.srcElement['id'])
   ),
 
-  of('line').pipe(delay(1000))
+  of('chain').pipe(delay(1000))
 )
   .pipe(
     tap(id => {

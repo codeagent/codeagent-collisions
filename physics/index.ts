@@ -1,5 +1,5 @@
 export * from './body';
-export * from './constraints';
+export * from './constraint';
 export * from './detector';
 export * from './solver';
 export * from './world';

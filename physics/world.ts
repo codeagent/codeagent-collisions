@@ -8,8 +8,10 @@ import {
   ContactConstraint,
   FrictionConstraint,
   LineConstraint,
-  HalfspaceConstraint
-} from './constraints';
+  HalfspaceConstraint,
+  MinDistanceConstraint,
+  MaxDistanceConstraint
+} from './constraint';
 import {
   VxSpVxS,
   projectedGussSeidel,
@@ -202,7 +204,7 @@ export class World {
     distance: number
   ) {
     this._jointConstraints.push(
-      new DistanceConstraint(
+      new MaxDistanceConstraint(
         this,
         this.bodies.indexOf(bodyA),
         vec2.clone(positionA),

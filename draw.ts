@@ -8,10 +8,11 @@ import {
   DistanceConstraint,
   LineConstraint,
   Polygon,
-  Circle
+  Circle,
+  MaxDistanceConstraint,
+  HalfspaceConstraint
 } from './physics';
 import { closestPointToLineSegment } from './physics/collision/utils';
-import { HalfspaceConstraint } from './physics/constraints';
 
 export const canvas = document.getElementById('canvas') as HTMLCanvasElement;
 const context = canvas.getContext('2d') as CanvasRenderingContext2D;
@@ -154,7 +155,10 @@ export const drawManifold = (manifold: ContactManifold) => {
 
 export const drawConstraint = (constraint: ConstraintInterface) => {
   context.lineWidth = 1;
-  if (constraint instanceof DistanceConstraint) {
+  if (
+    constraint instanceof DistanceConstraint ||
+    constraint instanceof MaxDistanceConstraint
+  ) {
     const bodyA = constraint.world.bodies[constraint.bodyAIndex];
     const bodyB = constraint.world.bodies[constraint.bodyBIndex];
 
