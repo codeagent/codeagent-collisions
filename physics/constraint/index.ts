@@ -6,3 +6,5 @@ export * from './max-distance-constraint';
 export * from './friction-constraint';
 export * from './line-constraint';
 export * from './angle-constraint';
+export * from './revolute-x-constraint';
+export * from './revolute-y-constraint';

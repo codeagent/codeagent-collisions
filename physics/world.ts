@@ -9,7 +9,9 @@ import {
   FrictionConstraint,
   LineConstraint,
   AngleConstraint,
-  MaxDistanceConstraint
+  MaxDistanceConstraint,
+  RevoluteXConstraint,
+  RevoluteYConstraint
 } from './constraint';
 import {
   VxSpVxS,
@@ -196,7 +198,7 @@ export class World {
     this.clearForces();
   }
 
-  addDistanceConstraint(
+  addDistanceJoint(
     bodyA: Body,
     positionA: vec2,
     bodyB: Body,
@@ -218,35 +220,15 @@ export class World {
     this._lambdaCache1 = new Float32Array(this._jointConstraints.length);
   }
 
-  addLineConstraint(
-    bodyA: Body,
-    jointA: vec2,
-    bodyB: Body,
-    jointB: vec2,
-    localAxis: vec2
-  ) {
-    this._jointConstraints.push(
-      new LineConstraint(
-        this,
-        this.bodies.indexOf(bodyA),
-        vec2.clone(jointA),
-        this.bodies.indexOf(bodyB),
-        vec2.clone(jointB),
-        vec2.clone(localAxis)
-      )
-    );
-
-    this._lambdaCache0 = new Float32Array(this._jointConstraints.length);
-    this._lambdaCache1 = new Float32Array(this._jointConstraints.length);
-  }
-
   addPrismaticJoint(
     bodyA: Body,
     jointA: vec2,
     bodyB: Body,
     jointB: vec2,
     localAxis: vec2,
-    refAngle: number
+    refAngle = 0,
+    minDistance = 0,
+    maxDistance = Number.POSITIVE_INFINITY
   ) {
     this._jointConstraints.push(
       new LineConstraint(
@@ -268,25 +250,94 @@ export class World {
       )
     );
 
+    if (minDistance) {
+      this._jointConstraints.push(
+        new MinDistanceConstraint(
+          this,
+          this.bodies.indexOf(bodyA),
+          vec2.clone(jointA),
+          this.bodies.indexOf(bodyB),
+          vec2.clone(jointB),
+          minDistance
+        )
+      );
+    }
+
+    if (isFinite(maxDistance)) {
+      this._jointConstraints.push(
+        new MaxDistanceConstraint(
+          this,
+          this.bodies.indexOf(bodyA),
+          vec2.clone(jointA),
+          this.bodies.indexOf(bodyB),
+          vec2.clone(jointB),
+          maxDistance
+        )
+      );
+    }
+
+    this._lambdaCache0 = new Float32Array(this._jointConstraints.length);
+    this._lambdaCache1 = new Float32Array(this._jointConstraints.length);
+  }
+
+  addRevoluteJoint(bodyA: Body, jointA: vec2, bodyB: Body, jointB: vec2) {
     this._jointConstraints.push(
-      new MaxDistanceConstraint(
+      new RevoluteXConstraint(
         this,
         this.bodies.indexOf(bodyA),
         vec2.clone(jointA),
         this.bodies.indexOf(bodyB),
-        vec2.clone(jointB),
-        10
+        vec2.clone(jointB)
       )
     );
 
     this._jointConstraints.push(
-      new MinDistanceConstraint(
+      new RevoluteYConstraint(
         this,
         this.bodies.indexOf(bodyA),
         vec2.clone(jointA),
         this.bodies.indexOf(bodyB),
-        vec2.clone(jointB),
-        5
+        vec2.clone(jointB)
+      )
+    );
+
+    this._lambdaCache0 = new Float32Array(this._jointConstraints.length);
+    this._lambdaCache1 = new Float32Array(this._jointConstraints.length);
+  }
+
+  addWeldJoint(
+    bodyA: Body,
+    jointA: vec2,
+    bodyB: Body,
+    jointB: vec2,
+    refAngle = 0
+  ) {
+    this._jointConstraints.push(
+      new RevoluteXConstraint(
+        this,
+        this.bodies.indexOf(bodyA),
+        vec2.clone(jointA),
+        this.bodies.indexOf(bodyB),
+        vec2.clone(jointB)
+      )
+    );
+
+    this._jointConstraints.push(
+      new RevoluteYConstraint(
+        this,
+        this.bodies.indexOf(bodyA),
+        vec2.clone(jointA),
+        this.bodies.indexOf(bodyB),
+        vec2.clone(jointB)
+      )
+    );
+
+    this._jointConstraints.push(
+      new AngleConstraint(
+        this,
+        this.bodies.indexOf(bodyA),
+        this.bodies.indexOf(bodyB),
+        refAngle
       )
     );
 

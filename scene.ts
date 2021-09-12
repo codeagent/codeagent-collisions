@@ -47,7 +47,7 @@ export const createChainScene = (links: number, x = 0.0) => {
       const bodyA = chain[i - 1];
       const pointA = vec2.fromValues(size * 0.5, size * 0.5);
       const pointB = vec2.fromValues(-size * 0.5, -size * 0.5);
-      world.addDistanceConstraint(bodyA, pointA, body, pointB, distance);
+      world.addDistanceJoint(bodyA, pointA, body, pointB, distance);
     }
 
     chain[i] = body;
@@ -154,7 +154,7 @@ export const createPendulumScene = (n: number) => {
       );
     }
 
-    world.addDistanceConstraint(
+    world.addDistanceJoint(
       ceil,
       vec2.fromValues(n % 2 ? offset : -offset, 0.0),
       pendulum,
@@ -404,13 +404,13 @@ export const createSATScene = () => {
   );
 };
 
-export const createLineScene = () => {
+export const createJointScene = () => {
   const lineA = vec2.fromValues(-10, -2);
   const lineB = vec2.fromValues(10, 2);
   const distance = -0.5;
 
   world.restitution = 0.35;
-  world.pushFactor = 0.94;
+  world.pushFactor = 0.75;
   world.friction = 0.4;
 
   const box0 = world.createBody(
@@ -428,25 +428,24 @@ export const createLineScene = () => {
     vec2.fromValues(6, 4.0),
     0
   );
-  world.addPrismaticJoint(
+  // world.addPrismaticJoint(
+  //   box0,
+  //   vec2.fromValues(-1, 1),
+  //   box1,
+  //   vec2.fromValues(-1, 1),
+  //   vec2.fromValues(1.0, 0),
+  //   0,
+  //   4,
+  //   10
+  // );
+
+  world.addWeldJoint(
     box0,
     vec2.fromValues(-1, 1),
     box1,
     vec2.fromValues(-1, 1),
-    vec2.fromValues(1.0, 0),
-    0
+    Math.PI
   );
-
-  // const sphere = world.createBody(new Circle(1), 1, 1, lineB, 45);
-  // world.addLineConstraint(sphere, lineA, lineB, 0);
-
-  // world.createBody(
-  //   new Circle(2),
-  //   Number.POSITIVE_INFINITY,
-  //   Number.POSITIVE_INFINITY,
-  //   lineA,
-  //   0.0
-  // );
 
   // floor
   world.createBody(

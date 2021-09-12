@@ -12,7 +12,7 @@ import {
   createGaussianScene,
   createChainScene,
   createSATScene,
-  createLineScene
+  createJointScene
 } from './scene';
 import { Draggable, Rotatable } from './controls';
 import { satTest } from './physics/collision/test';
@@ -26,7 +26,7 @@ const lookup = {
   stack: () => createStackScene(128),
   gauss: () => createGaussianScene(),
   sat: () => createSATScene(),
-  line: () => createLineScene()
+  joint: () => createJointScene()
 };
 
 let rotatables: Rotatable[] = [];
@@ -49,14 +49,14 @@ merge(
   fromEvent(document.getElementById('gauss'), 'click').pipe(
     map(e => e.srcElement['id'])
   ),
-  fromEvent(document.getElementById('line'), 'click').pipe(
+  fromEvent(document.getElementById('joint'), 'click').pipe(
     map(e => e.srcElement['id'])
   ),
   fromEvent(document.getElementById('sat'), 'click').pipe(
     map(e => e.srcElement['id'])
   ),
 
-  of('line').pipe(delay(1000))
+  of('joint').pipe(delay(1000))
 )
   .pipe(
     tap(id => {
