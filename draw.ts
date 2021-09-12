@@ -10,7 +10,6 @@ import {
   Polygon,
   Circle,
   MaxDistanceConstraint,
-  HalfspaceConstraint,
   MinDistanceConstraint
 } from './physics';
 
@@ -180,8 +179,6 @@ export const drawConstraint = (constraint: ConstraintInterface) => {
     );
     drawLineSegment([p, n], LINE_COLOR);
     drawDot(p, REDISH_COLOR);
-  } else if (constraint instanceof HalfspaceConstraint) {
-    drawGround(constraint.origin, constraint.normal);
   }
 };
 

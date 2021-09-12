@@ -5,4 +5,4 @@ export * from './min-distance-constraint';
 export * from './max-distance-constraint';
 export * from './friction-constraint';
 export * from './line-constraint';
-export * from './halfspace-constraint';
+export * from './angle-constraint';

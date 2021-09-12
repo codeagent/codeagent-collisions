@@ -428,12 +428,13 @@ export const createLineScene = () => {
     vec2.fromValues(6, 4.0),
     0
   );
-  world.addLineConstraint(
+  world.addPrismaticJoint(
     box0,
     vec2.fromValues(-1, 1),
     box1,
     vec2.fromValues(-1, 1),
-    vec2.fromValues(1.0, 0)
+    vec2.fromValues(1.0, 0),
+    Math.PI / 4
   );
 
   // const sphere = world.createBody(new Circle(1), 1, 1, lineB, 45);

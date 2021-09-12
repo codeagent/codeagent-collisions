@@ -8,8 +8,7 @@ import {
   ContactConstraint,
   FrictionConstraint,
   LineConstraint,
-  HalfspaceConstraint,
-  MinDistanceConstraint,
+  AngleConstraint,
   MaxDistanceConstraint
 } from './constraint';
 import {
@@ -23,6 +22,7 @@ import {
 } from './solver';
 import { CollisionDetector } from './detector';
 import { Shape } from './collision';
+import { MinDistanceConstraint } from '.';
 
 export class World {
   public readonly bodies: Body[] = [];
@@ -236,28 +236,59 @@ export class World {
       )
     );
 
-    // const normal = vec2.create();
-    // vec2.subtract(normal, lineB, lineA);
-    // vec2.normalize(normal, normal);
+    this._lambdaCache0 = new Float32Array(this._jointConstraints.length);
+    this._lambdaCache1 = new Float32Array(this._jointConstraints.length);
+  }
 
-    // this._jointConstraints.push(
-    //   new HalfspaceConstraint(
-    //     this,
-    //     this.bodies.indexOf(body),
-    //     vec2.clone(lineA),
-    //     vec2.clone(normal)
-    //   )
-    // );
+  addPrismaticJoint(
+    bodyA: Body,
+    jointA: vec2,
+    bodyB: Body,
+    jointB: vec2,
+    localAxis: vec2,
+    refAngle: number
+  ) {
+    this._jointConstraints.push(
+      new LineConstraint(
+        this,
+        this.bodies.indexOf(bodyA),
+        vec2.clone(jointA),
+        this.bodies.indexOf(bodyB),
+        vec2.clone(jointB),
+        vec2.clone(localAxis)
+      )
+    );
 
-    // vec2.negate(normal, normal);
-    // this._jointConstraints.push(
-    //   new HalfspaceConstraint(
-    //     this,
-    //     this.bodies.indexOf(body),
-    //     vec2.clone(lineB),
-    //     vec2.clone(normal)
-    //   )
-    // );
+    this._jointConstraints.push(
+      new AngleConstraint(
+        this,
+        this.bodies.indexOf(bodyA),
+        this.bodies.indexOf(bodyB),
+        refAngle
+      )
+    );
+
+    this._jointConstraints.push(
+      new MaxDistanceConstraint(
+        this,
+        this.bodies.indexOf(bodyA),
+        vec2.clone(jointA),
+        this.bodies.indexOf(bodyB),
+        vec2.clone(jointB),
+        10
+      )
+    );
+
+    this._jointConstraints.push(
+      new MinDistanceConstraint(
+        this,
+        this.bodies.indexOf(bodyA),
+        vec2.clone(jointA),
+        this.bodies.indexOf(bodyB),
+        vec2.clone(jointB),
+        5
+      )
+    );
 
     this._lambdaCache0 = new Float32Array(this._jointConstraints.length);
     this._lambdaCache1 = new Float32Array(this._jointConstraints.length);
