@@ -2,45 +2,81 @@ import { vec2, vec3 } from 'gl-matrix';
 
 import { World } from '../world';
 import { Vector } from '../solver';
-import { closestPointToLineSegment } from '../collision';
+import { transformMat3Vec } from '../collision/utils';
 
 export class LineConstraint {
   constructor(
-    public world: World,
-    public bodyIndex: number,
-    public lineA: vec2,
-    public lineB: vec2,
-    public distance: number
+    public readonly world: World,
+    public readonly bodyAIndex: number,
+    public readonly jointA: vec2,
+    public readonly bodyBIndex: number,
+    public readonly jointB: vec2,
+    public readonly axisB: vec2
   ) {}
 
   getJacobian(): Vector {
     const J = new Float32Array(this.world.bodies.length * 3);
 
-    const n = vec2.create();
-    vec2.subtract(n, this.lineB, this.lineA);
-    vec2.set(n, -n[1], n[0]);
-    vec2.normalize(n, n);
+    const bodyA = this.world.bodies[this.bodyAIndex];
+    const bodyB = this.world.bodies[this.bodyBIndex];
 
-    J[this.bodyIndex * 3] = n[0];
-    J[this.bodyIndex * 3 + 1] = n[1];
+    const t = vec2.create();
+    transformMat3Vec(
+      t,
+      vec2.fromValues(-this.axisB[1], this.axisB[0]),
+      bodyB.transform
+    );
+
+    const pa = vec2.create();
+    vec2.transformMat3(pa, this.jointA, bodyA.transform);
+
+    const pb = vec2.create();
+    vec2.transformMat3(pb, this.jointB, bodyB.transform);
+
+    const u = vec2.create();
+    vec2.sub(u, pa, pb);
+
+    const ra = vec2.create();
+    vec2.sub(ra, pa, bodyA.position);
+
+    const rb = vec2.create();
+    vec2.sub(rb, pb, bodyB.position);
+    vec2.add(rb, rb, u);
+
+    const x = vec3.create();
+
+    J[this.bodyAIndex * 3] = t[0];
+    J[this.bodyAIndex * 3 + 1] = t[1];
+    J[this.bodyAIndex * 3 + 2] = vec2.cross(x, ra, t)[2];
+
+    J[this.bodyBIndex * 3] = -t[0];
+    J[this.bodyBIndex * 3 + 1] = -t[1];
+    J[this.bodyBIndex * 3 + 2] = -vec2.cross(x, rb, t)[2];
 
     return J;
   }
 
   getPushFactor(dt: number, strength: number): number {
-    const n = vec2.create();
-    vec2.subtract(n, this.lineB, this.lineA);
-    vec2.set(n, -n[1], n[0]);
-    vec2.normalize(n, n);
+    const bodyA = this.world.bodies[this.bodyAIndex];
+    const bodyB = this.world.bodies[this.bodyBIndex];
 
-    const p = this.world.bodies[this.bodyIndex].position;
-    const ph = vec2.create();
-    closestPointToLineSegment(ph, this.lineA, this.lineB, p);
+    const t = vec2.create();
+    transformMat3Vec(
+      t,
+      vec2.fromValues(-this.axisB[1], this.axisB[0]),
+      bodyB.transform
+    );
 
-    const pph = vec2.create();
-    vec2.subtract(pph, p, ph);
+    const pa = vec2.create();
+    vec2.transformMat3(pa, this.jointA, bodyA.transform);
 
-    return (strength * (this.distance - vec2.dot(n, pph))) / dt;
+    const pb = vec2.create();
+    vec2.transformMat3(pb, this.jointB, bodyB.transform);
+
+    const u = vec2.create();
+    vec2.sub(u, pa, pb);
+
+    return (-vec2.dot(t, u) / dt) * strength;
   }
 
   getClamping() {

@@ -10,9 +10,9 @@ import {
   Polygon,
   Circle,
   MaxDistanceConstraint,
-  HalfspaceConstraint
+  HalfspaceConstraint,
+  MinDistanceConstraint
 } from './physics';
-import { closestPointToLineSegment } from './physics/collision/utils';
 
 export const canvas = document.getElementById('canvas') as HTMLCanvasElement;
 const context = canvas.getContext('2d') as CanvasRenderingContext2D;
@@ -157,7 +157,9 @@ export const drawConstraint = (constraint: ConstraintInterface) => {
   context.lineWidth = 1;
   if (
     constraint instanceof DistanceConstraint ||
-    constraint instanceof MaxDistanceConstraint
+    constraint instanceof MaxDistanceConstraint ||
+    constraint instanceof MinDistanceConstraint ||
+    constraint instanceof LineConstraint
   ) {
     const bodyA = constraint.world.bodies[constraint.bodyAIndex];
     const bodyB = constraint.world.bodies[constraint.bodyBIndex];
@@ -178,16 +180,6 @@ export const drawConstraint = (constraint: ConstraintInterface) => {
     );
     drawLineSegment([p, n], LINE_COLOR);
     drawDot(p, REDISH_COLOR);
-  } else if (constraint instanceof LineConstraint) {
-    const p = constraint.world.bodies[constraint.bodyIndex].position;
-    const ph = vec2.create();
-    closestPointToLineSegment(ph, constraint.lineA, constraint.lineB, p);
-
-    drawLineSegment([p, ph], LINE_COLOR);
-    drawDot(ph, REDISH_COLOR);
-    drawLineSegment([constraint.lineA, constraint.lineB], LINE_COLOR);
-    drawDot(constraint.lineA, BLUISH_COLOR);
-    drawDot(constraint.lineB, BLUISH_COLOR);
   } else if (constraint instanceof HalfspaceConstraint) {
     drawGround(constraint.origin, constraint.normal);
   }

@@ -218,39 +218,46 @@ export class World {
     this._lambdaCache1 = new Float32Array(this._jointConstraints.length);
   }
 
-  addLineConstraint(body: Body, lineA: vec2, lineB: vec2, distance: number) {
+  addLineConstraint(
+    bodyA: Body,
+    jointA: vec2,
+    bodyB: Body,
+    jointB: vec2,
+    axisB: vec2
+  ) {
     this._jointConstraints.push(
       new LineConstraint(
         this,
-        this.bodies.indexOf(body),
-        vec2.clone(lineA),
-        vec2.clone(lineB),
-        distance
+        this.bodies.indexOf(bodyA),
+        vec2.clone(jointA),
+        this.bodies.indexOf(bodyB),
+        vec2.clone(jointB),
+        vec2.clone(axisB)
       )
     );
 
-    const normal = vec2.create();
-    vec2.subtract(normal, lineB, lineA);
-    vec2.normalize(normal, normal);
+    // const normal = vec2.create();
+    // vec2.subtract(normal, lineB, lineA);
+    // vec2.normalize(normal, normal);
 
-    this._jointConstraints.push(
-      new HalfspaceConstraint(
-        this,
-        this.bodies.indexOf(body),
-        vec2.clone(lineA),
-        vec2.clone(normal)
-      )
-    );
+    // this._jointConstraints.push(
+    //   new HalfspaceConstraint(
+    //     this,
+    //     this.bodies.indexOf(body),
+    //     vec2.clone(lineA),
+    //     vec2.clone(normal)
+    //   )
+    // );
 
-    vec2.negate(normal, normal);
-    this._jointConstraints.push(
-      new HalfspaceConstraint(
-        this,
-        this.bodies.indexOf(body),
-        vec2.clone(lineB),
-        vec2.clone(normal)
-      )
-    );
+    // vec2.negate(normal, normal);
+    // this._jointConstraints.push(
+    //   new HalfspaceConstraint(
+    //     this,
+    //     this.bodies.indexOf(body),
+    //     vec2.clone(lineB),
+    //     vec2.clone(normal)
+    //   )
+    // );
 
     this._lambdaCache0 = new Float32Array(this._jointConstraints.length);
     this._lambdaCache1 = new Float32Array(this._jointConstraints.length);

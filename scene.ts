@@ -420,25 +420,40 @@ export const createLineScene = () => {
     vec2.fromValues(2.0, 2.0),
     0.0
   );
-  world.addLineConstraint(box0, lineA, lineB, distance);
 
   const box1 = world.createBody(
     createRectShape(2, 2),
     1,
     1,
     vec2.fromValues(6, 4.0),
-    45
+    0
   );
-  world.addLineConstraint(box1, lineA, lineB, -distance);
+  world.addLineConstraint(
+    box0,
+    vec2.fromValues(-1, 1),
+    box1,
+    vec2.fromValues(-1, 1),
+    vec2.fromValues(1.0, 0)
+  );
 
-  const sphere = world.createBody(new Circle(1), 1, 1, lineB, 45);
-  world.addLineConstraint(sphere, lineA, lineB, 0);
+  // const sphere = world.createBody(new Circle(1), 1, 1, lineB, 45);
+  // world.addLineConstraint(sphere, lineA, lineB, 0);
 
+  // world.createBody(
+  //   new Circle(2),
+  //   Number.POSITIVE_INFINITY,
+  //   Number.POSITIVE_INFINITY,
+  //   lineA,
+  //   0.0
+  // );
+
+  // floor
   world.createBody(
-    new Circle(2),
+    createRectShape(20, 1),
     Number.POSITIVE_INFINITY,
     Number.POSITIVE_INFINITY,
-    lineA,
+
+    vec2.fromValues(0.0, -9),
     0.0
   );
 };
