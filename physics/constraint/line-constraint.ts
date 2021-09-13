@@ -38,7 +38,7 @@ export class LineConstraint {
 
     const ra = vec2.create();
     vec2.sub(ra, pa, bodyA.position);
-    vec2.sub(ra, ra, u);
+    vec2.add(ra, ra, u);
 
     const rb = vec2.create();
     vec2.sub(rb, pb, bodyB.position);
@@ -76,7 +76,7 @@ export class LineConstraint {
     const u = vec2.create();
     vec2.sub(u, pb, pa);
 
-    return (vec2.dot(t, u) / dt) * strength;
+    return -(vec2.dot(t, u) / dt) * strength;
   }
 
   getClamping() {

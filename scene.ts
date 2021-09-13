@@ -413,21 +413,21 @@ export const createJointScene = () => {
   world.pushFactor = 0.75;
   world.friction = 0.4;
 
-  const box0 = world.createBody(
-    createRectShape(2, 2),
-    1,
-    1,
-    vec2.fromValues(2.0, 2.0),
-    0.0
-  );
+  // const box0 = world.createBody(
+  //   createRectShape(2, 2),
+  //   1,
+  //   1,
+  //   vec2.fromValues(2.0, 2.0),
+  //   0.0
+  // );
 
-  const box1 = world.createBody(
-    createRectShape(2, 2),
-    1,
-    1,
-    vec2.fromValues(6, 4.0),
-    0
-  );
+  // const box1 = world.createBody(
+  //   createRectShape(2, 2),
+  //   1,
+  //   1,
+  //   vec2.fromValues(6, 4.0),
+  //   0
+  // );
   // world.addPrismaticJoint(
   //   box0,
   //   vec2.fromValues(-1, 1),
@@ -439,21 +439,87 @@ export const createJointScene = () => {
   //   10
   // );
 
-  world.addWeldJoint(
-    box0,
-    vec2.fromValues(-1, 1),
-    box1,
-    vec2.fromValues(-1, 1),
-    Math.PI
-  );
+  // world.addWeldJoint(
+  //   box0,
+  //   vec2.fromValues(-1, 1),
+  //   box1,
+  //   vec2.fromValues(-1, 1),
+  //   Math.PI
+  // );
 
   //  world.addRevoluteJoint(
   //   box0,
   //   vec2.fromValues(-1, 1),
   //   box1,
   //   vec2.fromValues(-1, 1),
-    
+
   // );
+
+  const wheel = world.createBody(
+    new Circle(2),
+    Number.POSITIVE_INFINITY,
+    100.0,
+    vec2.fromValues(-10.0, 0.0),
+    0.0
+  );
+
+  const bar = world.createBody(
+    createRectShape(10, 0.1),
+    Number.POSITIVE_INFINITY,
+    Number.POSITIVE_INFINITY,
+    vec2.fromValues(0.0, -1.5),
+    0.0
+  );
+
+  const slider = world.createBody(
+    createRectShape(1, 0.5),
+    1,
+    1,
+    vec2.fromValues(0.0, -1),
+    0.0
+  );
+
+  const rep = world.createBody(
+    createRectShape(1, 0.5),
+    1,
+    1,
+    vec2.fromValues(0.0, -1),
+    0.0
+  );
+
+  world.addPrismaticJoint(
+    bar,
+    vec2.fromValues(0, 0.45),
+    slider,
+    vec2.fromValues(0, 0),
+    vec2.fromValues(1.0, 0)
+  );
+
+  world.addPrismaticJoint(
+    bar,
+    vec2.fromValues(0, 0.45),
+    rep,
+    vec2.fromValues(0, 0),
+    vec2.fromValues(1.0, 1.0)
+  );
+
+  world.addDistanceJoint(
+    wheel,
+    vec2.fromValues(0, 1.75),
+    slider,
+    vec2.fromValues(0, 0),
+    5
+  );
+
+  world.addDistanceJoint(
+    slider,
+    vec2.fromValues(0, 0),
+    rep,
+    vec2.fromValues(0, 0),
+    7
+  );
+
+  world.addMotorConstraint(wheel, 2, 0.1);
 
   // floor
   world.createBody(

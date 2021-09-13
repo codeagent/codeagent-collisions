@@ -78,12 +78,12 @@ export class Body {
     this.world.invMasses[this.bodyIndex * 3 + 1] = 1.0 / mass;
   }
 
-  get itertia() {
+  get inertia() {
     return 1.0 / this.world.invMasses[this.bodyIndex * 3 + 2];
   }
 
-  set itertia(itertia: number) {
-    this.world.invMasses[this.bodyIndex * 3 + 2] = 1.0 / itertia;
+  set inertia(inertia: number) {
+    this.world.invMasses[this.bodyIndex * 3 + 2] = 1.0 / inertia;
   }
 
   private _transform = mat3.create();

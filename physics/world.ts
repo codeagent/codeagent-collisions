@@ -13,7 +13,8 @@ import {
   RevoluteXConstraint,
   RevoluteYConstraint,
   MinAngleConstraint,
-  MaxAngleConstraint
+  MaxAngleConstraint,
+  AngularMotorConstraint
 } from './constraint';
 import {
   VxSpVxS,
@@ -208,7 +209,7 @@ export class World {
     distance: number
   ) {
     this._jointConstraints.push(
-      new MaxDistanceConstraint(
+      new DistanceConstraint(
         this,
         this.bodies.indexOf(bodyA),
         vec2.clone(positionA),
@@ -339,7 +340,7 @@ export class World {
         this,
         this.bodies.indexOf(bodyA),
         this.bodies.indexOf(bodyB),
-        refAngle * 0.85
+        refAngle * 0.25
       )
     );
 
@@ -354,6 +355,17 @@ export class World {
 
     this._lambdaCache0 = new Float32Array(this._jointConstraints.length);
     this._lambdaCache1 = new Float32Array(this._jointConstraints.length);
+  }
+
+  addMotorConstraint(body: Body, speed: number, torque: number) {
+    // this._jointConstraints.push(
+    //   new AngularMotorConstraint(this, this.bodies.indexOf(body), speed, torque)
+    // );
+
+    // body.torque = torque;
+
+    // this._lambdaCache0 = new Float32Array(this._jointConstraints.length);
+    // this._lambdaCache1 = new Float32Array(this._jointConstraints.length);
   }
 
   removeConstraint(constraint: ConstraintInterface) {
