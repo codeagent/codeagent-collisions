@@ -405,55 +405,9 @@ export const createSATScene = () => {
 };
 
 export const createJointScene = () => {
-  const lineA = vec2.fromValues(-10, -2);
-  const lineB = vec2.fromValues(10, 2);
-  const distance = -0.5;
-
   world.restitution = 0.35;
-  world.pushFactor = 0.75;
-  world.friction = 0.4;
-
-  // const box0 = world.createBody(
-  //   createRectShape(2, 2),
-  //   1,
-  //   1,
-  //   vec2.fromValues(2.0, 2.0),
-  //   0.0
-  // );
-
-  // const box1 = world.createBody(
-  //   createRectShape(2, 2),
-  //   1,
-  //   1,
-  //   vec2.fromValues(6, 4.0),
-  //   0
-  // );
-  // world.addPrismaticJoint(
-  //   box0,
-  //   vec2.fromValues(-1, 1),
-  //   box1,
-  //   vec2.fromValues(-1, 1),
-  //   vec2.fromValues(1.0, 0),
-  //   0,
-  //   4,
-  //   10
-  // );
-
-  // world.addWeldJoint(
-  //   box0,
-  //   vec2.fromValues(-1, 1),
-  //   box1,
-  //   vec2.fromValues(-1, 1),
-  //   Math.PI
-  // );
-
-  //  world.addRevoluteJoint(
-  //   box0,
-  //   vec2.fromValues(-1, 1),
-  //   box1,
-  //   vec2.fromValues(-1, 1),
-
-  // );
+  world.pushFactor = 0.65;
+  world.friction = 0.55;
 
   const wheel = world.createBody(
     new Circle(2),
@@ -462,6 +416,10 @@ export const createJointScene = () => {
     vec2.fromValues(-10.0, 0.0),
     0.0
   );
+
+  setTimeout(() => {
+    world.createBody(new Circle(1), 1, 1.0, vec2.fromValues(-10.0, 0.0), 0.0);
+  }, 2000);
 
   const bar = world.createBody(
     createRectShape(10, 0.1),
@@ -472,15 +430,7 @@ export const createJointScene = () => {
   );
 
   const slider = world.createBody(
-    createRectShape(1, 0.5),
-    1,
-    1,
-    vec2.fromValues(0.0, -1),
-    0.0
-  );
-
-  const rep = world.createBody(
-    createRectShape(1, 0.5),
+    createRectShape(3, 0.5),
     1,
     1,
     vec2.fromValues(0.0, -1),
@@ -495,39 +445,111 @@ export const createJointScene = () => {
     vec2.fromValues(1.0, 0)
   );
 
-  world.addPrismaticJoint(
-    bar,
-    vec2.fromValues(0, 0.45),
-    rep,
-    vec2.fromValues(0, 0),
-    vec2.fromValues(1.0, 1.0)
-  );
-
   world.addDistanceJoint(
     wheel,
     vec2.fromValues(0, 1.75),
     slider,
     vec2.fromValues(0, 0),
-    5
+    6
   );
 
-  world.addDistanceJoint(
-    slider,
-    vec2.fromValues(0, 0),
-    rep,
-    vec2.fromValues(0, 0),
-    7
+  world.addMotorConstraint(wheel, 2, 75.0);
+
+  // stack
+  world.createBody(
+    createRectShape(0.1, 8),
+    Number.POSITIVE_INFINITY,
+    Number.POSITIVE_INFINITY,
+    vec2.fromValues(-3, 3.5),
+    0.0
   );
 
-  world.addMotorConstraint(wheel, 50, 20.0);
+  world.createBody(
+    createRectShape(0.1, 8),
+    Number.POSITIVE_INFINITY,
+    Number.POSITIVE_INFINITY,
+    vec2.fromValues(-4, 3.5),
+    0.0
+  );
+
+  let n = 10;
+  while (n--) {
+    world.createBody(
+      createRectShape(0.85, 0.85),
+      1,
+      1,
+      vec2.fromValues(-3.5, n),
+      0.0
+    );
+  }
+
+  // swing
+  const swing = world.createBody(
+    createRectShape(5.5, 0.1),
+    Number.POSITIVE_INFINITY,
+    1,
+    vec2.fromValues(5.0, -5.5),
+    0.0
+  );
+
+  const ball = world.createBody(
+    new Circle(0.5),
+    0.1,
+    0.1,
+    vec2.fromValues(5.0, -8.0),
+    0.0
+  );
 
   // floor
   world.createBody(
-    createRectShape(20, 1),
+    createRectShape(16, 1),
     Number.POSITIVE_INFINITY,
     Number.POSITIVE_INFINITY,
-
     vec2.fromValues(0.0, -9),
     0.0
   );
+
+  // chain
+  {
+    const links = 40;
+    const chain = new Array<Body>(links);
+    const size = 0.5;
+    const o = vec2.fromValues(-10.0, 0.0);
+    const m = 1.0;
+    const r = 4;
+    const dPhi = (2 * Math.PI) / links;
+    let phi = 0.0;
+
+    for (let i = 0; i < links; i++) {
+      const x = o[0] + r * Math.cos(phi);
+      const y = o[1] + r * Math.sin(phi);
+
+      const body = world.createBody(
+        createRectShape(size, size * 0.5),
+        m,
+        m * 0.1,
+        vec2.fromValues(x, y),
+        phi
+      );
+
+      if (i > 0) {
+        const bodyA = chain[i - 1];
+        const pointA = vec2.fromValues(size * 0.65, 0.0);
+        const pointB = vec2.fromValues(-size * 0.65, 0.0);
+        world.addRevoluteJoint(bodyA, pointA, body, pointB);
+      }
+
+      if (i === links - 1) {
+        const bodyA = body;
+        const bodyB = chain[0];
+        const pointA = vec2.fromValues(size * 0.65, 0.0);
+        const pointB = vec2.fromValues(-size * 0.65, 0.0);
+        world.addRevoluteJoint(bodyA, pointA, bodyB, pointB);
+      }
+
+      chain[i] = body;
+
+      phi += dPhi;
+    }
+  }
 };
