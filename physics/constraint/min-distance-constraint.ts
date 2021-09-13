@@ -26,6 +26,7 @@ export class MinDistanceConstraint extends DistanceConstraint {
     vec2.transformMat3(pb, this.jointB, bodyB.transform);
 
     const violation = this.distance - vec2.distance(pb, pa);
+    // violation > 0 means constraint is broken 
     return violation < 0 ? violation / dt : (strength * violation) / dt;
   }
 

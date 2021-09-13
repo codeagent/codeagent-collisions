@@ -8,3 +8,5 @@ export * from './line-constraint';
 export * from './angle-constraint';
 export * from './revolute-x-constraint';
 export * from './revolute-y-constraint';
+export * from './min-angle-constraint';
+export * from './max-angle-constraint';

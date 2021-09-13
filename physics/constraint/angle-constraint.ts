@@ -14,11 +14,11 @@ export class AngleConstraint {
 
     J[this.bodyAIndex * 3] = 0;
     J[this.bodyAIndex * 3 + 1] = 0;
-    J[this.bodyAIndex * 3 + 2] = 1;
+    J[this.bodyAIndex * 3 + 2] = -1;
 
     J[this.bodyBIndex * 3] = 0;
     J[this.bodyBIndex * 3 + 1] = 0;
-    J[this.bodyBIndex * 3 + 2] = -1;
+    J[this.bodyBIndex * 3 + 2] = 1;
 
     return J;
   }
@@ -27,7 +27,7 @@ export class AngleConstraint {
     const bodyA = this.world.bodies[this.bodyAIndex];
     const bodyB = this.world.bodies[this.bodyBIndex];
 
-    return -((bodyA.angle - bodyB.angle - this.angle) / dt) * strength;
+    return ((this.angle - (bodyB.angle - bodyA.angle)) / dt) * strength;
   }
 
   getClamping() {

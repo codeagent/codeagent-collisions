@@ -447,6 +447,14 @@ export const createJointScene = () => {
     Math.PI
   );
 
+  //  world.addRevoluteJoint(
+  //   box0,
+  //   vec2.fromValues(-1, 1),
+  //   box1,
+  //   vec2.fromValues(-1, 1),
+    
+  // );
+
   // floor
   world.createBody(
     createRectShape(20, 1),

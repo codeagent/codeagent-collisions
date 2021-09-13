@@ -11,7 +11,9 @@ import {
   AngleConstraint,
   MaxDistanceConstraint,
   RevoluteXConstraint,
-  RevoluteYConstraint
+  RevoluteYConstraint,
+  MinAngleConstraint,
+  MaxAngleConstraint
 } from './constraint';
 import {
   VxSpVxS,
@@ -333,11 +335,20 @@ export class World {
     );
 
     this._jointConstraints.push(
-      new AngleConstraint(
+      new MinAngleConstraint(
         this,
         this.bodies.indexOf(bodyA),
         this.bodies.indexOf(bodyB),
-        refAngle
+        refAngle * 0.85
+      )
+    );
+
+    this._jointConstraints.push(
+      new MaxAngleConstraint(
+        this,
+        this.bodies.indexOf(bodyA),
+        this.bodies.indexOf(bodyB),
+        refAngle * 1.15
       )
     );
 
