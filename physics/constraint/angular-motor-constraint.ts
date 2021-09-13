@@ -20,11 +20,10 @@ export class AngularMotorConstraint {
   }
 
   getPushFactor(dt: number, strength: number): number {
-    const body = this.world.bodies[this.bodyIndex];
-    return Math.min(this.speed, body.omega + (this.torque / body.inertia) * dt);
+    return this.speed;
   }
 
   getClamping() {
-    return { min: Number.NEGATIVE_INFINITY, max: Number.POSITIVE_INFINITY };
+    return { min: -this.torque, max: this.torque };
   }
 }

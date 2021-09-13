@@ -358,14 +358,12 @@ export class World {
   }
 
   addMotorConstraint(body: Body, speed: number, torque: number) {
-    // this._jointConstraints.push(
-    //   new AngularMotorConstraint(this, this.bodies.indexOf(body), speed, torque)
-    // );
+    this._jointConstraints.push(
+      new AngularMotorConstraint(this, this.bodies.indexOf(body), speed, torque)
+    );
 
-    // body.torque = torque;
-
-    // this._lambdaCache0 = new Float32Array(this._jointConstraints.length);
-    // this._lambdaCache1 = new Float32Array(this._jointConstraints.length);
+    this._lambdaCache0 = new Float32Array(this._jointConstraints.length);
+    this._lambdaCache1 = new Float32Array(this._jointConstraints.length);
   }
 
   removeConstraint(constraint: ConstraintInterface) {

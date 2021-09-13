@@ -2,7 +2,6 @@ import { vec2, vec3 } from 'gl-matrix';
 
 import { World } from '../world';
 import { Vector } from '../solver';
-import { ConstraintInterface } from './constraint.interface';
 
 export class FrictionConstraint {
   constructor(

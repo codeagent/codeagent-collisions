@@ -458,7 +458,7 @@ export const createJointScene = () => {
   const wheel = world.createBody(
     new Circle(2),
     Number.POSITIVE_INFINITY,
-    100.0,
+    1.0,
     vec2.fromValues(-10.0, 0.0),
     0.0
   );
@@ -519,7 +519,7 @@ export const createJointScene = () => {
     7
   );
 
-  world.addMotorConstraint(wheel, 2, 0.1);
+  world.addMotorConstraint(wheel, 50, 20.0);
 
   // floor
   world.createBody(

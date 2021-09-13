@@ -79,10 +79,6 @@ merge(
 
 const dt = 1.0 / 60.0;
 const step = () => {
-  if (world.bodies[0]) {
-    world.bodies[0].torque = 30;
-  }
-
   world.simulate(dt);
   clear();
   drawWorld(world);
