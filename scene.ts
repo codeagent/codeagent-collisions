@@ -453,7 +453,7 @@ export const createJointScene = () => {
     6
   );
 
-  world.addMotorConstraint(wheel, 2, 75.0);
+  world.addMotor(wheel, 2, 75.0);
 
   // stack
   world.createBody(
@@ -514,7 +514,7 @@ export const createJointScene = () => {
     cube,
     vec2.fromValues(0.0, 0.0),
     1.0,
-    50.0, 
+    50.0,
     20
   );
 
@@ -569,5 +569,97 @@ export const createJointScene = () => {
 
       phi += dPhi;
     }
+  }
+};
+
+export const createSuspensionScene = () => {
+  world.restitution = 0.35;
+  world.pushFactor = 0.65;
+  world.friction = 0.55;
+
+  const stiffness = 5;
+  const exstinction = 1;
+
+  let length = 6;
+  const hull = world.createBody(
+    createRectShape(length, 1.0),
+    1.0,
+    1.0,
+    vec2.fromValues(10.0, -6.0),
+    0.0
+  );
+
+  let wheels = 5;
+
+  for (let i = 0; i < wheels; i++) {
+    const wheel = world.createBody(
+      new Circle(0.5),
+      1.1,
+      0.1,
+      vec2.fromValues(8.5, -8.0),
+      0.0
+    );
+
+    world.addWheelJonit(
+      hull,
+      vec2.fromValues((length / (wheels - 1)) * i - length * 0.5, -0.5),
+      wheel,
+      vec2.fromValues(0.0, 0.0),
+      vec2.fromValues(0.0, 1.0),
+
+      1,
+      3
+    );
+
+    world.addSpring(
+      hull,
+      vec2.fromValues((length / (wheels - 1)) * i - length * 0.5, -0.5),
+      wheel,
+      vec2.fromValues(0.0, 0.0),
+      2,
+      stiffness,
+      exstinction
+    );
+
+    world.addMotor(wheel, Math.PI, 25);
+  }
+
+  // left wall
+  world.createBody(
+    createRectShape(0.25, 16),
+    Number.POSITIVE_INFINITY,
+    Number.POSITIVE_INFINITY,
+    vec2.fromValues(-14, 0),
+    0.0
+  );
+
+  // right wall
+  world.createBody(
+    createRectShape(0.25, 16),
+    Number.POSITIVE_INFINITY,
+    Number.POSITIVE_INFINITY,
+    vec2.fromValues(14, 0),
+    0.0
+  );
+
+  // floor
+  world.createBody(
+    createRectShape(30, 1),
+    Number.POSITIVE_INFINITY,
+    Number.POSITIVE_INFINITY,
+    vec2.fromValues(0.0, -9),
+    0.0
+  );
+
+  // obstacles
+  let n = 8;
+  while (n--) {
+    world.createBody(
+      new Circle(0.2),
+      Number.POSITIVE_INFINITY,
+      Number.POSITIVE_INFINITY,
+      vec2.fromValues(n * 2 - 12.0, -8.5),
+      Math.PI * 0.25
+    );
   }
 };

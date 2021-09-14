@@ -358,10 +358,60 @@ export class World {
     this._lambdaCache1 = new Float32Array(this._jointConstraints.length);
   }
 
-  addMotorConstraint(body: Body, speed: number, torque: number) {
+  addMotor(body: Body, speed: number, torque: number) {
     this._jointConstraints.push(
       new AngularMotorConstraint(this, this.bodies.indexOf(body), speed, torque)
     );
+
+    this._lambdaCache0 = new Float32Array(this._jointConstraints.length);
+    this._lambdaCache1 = new Float32Array(this._jointConstraints.length);
+  }
+
+  addWheelJonit(
+    bodyA: Body,
+    jointA: vec2,
+    bodyB: Body,
+    jointB: vec2,
+    localAxis: vec2,
+    minDistance = 0,
+    maxDistance = Number.POSITIVE_INFINITY
+  ) {
+    this._jointConstraints.push(
+      new LineConstraint(
+        this,
+        this.bodies.indexOf(bodyA),
+        vec2.clone(jointA),
+        this.bodies.indexOf(bodyB),
+        vec2.clone(jointB),
+        vec2.clone(localAxis)
+      )
+    );
+
+    if (minDistance) {
+      this._jointConstraints.push(
+        new MinDistanceConstraint(
+          this,
+          this.bodies.indexOf(bodyA),
+          vec2.clone(jointA),
+          this.bodies.indexOf(bodyB),
+          vec2.clone(jointB),
+          minDistance
+        )
+      );
+    }
+
+    if (isFinite(maxDistance)) {
+      this._jointConstraints.push(
+        new MaxDistanceConstraint(
+          this,
+          this.bodies.indexOf(bodyA),
+          vec2.clone(jointA),
+          this.bodies.indexOf(bodyB),
+          vec2.clone(jointB),
+          maxDistance
+        )
+      );
+    }
 
     this._lambdaCache0 = new Float32Array(this._jointConstraints.length);
     this._lambdaCache1 = new Float32Array(this._jointConstraints.length);
