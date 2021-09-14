@@ -494,10 +494,28 @@ export const createJointScene = () => {
 
   const ball = world.createBody(
     new Circle(0.5),
-    0.1,
+    1.1,
     0.1,
     vec2.fromValues(5.0, -8.0),
     0.0
+  );
+
+  const cube = world.createBody(
+    createRectShape(0.85, 0.85),
+    1.1,
+    0.1,
+    vec2.fromValues(3.0, -8.0),
+    0.0
+  );
+
+  world.addSpring(
+    ball,
+    vec2.fromValues(0.5, 0.0),
+    cube,
+    vec2.fromValues(0.0, 0.0),
+    1.0,
+    50.0, 
+    20
   );
 
   // floor

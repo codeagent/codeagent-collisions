@@ -11,3 +11,4 @@ export * from './revolute-y-constraint';
 export * from './min-angle-constraint';
 export * from './max-angle-constraint';
 export * from './angular-motor-constraint';
+export * from './spring-constraint';

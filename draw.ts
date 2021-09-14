@@ -10,7 +10,8 @@ import {
   Polygon,
   Circle,
   MaxDistanceConstraint,
-  MinDistanceConstraint
+  MinDistanceConstraint,
+  SpringConstraint
 } from './physics';
 
 export const canvas = document.getElementById('canvas') as HTMLCanvasElement;
@@ -158,7 +159,8 @@ export const drawConstraint = (constraint: ConstraintInterface) => {
     constraint instanceof DistanceConstraint ||
     constraint instanceof MaxDistanceConstraint ||
     constraint instanceof MinDistanceConstraint ||
-    constraint instanceof LineConstraint
+    constraint instanceof LineConstraint ||
+    constraint instanceof SpringConstraint
   ) {
     const bodyA = constraint.world.bodies[constraint.bodyAIndex];
     const bodyB = constraint.world.bodies[constraint.bodyBIndex];

@@ -14,7 +14,9 @@ import {
   RevoluteYConstraint,
   MinAngleConstraint,
   MaxAngleConstraint,
-  AngularMotorConstraint
+  AngularMotorConstraint,
+  MinDistanceConstraint,
+  SpringConstraint
 } from './constraint';
 import {
   VxSpVxS,
@@ -27,7 +29,6 @@ import {
 } from './solver';
 import { CollisionDetector } from './detector';
 import { Shape } from './collision';
-import { MinDistanceConstraint } from '.';
 
 export class World {
   public readonly bodies: Body[] = [];
@@ -360,6 +361,32 @@ export class World {
   addMotorConstraint(body: Body, speed: number, torque: number) {
     this._jointConstraints.push(
       new AngularMotorConstraint(this, this.bodies.indexOf(body), speed, torque)
+    );
+
+    this._lambdaCache0 = new Float32Array(this._jointConstraints.length);
+    this._lambdaCache1 = new Float32Array(this._jointConstraints.length);
+  }
+
+  addSpring(
+    bodyA: Body,
+    positionA: vec2,
+    bodyB: Body,
+    positionB: vec2,
+    distance: number,
+    stiffness: number,
+    extinction: number
+  ) {
+    this._jointConstraints.push(
+      new SpringConstraint(
+        this,
+        this.bodies.indexOf(bodyA),
+        vec2.clone(positionA),
+        this.bodies.indexOf(bodyB),
+        vec2.clone(positionB),
+        distance,
+        stiffness,
+        extinction
+      )
     );
 
     this._lambdaCache0 = new Float32Array(this._jointConstraints.length);
