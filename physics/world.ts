@@ -16,7 +16,7 @@ import {
   MaxAngleConstraint,
   AngularMotorConstraint,
   MinDistanceConstraint,
-  SpringConstraint
+  SpringConstraint,
 } from './constraint';
 import {
   VxSpVxS,
@@ -25,10 +25,11 @@ import {
   VcV,
   VpV,
   VmV,
-  VpVxS
+  VpVxS,
 } from './solver';
 import { CollisionDetector } from './detector';
 import { Shape } from './collision';
+import { releaseId } from './unique-id';
 
 export class World {
   public readonly bodies: Body[] = [];
@@ -69,6 +70,15 @@ export class World {
     public restitution = 0.5
   ) {
     this.collisionDetector = new CollisionDetector(this);
+    this.collisionDetector.collideEnter$.subscribe(([bodyA, bodyB]) =>
+      this.onCollideEnter(bodyA, bodyB)
+    );
+    this.collisionDetector.collide$.subscribe(([bodyA, bodyB]) =>
+      this.onCollide(bodyA, bodyB)
+    );
+    this.collisionDetector.collideLeave$.subscribe(([bodyA, bodyB]) =>
+      this.onCollideLeave(bodyA, bodyB)
+    );
   }
 
   createBody(
@@ -136,6 +146,7 @@ export class World {
       return;
     }
     this.bodies.splice(bodyIndex, 1);
+    releaseId(body.id);
 
     const size = this.bodies.length * 3;
     const newPositions = new Float32Array(size);
@@ -151,19 +162,19 @@ export class World {
 
     newPositions.set([
       ...this.positions.subarray(0, bodyIndex * 3),
-      ...this.positions.subarray((bodyIndex + 1) * 3)
+      ...this.positions.subarray((bodyIndex + 1) * 3),
     ]);
     newVelocities.set([
       ...this.velocities.subarray(0, bodyIndex * 3),
-      ...this.velocities.subarray((bodyIndex + 1) * 3)
+      ...this.velocities.subarray((bodyIndex + 1) * 3),
     ]);
     newForces.set([
       ...this.forces.subarray(0, bodyIndex * 3),
-      ...this.forces.subarray((bodyIndex + 1) * 3)
+      ...this.forces.subarray((bodyIndex + 1) * 3),
     ]);
     newInvMasses.set([
       ...this.invMasses.subarray(0, bodyIndex * 3),
-      ...this.invMasses.subarray((bodyIndex + 1) * 3)
+      ...this.invMasses.subarray((bodyIndex + 1) * 3),
     ]);
 
     this.positions = newPositions;
@@ -557,6 +568,16 @@ export class World {
   }
 
   private updateBodiesTransforms() {
-    this.bodies.forEach(b => b.updateTransform());
+    this.bodies.forEach((b) => b.updateTransform());
+  }
+
+  private onCollideEnter(bodyA: Body, bodyB: Body) {
+    // console.log('onCollideEnter', bodyA, bodyB);
+  }
+  private onCollide(bodyA: Body, bodyB: Body) {
+    // console.log('onCollide', bodyA, bodyB);
+  }
+  private onCollideLeave(bodyA: Body, bodyB: Body) {
+    // console.log('onCollideLeave', bodyA, bodyB);
   }
 }

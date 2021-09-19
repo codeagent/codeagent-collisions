@@ -11,8 +11,13 @@
 ## @todo:
 - [ ] gjk-epa contacts
 - [ ] capsule shape
-- [ ] motors
-- [ ] slide constrains
+- [ ] involve joints
+- [ ] joint islands
+- [ ] sleeping
+- [ ] mouse joint
+- [ ] physics materials
+- [ ] collision masks (layers)
+- [ ] basic shape tests, like cast ray, test box, etc.
 - [ ] fix interpenetration
 - [ ] more demos
 

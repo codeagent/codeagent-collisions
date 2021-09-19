@@ -14,8 +14,9 @@ import {
   SpaceMapping,
   SpaceMappingInterface,
   inverse as inverseSpaceMapping,
-  AABB
+  AABB,
 } from './collision';
+import { Subject } from 'rxjs';
 
 export interface BodiesContactPoint {
   bodyAIndex: number;
@@ -25,8 +26,28 @@ export interface BodiesContactPoint {
   depth: number;
 }
 
+export type BodiesPair = [Body, Body];
+export type BodiesPairMap = Map<number, BodiesPair>;
+
 export class CollisionDetector {
   private readonly bodyAABBLookup = new WeakMap<Body, AABB>();
+  private readonly collideEnterBroadcast = new Subject<BodiesPair>();
+  private readonly collideBroadcast = new Subject<BodiesPair>();
+  private readonly collideLeaveBroadcast = new Subject<BodiesPair>();
+  private readonly colliding: BodiesPairMap = new Map<number, [Body, Body]>();
+  private readonly pairs: BodiesPairMap = new Map<number, [Body, Body]>();
+
+  get collideEnter$() {
+    return this.collideEnterBroadcast.asObservable();
+  }
+
+  get collide$() {
+    return this.collideBroadcast.asObservable();
+  }
+
+  get collideLeave$() {
+    return this.collideLeaveBroadcast.asObservable();
+  }
 
   constructor(private readonly world: World) {}
 
@@ -37,7 +58,19 @@ export class CollisionDetector {
   detectCollisions() {
     this.updateAABBs();
     const candidates = this.broadPhase();
-    return this.narrowPhase(candidates);
+    const contacts = this.narrowPhase(candidates);
+    const { enter, collide, leave } = this.getCollisions(
+      this.pairs,
+      this.colliding
+    );
+    this.emitCollisions(enter, collide, leave);
+    return contacts;
+  }
+
+  private pairId(left: Body, right: Body) {
+    return left.id > right.id
+      ? (left.id << 15) | right.id
+      : (right.id << 15) | left.id;
   }
 
   private testAABBAABB(aabb1: AABB, aabb2: AABB) {
@@ -74,6 +107,7 @@ export class CollisionDetector {
   private narrowPhase(pairs: [number, number][]): BodiesContactPoint[] {
     const contacts: BodiesContactPoint[] = [];
 
+    this.pairs.clear();
     for (let [left, right] of pairs) {
       const leftBody = this.world.bodies[left];
       const rightBody = this.world.bodies[right];
@@ -140,11 +174,50 @@ export class CollisionDetector {
           bodyBIndex: contact.shape1 === rightShape ? right : left,
           point: vec2.clone(contact.point1),
           normal: vec2.fromValues(-contact.normal[0], -contact.normal[1]),
-          depth: contact.depth
+          depth: contact.depth,
         });
+      }
+
+      if (mtv.vector !== null) {
+        this.pairs.set(this.pairId(leftBody, rightBody), [leftBody, rightBody]);
       }
     }
 
     return contacts;
+  }
+
+  private getCollisions(actual: BodiesPairMap, colliding: BodiesPairMap) {
+    const enter: BodiesPair[] = [];
+    const collide: BodiesPair[] = [];
+    const leave: BodiesPair[] = [];
+
+    const out = new Set(colliding.keys());
+
+    for (const [id, pair] of actual) {
+      if (!colliding.has(id)) {
+        colliding.set(id, pair);
+        enter.push(pair);
+      } else {
+        out.delete(id);
+      }
+      collide.push(pair);
+    }
+
+    for (const id of out) {
+      leave.push(colliding.get(id));
+      colliding.delete(id);
+    }
+
+    return { enter, collide, leave };
+  }
+
+  private emitCollisions(
+    enter: BodiesPair[],
+    collide: BodiesPair[],
+    leave: BodiesPair[]
+  ) {
+    leave.forEach((pair) => this.collideLeaveBroadcast.next(pair));
+    collide.forEach((pair) => this.collideBroadcast.next(pair));
+    enter.forEach((pair) => this.collideEnterBroadcast.next(pair));
   }
 }
