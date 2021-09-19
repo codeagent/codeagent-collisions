@@ -17,7 +17,7 @@
 - [ ] mouse joint
 - [ ] physics materials
 - [ ] collision masks (layers)
-- [ ] basic shape tests, like cast ray, test box, etc.
+- [ ] basic shape tests, like ray casting, test box, etc.
 - [ ] fix interpenetration
 - [ ] more demos
 

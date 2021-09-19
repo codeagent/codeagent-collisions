@@ -1,13 +1,10 @@
 import { mat3, vec2, vec3 } from 'gl-matrix';
 
-import { uniqueId } from './unique-id';
 import { World } from './world';
 
 const ZERO = vec2.fromValues(0.0, 0.0);
 
 export class Body {
-  readonly id = uniqueId();
-
   get transform(): mat3 {
     return this._transform;
   }
@@ -93,6 +90,7 @@ export class Body {
 
   constructor(
     private readonly world: World,
+    public readonly id: number,
     public readonly bodyIndex: number
   ) {}
 

@@ -9,7 +9,7 @@ const createQuadShape = (size: number): Shape => {
     vec2.fromValues(size * 0.5, -size * 0.5),
     vec2.fromValues(size * 0.5, size * 0.5),
     vec2.fromValues(-size * 0.5, size * 0.5),
-    vec2.fromValues(-size * 0.5, -size * 0.5)
+    vec2.fromValues(-size * 0.5, -size * 0.5),
   ]);
 };
 
@@ -18,7 +18,7 @@ const createRectShape = (w: number, h: number): Shape => {
     vec2.fromValues(w * 0.5, -h * 0.5),
     vec2.fromValues(w * 0.5, h * 0.5),
     vec2.fromValues(-w * 0.5, h * 0.5),
-    vec2.fromValues(-w * 0.5, -h * 0.5)
+    vec2.fromValues(-w * 0.5, -h * 0.5),
   ]);
 };
 
@@ -118,7 +118,8 @@ export const createPendulumScene = (n: number) => {
   const m = 1.0;
 
   world.restitution = 1.0; //elastic bounces
-  world.pushFactor = 0.6;
+  world.pushFactor = 0.96;
+  world.friction = 0.0;
 
   // ceil
   const ceil = world.createBody(
@@ -379,7 +380,7 @@ export const createSATScene = () => {
       vec2.fromValues(w * 0.5, h * 0.5),
       vec2.fromValues(0, h),
       vec2.fromValues(-w * 0.5, h * 0.75),
-      vec2.fromValues(-w * 1.0, h * 0.25)
+      vec2.fromValues(-w * 1.0, h * 0.25),
     ]),
     Number.POSITIVE_INFINITY,
     Number.POSITIVE_INFINITY,

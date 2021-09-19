@@ -29,15 +29,18 @@ import {
 } from './solver';
 import { CollisionDetector } from './detector';
 import { Shape } from './collision';
-import { releaseId } from './unique-id';
+import { releaseId, uniqueId } from './unique-id';
+import { GraphNode, attach, detach, walkDepthFirst } from './graph';
 
 export class World {
   public readonly bodies: Body[] = [];
   public readonly bodyShapeLookup = new WeakMap<Body, Shape>();
+  public readonly bodyGraphNodeLookup = new WeakMap<Body, GraphNode<Body>>();
   private readonly _jointConstraints: ConstraintInterface[] = [];
   private readonly _contactConstraints: ConstraintInterface[] = [];
   private readonly _frictionConstraints: ConstraintInterface[] = [];
   private readonly collisionDetector: CollisionDetector;
+  public islands: Body[][] = [];
 
   // "read"/"write" variables
   public positions = new Float32Array(0);
@@ -89,9 +92,10 @@ export class World {
     angle: number
   ) {
     const bodyIndex = this.bodies.length;
-    const body = new Body(this, bodyIndex);
+    const body = new Body(this, uniqueId(), bodyIndex);
     this.bodies.push(body);
     this.bodyShapeLookup.set(body, shape);
+    this.bodyGraphNodeLookup.set(body, { value: body, siblings: new Set() });
 
     const n = this.bodies.length * 3;
 
@@ -147,6 +151,8 @@ export class World {
     }
     this.bodies.splice(bodyIndex, 1);
     releaseId(body.id);
+    const node = this.bodyGraphNodeLookup.get(body);
+    node.siblings.forEach((sibling) => detach(sibling, node));
 
     const size = this.bodies.length * 3;
     const newPositions = new Float32Array(size);
@@ -186,7 +192,7 @@ export class World {
   simulate(dt: number) {
     this.applyGlobalForces();
     this.detectCollisions();
-
+    this.islands= this.generateIslands();
     if (this.constraints.length) {
       // Resolve
       this.solveConstraints(this._cvForces, dt, this.pushFactor);
@@ -229,6 +235,11 @@ export class World {
         vec2.clone(positionB),
         distance
       )
+    );
+
+    attach(
+      this.bodyGraphNodeLookup.get(bodyA),
+      this.bodyGraphNodeLookup.get(bodyB)
     );
 
     this._lambdaCache0 = new Float32Array(this._jointConstraints.length);
@@ -291,6 +302,11 @@ export class World {
       );
     }
 
+    attach(
+      this.bodyGraphNodeLookup.get(bodyA),
+      this.bodyGraphNodeLookup.get(bodyB)
+    );
+
     this._lambdaCache0 = new Float32Array(this._jointConstraints.length);
     this._lambdaCache1 = new Float32Array(this._jointConstraints.length);
   }
@@ -314,6 +330,11 @@ export class World {
         this.bodies.indexOf(bodyB),
         vec2.clone(jointB)
       )
+    );
+
+    attach(
+      this.bodyGraphNodeLookup.get(bodyA),
+      this.bodyGraphNodeLookup.get(bodyB)
     );
 
     this._lambdaCache0 = new Float32Array(this._jointConstraints.length);
@@ -363,6 +384,11 @@ export class World {
         this.bodies.indexOf(bodyB),
         refAngle * 1.15
       )
+    );
+
+    attach(
+      this.bodyGraphNodeLookup.get(bodyA),
+      this.bodyGraphNodeLookup.get(bodyB)
     );
 
     this._lambdaCache0 = new Float32Array(this._jointConstraints.length);
@@ -424,6 +450,11 @@ export class World {
       );
     }
 
+    attach(
+      this.bodyGraphNodeLookup.get(bodyA),
+      this.bodyGraphNodeLookup.get(bodyB)
+    );
+
     this._lambdaCache0 = new Float32Array(this._jointConstraints.length);
     this._lambdaCache1 = new Float32Array(this._jointConstraints.length);
   }
@@ -450,10 +481,16 @@ export class World {
       )
     );
 
+    attach(
+      this.bodyGraphNodeLookup.get(bodyA),
+      this.bodyGraphNodeLookup.get(bodyB)
+    );
+
     this._lambdaCache0 = new Float32Array(this._jointConstraints.length);
     this._lambdaCache1 = new Float32Array(this._jointConstraints.length);
   }
 
+  // todo:
   removeConstraint(constraint: ConstraintInterface) {
     const indexOf = this._jointConstraints.indexOf(constraint);
 
@@ -495,6 +532,24 @@ export class World {
         );
       }
     }
+  }
+
+  private generateIslands(): Body[][] {
+    const bodies = new Set(this.bodies);
+    const islands: Body[][] = [];
+
+    while (bodies.size) {
+      const island: Body[] = [];
+      const body = Array.from(bodies.values())[0];
+      const node = this.bodyGraphNodeLookup.get(body);
+      walkDepthFirst(node, (body) => {
+        bodies.delete(body);
+        island.push(body);
+      });
+      islands.push(island);
+    }
+
+    return islands;
   }
 
   private solveConstraints(out: Vector, dt: number, pushFactor: number) {
@@ -572,12 +627,18 @@ export class World {
   }
 
   private onCollideEnter(bodyA: Body, bodyB: Body) {
-    // console.log('onCollideEnter', bodyA, bodyB);
+    // attach(
+    //   this.bodyGraphNodeLookup.get(bodyA),
+    //   this.bodyGraphNodeLookup.get(bodyB)
+    // );
   }
   private onCollide(bodyA: Body, bodyB: Body) {
     // console.log('onCollide', bodyA, bodyB);
   }
   private onCollideLeave(bodyA: Body, bodyB: Body) {
-    // console.log('onCollideLeave', bodyA, bodyB);
+    // detach(
+    //   this.bodyGraphNodeLookup.get(bodyA),
+    //   this.bodyGraphNodeLookup.get(bodyB)
+    // );
   }
 }
