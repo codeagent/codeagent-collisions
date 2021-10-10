@@ -84,7 +84,7 @@ export const VxSpVxS = (
   }
 };
 
-export const projectedGussSeidel = (
+export const projectedGaussSeidel = (
   out: Vector,
   A: csr.Matrix,
   b: Vector,

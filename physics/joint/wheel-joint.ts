@@ -13,6 +13,10 @@ import { Body } from '../body';
 export class WheelJoint implements JointInterface {
   private readonly constraints: ConstraintInterface[] = [];
 
+  get size() {
+    return this.constraints.length;
+  }
+
   constructor(
     public readonly world: World,
     public readonly bodyA: Body,

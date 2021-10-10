@@ -8,6 +8,10 @@ import { Body } from '../body';
 export class SpringJoint implements JointInterface {
   private readonly constraints: ConstraintInterface[] = [];
 
+  get size() {
+    return 1;
+  }
+
   constructor(
     public readonly world: World,
     public readonly bodyA: Body,

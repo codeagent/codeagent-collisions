@@ -11,6 +11,7 @@
 ## @todo:
 - [ ] gjk-epa contacts
 - [ ] capsule shape
+- [ ] eradicate double calculation of jacobians for velocity and position constraint resolving
 - [ ] involve joints
 - [ ] joint islands
 - [ ] sleeping

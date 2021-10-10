@@ -245,7 +245,13 @@ export const drawWorld = (world: World): void => {
     });
   });
 
-  world.constraints.forEach((constraint) => drawConstraint(constraint));
+  world.motors.forEach((constraint) => drawConstraint(constraint));
+  world.contacts.forEach((contact) =>
+    contact.getConstraints().forEach((constraint) => drawConstraint(constraint))
+  );
+  world.joints.forEach((joint) =>
+    joint.getConstraints().forEach((constraint) => drawConstraint(constraint))
+  );
 };
 
 const COLORS = [

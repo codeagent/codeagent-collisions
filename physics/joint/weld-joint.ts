@@ -15,13 +15,17 @@ import { Body } from '../body';
 export class WeldJoint implements JointInterface {
   private readonly constraints: ConstraintInterface[] = [];
 
+  get size() {
+    return 4;
+  }
+
   constructor(
     public readonly world: World,
     public readonly bodyA: Body,
     public readonly pivotA: vec2,
     public readonly bodyB: Body,
     public readonly pivotB: vec2,
-    public readonly refAngle = 0
+    public readonly refAngle: number
   ) {
     this.constraints.push(
       new RevoluteXConstraint(

@@ -2,25 +2,10 @@ import { vec2 } from 'gl-matrix';
 
 import { csr } from './csr';
 import { Body } from './body';
-import {
-  DistanceConstraint,
-  ConstraintInterface,
-  ContactConstraint,
-  FrictionConstraint,
-  LineConstraint,
-  AngleConstraint,
-  MaxDistanceConstraint,
-  RevoluteXConstraint,
-  RevoluteYConstraint,
-  MinAngleConstraint,
-  MaxAngleConstraint,
-  AngularMotorConstraint,
-  MinDistanceConstraint,
-  SpringConstraint,
-} from './constraint';
+import { ConstraintInterface, AngularMotorConstraint } from './constraint';
 import {
   VxSpVxS,
-  projectedGussSeidel,
+  projectedGaussSeidel,
   Vector,
   VcV,
   VpV,
@@ -31,14 +16,24 @@ import { CollisionDetector } from './detector';
 import { Shape } from './collision';
 import { releaseId, uniqueId } from './unique-id';
 import { GraphNode, attach, detach, walkDepthFirst } from './graph';
+import {
+  ContactJoint,
+  DistanceJoint,
+  JointInterface,
+  PrismaticJoint,
+  RevoluteJoint,
+  SpringJoint,
+  WeldJoint,
+} from './joint';
+import { WheelJoint } from './joint/wheel-joint';
 
 export class World {
   public readonly bodies: Body[] = [];
   public readonly bodyShapeLookup = new WeakMap<Body, Shape>();
   public readonly bodyGraphNodeLookup = new WeakMap<Body, GraphNode<Body>>();
-  private readonly _jointConstraints: ConstraintInterface[] = [];
-  private readonly _contactConstraints: ConstraintInterface[] = [];
-  private readonly _frictionConstraints: ConstraintInterface[] = [];
+  public readonly joints = new Set<JointInterface>();
+  public readonly contacts = new Set<JointInterface>();
+  public readonly motors = new Set<ConstraintInterface>();
   private readonly collisionDetector: CollisionDetector;
   public islands: Body[][] = [];
 
@@ -47,13 +42,6 @@ export class World {
   public velocities = new Float32Array(0);
   public forces = new Float32Array(0);
   public invMasses = new Float32Array(0);
-
-  public get constraints() {
-    return this._jointConstraints.concat(
-      this._contactConstraints,
-      this._frictionConstraints
-    );
-  }
 
   // "helper" variables
   private _accelerations = new Float32Array(0);
@@ -192,8 +180,8 @@ export class World {
   simulate(dt: number) {
     this.applyGlobalForces();
     this.detectCollisions();
-    this.islands= this.generateIslands();
-    if (this.constraints.length) {
+    this.islands = this.generateIslands();
+    if (this.joints.size || this.contacts.size || this.motors.size) {
       // Resolve
       this.solveConstraints(this._cvForces, dt, this.pushFactor);
       this.solveConstraints(this._c0Forces, dt, 0.0);
@@ -226,24 +214,26 @@ export class World {
     positionB: vec2,
     distance: number
   ) {
-    this._jointConstraints.push(
-      new DistanceConstraint(
-        this,
-        this.bodies.indexOf(bodyA),
-        vec2.clone(positionA),
-        this.bodies.indexOf(bodyB),
-        vec2.clone(positionB),
-        distance
-      )
+    const joint = new DistanceJoint(
+      this,
+      bodyA,
+      positionA,
+      bodyB,
+      positionB,
+      distance
+    );
+    this.joints.add(joint);
+    this._lambdaCache0 = new Float32Array(
+      joint.size + this._lambdaCache0.length
+    );
+    this._lambdaCache1 = new Float32Array(
+      joint.size + this._lambdaCache1.length
     );
 
     attach(
       this.bodyGraphNodeLookup.get(bodyA),
       this.bodyGraphNodeLookup.get(bodyB)
     );
-
-    this._lambdaCache0 = new Float32Array(this._jointConstraints.length);
-    this._lambdaCache1 = new Float32Array(this._jointConstraints.length);
   }
 
   addPrismaticJoint(
@@ -256,89 +246,44 @@ export class World {
     minDistance = 0,
     maxDistance = Number.POSITIVE_INFINITY
   ) {
-    this._jointConstraints.push(
-      new LineConstraint(
-        this,
-        this.bodies.indexOf(bodyA),
-        vec2.clone(jointA),
-        this.bodies.indexOf(bodyB),
-        vec2.clone(jointB),
-        vec2.clone(localAxis)
-      )
+    const joint = new PrismaticJoint(
+      this,
+      bodyA,
+      jointA,
+      bodyB,
+      jointB,
+      localAxis,
+      refAngle,
+      minDistance,
+      maxDistance
     );
-
-    this._jointConstraints.push(
-      new AngleConstraint(
-        this,
-        this.bodies.indexOf(bodyA),
-        this.bodies.indexOf(bodyB),
-        refAngle
-      )
+    this.joints.add(joint);
+    this._lambdaCache0 = new Float32Array(
+      joint.size + this._lambdaCache0.length
     );
-
-    if (minDistance) {
-      this._jointConstraints.push(
-        new MinDistanceConstraint(
-          this,
-          this.bodies.indexOf(bodyA),
-          vec2.clone(jointA),
-          this.bodies.indexOf(bodyB),
-          vec2.clone(jointB),
-          minDistance
-        )
-      );
-    }
-
-    if (isFinite(maxDistance)) {
-      this._jointConstraints.push(
-        new MaxDistanceConstraint(
-          this,
-          this.bodies.indexOf(bodyA),
-          vec2.clone(jointA),
-          this.bodies.indexOf(bodyB),
-          vec2.clone(jointB),
-          maxDistance
-        )
-      );
-    }
+    this._lambdaCache1 = new Float32Array(
+      joint.size + this._lambdaCache1.length
+    );
 
     attach(
       this.bodyGraphNodeLookup.get(bodyA),
       this.bodyGraphNodeLookup.get(bodyB)
     );
-
-    this._lambdaCache0 = new Float32Array(this._jointConstraints.length);
-    this._lambdaCache1 = new Float32Array(this._jointConstraints.length);
   }
 
   addRevoluteJoint(bodyA: Body, jointA: vec2, bodyB: Body, jointB: vec2) {
-    this._jointConstraints.push(
-      new RevoluteXConstraint(
-        this,
-        this.bodies.indexOf(bodyA),
-        vec2.clone(jointA),
-        this.bodies.indexOf(bodyB),
-        vec2.clone(jointB)
-      )
+    const joint = new RevoluteJoint(this, bodyA, jointA, bodyB, jointB);
+    this.joints.add(joint);
+    this._lambdaCache0 = new Float32Array(
+      joint.size + this._lambdaCache0.length
     );
-
-    this._jointConstraints.push(
-      new RevoluteYConstraint(
-        this,
-        this.bodies.indexOf(bodyA),
-        vec2.clone(jointA),
-        this.bodies.indexOf(bodyB),
-        vec2.clone(jointB)
-      )
+    this._lambdaCache1 = new Float32Array(
+      joint.size + this._lambdaCache1.length
     );
-
     attach(
       this.bodyGraphNodeLookup.get(bodyA),
       this.bodyGraphNodeLookup.get(bodyB)
     );
-
-    this._lambdaCache0 = new Float32Array(this._jointConstraints.length);
-    this._lambdaCache1 = new Float32Array(this._jointConstraints.length);
   }
 
   addWeldJoint(
@@ -348,60 +293,28 @@ export class World {
     jointB: vec2,
     refAngle = 0
   ) {
-    this._jointConstraints.push(
-      new RevoluteXConstraint(
-        this,
-        this.bodies.indexOf(bodyA),
-        vec2.clone(jointA),
-        this.bodies.indexOf(bodyB),
-        vec2.clone(jointB)
-      )
+    const joint = new WeldJoint(this, bodyA, jointA, bodyB, jointB, refAngle);
+    this.joints.add(joint);
+    this._lambdaCache0 = new Float32Array(
+      joint.size + this._lambdaCache0.length
     );
-
-    this._jointConstraints.push(
-      new RevoluteYConstraint(
-        this,
-        this.bodies.indexOf(bodyA),
-        vec2.clone(jointA),
-        this.bodies.indexOf(bodyB),
-        vec2.clone(jointB)
-      )
-    );
-
-    this._jointConstraints.push(
-      new MinAngleConstraint(
-        this,
-        this.bodies.indexOf(bodyA),
-        this.bodies.indexOf(bodyB),
-        refAngle * 0.25
-      )
-    );
-
-    this._jointConstraints.push(
-      new MaxAngleConstraint(
-        this,
-        this.bodies.indexOf(bodyA),
-        this.bodies.indexOf(bodyB),
-        refAngle * 1.15
-      )
+    this._lambdaCache1 = new Float32Array(
+      joint.size + this._lambdaCache1.length
     );
 
     attach(
       this.bodyGraphNodeLookup.get(bodyA),
       this.bodyGraphNodeLookup.get(bodyB)
     );
-
-    this._lambdaCache0 = new Float32Array(this._jointConstraints.length);
-    this._lambdaCache1 = new Float32Array(this._jointConstraints.length);
   }
 
   addMotor(body: Body, speed: number, torque: number) {
-    this._jointConstraints.push(
+    this.motors.add(
       new AngularMotorConstraint(this, this.bodies.indexOf(body), speed, torque)
     );
 
-    this._lambdaCache0 = new Float32Array(this._jointConstraints.length);
-    this._lambdaCache1 = new Float32Array(this._jointConstraints.length);
+    this._lambdaCache0 = new Float32Array(this._lambdaCache0.length + 1);
+    this._lambdaCache1 = new Float32Array(this._lambdaCache1.length + 1);
   }
 
   addWheelJonit(
@@ -413,50 +326,29 @@ export class World {
     minDistance = 0,
     maxDistance = Number.POSITIVE_INFINITY
   ) {
-    this._jointConstraints.push(
-      new LineConstraint(
-        this,
-        this.bodies.indexOf(bodyA),
-        vec2.clone(jointA),
-        this.bodies.indexOf(bodyB),
-        vec2.clone(jointB),
-        vec2.clone(localAxis)
-      )
+    const joint = new WheelJoint(
+      this,
+      bodyA,
+      jointA,
+      bodyB,
+      jointB,
+      localAxis,
+      minDistance,
+      maxDistance
     );
 
-    if (minDistance) {
-      this._jointConstraints.push(
-        new MinDistanceConstraint(
-          this,
-          this.bodies.indexOf(bodyA),
-          vec2.clone(jointA),
-          this.bodies.indexOf(bodyB),
-          vec2.clone(jointB),
-          minDistance
-        )
-      );
-    }
-
-    if (isFinite(maxDistance)) {
-      this._jointConstraints.push(
-        new MaxDistanceConstraint(
-          this,
-          this.bodies.indexOf(bodyA),
-          vec2.clone(jointA),
-          this.bodies.indexOf(bodyB),
-          vec2.clone(jointB),
-          maxDistance
-        )
-      );
-    }
+    this.joints.add(joint);
+    this._lambdaCache0 = new Float32Array(
+      joint.size + this._lambdaCache0.length
+    );
+    this._lambdaCache1 = new Float32Array(
+      joint.size + this._lambdaCache1.length
+    );
 
     attach(
       this.bodyGraphNodeLookup.get(bodyA),
       this.bodyGraphNodeLookup.get(bodyB)
     );
-
-    this._lambdaCache0 = new Float32Array(this._jointConstraints.length);
-    this._lambdaCache1 = new Float32Array(this._jointConstraints.length);
   }
 
   addSpring(
@@ -468,69 +360,60 @@ export class World {
     stiffness: number,
     extinction: number
   ) {
-    this._jointConstraints.push(
-      new SpringConstraint(
-        this,
-        this.bodies.indexOf(bodyA),
-        vec2.clone(positionA),
-        this.bodies.indexOf(bodyB),
-        vec2.clone(positionB),
-        distance,
-        stiffness,
-        extinction
-      )
+    const joint = new SpringJoint(
+      this,
+      bodyA,
+      positionA,
+      bodyB,
+      positionB,
+      distance,
+      stiffness,
+      extinction
     );
-
+    this.joints.add(joint);
+    this._lambdaCache0 = new Float32Array(
+      joint.size + this._lambdaCache0.length
+    );
+    this._lambdaCache1 = new Float32Array(
+      joint.size + this._lambdaCache1.length
+    );
     attach(
       this.bodyGraphNodeLookup.get(bodyA),
       this.bodyGraphNodeLookup.get(bodyB)
     );
-
-    this._lambdaCache0 = new Float32Array(this._jointConstraints.length);
-    this._lambdaCache1 = new Float32Array(this._jointConstraints.length);
   }
 
-  // todo:
-  removeConstraint(constraint: ConstraintInterface) {
-    const indexOf = this._jointConstraints.indexOf(constraint);
+  removeMotor(motor: ConstraintInterface) {
+    this.motors.delete(motor);
+    this._lambdaCache0 = new Float32Array(this._lambdaCache0.length - 1);
+    this._lambdaCache1 = new Float32Array(this._lambdaCache1.length - 1);
+  }
 
-    if (indexOf === -1) {
-      return;
-    }
-
-    this._jointConstraints.splice(indexOf, 1);
-    this._lambdaCache0 = new Float32Array(this._jointConstraints.length);
-    this._lambdaCache1 = new Float32Array(this._jointConstraints.length);
+  removeJoint(joint: JointInterface) {
+    this.joints.delete(joint);
+    this._lambdaCache0 = new Float32Array(
+      this._lambdaCache0.length - joint.size
+    );
+    this._lambdaCache1 = new Float32Array(
+      this._lambdaCache1.length - joint.size
+    );
   }
 
   private detectCollisions() {
-    this._contactConstraints.length = 0;
-    this._frictionConstraints.length = 0;
+    this.contacts.clear();
 
     for (const contact of this.collisionDetector.detectCollisions()) {
-      this._contactConstraints.push(
-        new ContactConstraint(
+      this.contacts.add(
+        new ContactJoint(
           this,
-          contact.bodyAIndex,
-          contact.bodyBIndex,
+          this.bodies[contact.bodyAIndex],
+          this.bodies[contact.bodyBIndex],
           contact.point,
           contact.normal,
-          contact.depth
+          contact.depth,
+          this.friction
         )
       );
-
-      if (this.friction) {
-        this._frictionConstraints.push(
-          new FrictionConstraint(
-            this,
-            contact.bodyAIndex,
-            contact.bodyBIndex,
-            contact.point,
-            contact.normal,
-            this.friction
-          )
-        );
-      }
     }
   }
 
@@ -553,10 +436,19 @@ export class World {
   }
 
   private solveConstraints(out: Vector, dt: number, pushFactor: number) {
-    // friction constraints are not involved in position correction
-    const constraints = this._jointConstraints
-      .concat(this._contactConstraints)
-      .concat(!pushFactor ? this._frictionConstraints : []);
+    // WARNING! friction constraints are not involved in position correction
+
+    let constraints = [];
+    for (let joint of this.joints) {
+      constraints = constraints.concat(joint.getConstraints());
+    }
+    for (let motor of this.motors) {
+      constraints = constraints.concat(motor);
+    }
+    const cacheSize = constraints.length;
+    for (let contact of this.contacts) {
+      constraints = constraints.concat(contact.getConstraints());
+    }
 
     const n = this.bodies.length * 3;
     const c = constraints.length;
@@ -600,8 +492,8 @@ export class World {
     csr.MxV(b, csrJ, bhat);
     VxSpVxS(b, v, 1.0 / dt, b, -1.0);
 
-    projectedGussSeidel(lambdas, csrA, b, cache, cMin, cMax, this.iterations);
-    cache.set(lambdas.subarray(0, this._jointConstraints.length));
+    projectedGaussSeidel(lambdas, csrA, b, cache, cMin, cMax, this.iterations);
+    cache.set(lambdas.subarray(0, cacheSize));
     csr.MtxV(out, csrJ, lambdas);
   }
 

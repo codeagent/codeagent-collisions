@@ -13,6 +13,10 @@ import { Body } from '../body';
 export class RevoluteJoint implements JointInterface {
   private readonly constraints: ConstraintInterface[] = [];
 
+  get size() {
+    return 2;
+  }
+
   constructor(
     public readonly world: World,
     public readonly bodyA: Body,
