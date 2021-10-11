@@ -86,6 +86,10 @@ export class Body {
     this.world.invMasses[this.bodyIndex * 3 + 2] = 1.0 / inertia;
   }
 
+  get isStatic() {
+    return !Number.isFinite(this.mass) && !Number.isFinite(this.inertia);
+  }
+
   private _transform = mat3.create();
 
   constructor(

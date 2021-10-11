@@ -75,9 +75,9 @@ merge(
   .subscribe((id) => {
     rotatables.forEach((r) => r.release()), (rotatables.length = 0);
     draggables.forEach((d) => d.release()), (draggables.length = 0);
-    while (world.bodies.length) world.destroyBody(world.bodies[0]);
     world.joints.forEach((j) => world.removeJoint(j));
     world.motors.forEach((m) => world.removeMotor(m));
+    while (world.bodies.length) world.destroyBody(world.bodies[0]);
 
     lookup[(sceneId = id)]();
     world.bodies.forEach((b) =>

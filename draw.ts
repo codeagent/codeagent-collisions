@@ -12,7 +12,9 @@ import {
   MaxDistanceConstraint,
   MinDistanceConstraint,
   SpringConstraint,
+  Body,
 } from './physics';
+import { WorldIsland } from './physics/world-island';
 
 export const canvas = document.getElementById('canvas') as HTMLCanvasElement;
 const context = canvas.getContext('2d') as CanvasRenderingContext2D;
@@ -231,19 +233,26 @@ export const drawGround = (origin: vec2, normal: vec2) => {
   }
 };
 
+export const drawBody = (world: World, body: Body, color: string) => {
+  const shape = world.bodyShapeLookup.get(body);
+  drawCross(body.transform, color);
+  if (shape instanceof Polygon) {
+    drawPolyShape(shape, body.transform, color);
+  } else if (shape instanceof Circle) {
+    drawCircleShape(shape.radius, body.transform, color);
+  }
+};
+
 export const drawWorld = (world: World): void => {
-  world.islands?.forEach((island, index) => {
-    const color = COLORS[index];
-    island.forEach((body) => {
-      const shape = world.bodyShapeLookup.get(body);
-      drawCross(body.transform, color);
-      if (shape instanceof Polygon) {
-        drawPolyShape(shape, body.transform, color);
-      } else if (shape instanceof Circle) {
-        drawCircleShape(shape.radius, body.transform, color);
-      }
-    });
+  let index = 0;
+  world.islands.forEach((island: WorldIsland) => {
+    const color = COLORS[index++];
+    island.bodies.forEach((body) => drawBody(world, body, color));
   });
+
+  world.bodies
+    .filter((body) => body.isStatic)
+    .forEach((body) => drawBody(world, body, DEFAULT_COLOR));
 
   world.motors.forEach((constraint) => drawConstraint(constraint));
   world.contacts.forEach((contact) =>

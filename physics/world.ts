@@ -26,16 +26,20 @@ import {
   WeldJoint,
 } from './joint';
 import { WheelJoint } from './joint/wheel-joint';
+import { WorldIsland } from './world-island';
 
 export class World {
   public readonly bodies: Body[] = [];
   public readonly bodyShapeLookup = new WeakMap<Body, Shape>();
   public readonly bodyGraphNodeLookup = new WeakMap<Body, GraphNode<Body>>();
+  public readonly bodyJoints = new WeakMap<Body, Set<JointInterface>>();
+  public readonly bodyContacts = new WeakMap<Body, Set<JointInterface>>();
+  public readonly bodyMotors = new WeakMap<Body, Set<ConstraintInterface>>();
   public readonly joints = new Set<JointInterface>();
   public readonly contacts = new Set<JointInterface>();
   public readonly motors = new Set<ConstraintInterface>();
   private readonly collisionDetector: CollisionDetector;
-  public islands: Body[][] = [];
+  public readonly islands = new Set<WorldIsland>();
 
   // "read"/"write" variables
   public positions = new Float32Array(0);
@@ -83,6 +87,9 @@ export class World {
     const body = new Body(this, uniqueId(), bodyIndex);
     this.bodies.push(body);
     this.bodyShapeLookup.set(body, shape);
+    this.bodyContacts.set(body, new Set<JointInterface>());
+    this.bodyJoints.set(body, new Set<JointInterface>());
+    this.bodyMotors.set(body, new Set<ConstraintInterface>());
     this.bodyGraphNodeLookup.set(body, { value: body, siblings: new Set() });
 
     const n = this.bodies.length * 3;
@@ -175,12 +182,17 @@ export class World {
     this.velocities = newVelocities;
     this.forces = newForces;
     this.invMasses = newInvMasses;
+    this.bodyContacts.delete(body);
+    this.bodyJoints.delete(body);
+    this.bodyMotors.delete(body);
+    this.bodyShapeLookup.delete(body);
   }
 
   simulate(dt: number) {
     this.applyGlobalForces();
     this.detectCollisions();
-    this.islands = this.generateIslands();
+    this.generateIslands();
+
     if (this.joints.size || this.contacts.size || this.motors.size) {
       // Resolve
       this.solveConstraints(this._cvForces, dt, this.pushFactor);
@@ -223,6 +235,9 @@ export class World {
       distance
     );
     this.joints.add(joint);
+    this.bodyJoints.get(bodyA).add(joint);
+    this.bodyJoints.get(bodyB).add(joint);
+
     this._lambdaCache0 = new Float32Array(
       joint.size + this._lambdaCache0.length
     );
@@ -257,7 +272,10 @@ export class World {
       minDistance,
       maxDistance
     );
+    this.bodyJoints.get(bodyA).add(joint);
+    this.bodyJoints.get(bodyB).add(joint);
     this.joints.add(joint);
+
     this._lambdaCache0 = new Float32Array(
       joint.size + this._lambdaCache0.length
     );
@@ -273,7 +291,10 @@ export class World {
 
   addRevoluteJoint(bodyA: Body, jointA: vec2, bodyB: Body, jointB: vec2) {
     const joint = new RevoluteJoint(this, bodyA, jointA, bodyB, jointB);
+    this.bodyJoints.get(bodyA).add(joint);
+    this.bodyJoints.get(bodyB).add(joint);
     this.joints.add(joint);
+
     this._lambdaCache0 = new Float32Array(
       joint.size + this._lambdaCache0.length
     );
@@ -294,7 +315,10 @@ export class World {
     refAngle = 0
   ) {
     const joint = new WeldJoint(this, bodyA, jointA, bodyB, jointB, refAngle);
+    this.bodyJoints.get(bodyA).add(joint);
+    this.bodyJoints.get(bodyB).add(joint);
     this.joints.add(joint);
+
     this._lambdaCache0 = new Float32Array(
       joint.size + this._lambdaCache0.length
     );
@@ -309,10 +333,14 @@ export class World {
   }
 
   addMotor(body: Body, speed: number, torque: number) {
-    this.motors.add(
-      new AngularMotorConstraint(this, this.bodies.indexOf(body), speed, torque)
+    const motor = new AngularMotorConstraint(
+      this,
+      this.bodies.indexOf(body),
+      speed,
+      torque
     );
-
+    this.motors.add(motor);
+    this.bodyMotors.get(body).add(motor);
     this._lambdaCache0 = new Float32Array(this._lambdaCache0.length + 1);
     this._lambdaCache1 = new Float32Array(this._lambdaCache1.length + 1);
   }
@@ -338,6 +366,9 @@ export class World {
     );
 
     this.joints.add(joint);
+    this.bodyJoints.get(bodyA).add(joint);
+    this.bodyJoints.get(bodyB).add(joint);
+
     this._lambdaCache0 = new Float32Array(
       joint.size + this._lambdaCache0.length
     );
@@ -371,6 +402,9 @@ export class World {
       extinction
     );
     this.joints.add(joint);
+    this.bodyJoints.get(bodyA).add(joint);
+    this.bodyJoints.get(bodyB).add(joint);
+
     this._lambdaCache0 = new Float32Array(
       joint.size + this._lambdaCache0.length
     );
@@ -391,6 +425,9 @@ export class World {
 
   removeJoint(joint: JointInterface) {
     this.joints.delete(joint);
+    this.bodyJoints.get(joint.bodyA).delete(joint);
+    this.bodyJoints.get(joint.bodyB).delete(joint);
+
     this._lambdaCache0 = new Float32Array(
       this._lambdaCache0.length - joint.size
     );
@@ -402,22 +439,27 @@ export class World {
   private detectCollisions() {
     this.contacts.clear();
 
+    for (const body of this.bodies) {
+      this.bodyContacts.get(body).clear();
+    }
+
     for (const contact of this.collisionDetector.detectCollisions()) {
-      this.contacts.add(
-        new ContactJoint(
-          this,
-          this.bodies[contact.bodyAIndex],
-          this.bodies[contact.bodyBIndex],
-          contact.point,
-          contact.normal,
-          contact.depth,
-          this.friction
-        )
+      const joint = new ContactJoint(
+        this,
+        this.bodies[contact.bodyAIndex],
+        this.bodies[contact.bodyBIndex],
+        contact.point,
+        contact.normal,
+        contact.depth,
+        this.friction
       );
+      this.contacts.add(joint);
+      this.bodyContacts.get(this.bodies[contact.bodyAIndex]).add(joint);
+      this.bodyContacts.get(this.bodies[contact.bodyBIndex]).add(joint);
     }
   }
 
-  private generateIslands(): Body[][] {
+  private _generateIslands(): Body[][] {
     const bodies = new Set(this.bodies);
     const islands: Body[][] = [];
 
@@ -433,6 +475,79 @@ export class World {
     }
 
     return islands;
+  }
+
+  private generateIslands() {
+    const visitedBodies = new WeakSet<Body>();
+    const visitedJoints = new WeakSet<JointInterface>();
+    const visitedConstraints = new WeakSet<ConstraintInterface>();
+
+    this.islands.clear();
+
+    for (let body of this.bodies) {
+      // Skip processed
+      if (visitedBodies.has(body)) {
+        continue;
+      }
+
+      const island = new WorldIsland();
+
+      // Depth first dependency traverse
+      const stack: Body[] = [];
+      stack.push(body);
+      while (stack.length) {
+        const body = stack.pop();
+        if (visitedBodies.has(body)) {
+          continue;
+        }
+
+        // joints
+        const bodyJoints = this.bodyJoints.get(body);
+        for (const joint of bodyJoints) {
+          if (visitedJoints.has(joint)) {
+            continue;
+          }
+          const second = joint.bodyA === body ? joint.bodyB : joint.bodyA;
+          if (!visitedBodies.has(second)) {
+            stack.push(second);
+          }
+          island.addJoint(joint);
+          visitedJoints.add(joint);
+        }
+
+        // concacts
+        const bodyContacts = this.bodyContacts.get(body);
+        for (const contact of bodyContacts) {
+          if (visitedJoints.has(contact)) {
+            continue;
+          }
+          const second = contact.bodyA === body ? contact.bodyB : contact.bodyA;
+          if (!visitedBodies.has(second)) {
+            stack.push(second);
+          }
+          island.addContact(contact);
+          visitedJoints.add(contact);
+        }
+
+        // motors
+        const bodyMotors = this.bodyMotors.get(body);
+        for (const motor of bodyMotors) {
+          if (visitedConstraints.has(motor)) {
+            continue;
+          }
+          island.addMotor(motor);
+          visitedConstraints.add(motor);
+        }
+
+        // Skip static bodies
+        if (!body.isStatic) {
+          island.addBody(body);
+        }
+        visitedBodies.add(body);
+      }
+
+      this.islands.add(island);
+    }
   }
 
   private solveConstraints(out: Vector, dt: number, pushFactor: number) {
