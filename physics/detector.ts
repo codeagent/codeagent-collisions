@@ -84,7 +84,7 @@ export class CollisionDetector {
 
   private updateAABBs() {
     for (const body of this.world.bodies) {
-      const shape = this.world.bodyShapeLookup.get(body);
+      const shape = this.world.bodyShape.get(body);
       const aabb = this.bodyAABBLookup.get(body);
       shape.aabb(aabb, body.transform);
     }
@@ -111,8 +111,8 @@ export class CollisionDetector {
     for (let [left, right] of pairs) {
       const leftBody = this.world.bodies[left];
       const rightBody = this.world.bodies[right];
-      const leftShape = this.world.bodyShapeLookup.get(leftBody);
-      const rightShape = this.world.bodyShapeLookup.get(rightBody);
+      const leftShape = this.world.bodyShape.get(leftBody);
+      const rightShape = this.world.bodyShape.get(rightBody);
 
       let manifold: ContactManifold = [];
       const mtv = new MTV();

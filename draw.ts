@@ -234,7 +234,7 @@ export const drawGround = (origin: vec2, normal: vec2) => {
 };
 
 export const drawBody = (world: World, body: Body, color: string) => {
-  const shape = world.bodyShapeLookup.get(body);
+  const shape = world.bodyShape.get(body);
   drawCross(body.transform, color);
   if (shape instanceof Polygon) {
     drawPolyShape(shape, body.transform, color);
@@ -255,9 +255,9 @@ export const drawWorld = (world: World): void => {
     .forEach((body) => drawBody(world, body, DEFAULT_COLOR));
 
   world.motors.forEach((constraint) => drawConstraint(constraint));
-  world.contacts.forEach((contact) =>
-    contact.getConstraints().forEach((constraint) => drawConstraint(constraint))
-  );
+  // world.contacts.forEach((contact) =>
+  //   contact.getConstraints().forEach((constraint) => drawConstraint(constraint))
+  // );
   world.joints.forEach((joint) =>
     joint.getConstraints().forEach((constraint) => drawConstraint(constraint))
   );

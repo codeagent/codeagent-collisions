@@ -15,7 +15,7 @@ import {
 import { CollisionDetector } from './detector';
 import { Shape } from './collision';
 import { releaseId, uniqueId } from './unique-id';
-import { GraphNode, attach, detach, walkDepthFirst } from './graph';
+
 import {
   ContactJoint,
   DistanceJoint,
@@ -30,8 +30,7 @@ import { WorldIsland } from './world-island';
 
 export class World {
   public readonly bodies: Body[] = [];
-  public readonly bodyShapeLookup = new WeakMap<Body, Shape>();
-  public readonly bodyGraphNodeLookup = new WeakMap<Body, GraphNode<Body>>();
+  public readonly bodyShape = new WeakMap<Body, Shape>();
   public readonly bodyJoints = new WeakMap<Body, Set<JointInterface>>();
   public readonly bodyContacts = new WeakMap<Body, Set<JointInterface>>();
   public readonly bodyMotors = new WeakMap<Body, Set<ConstraintInterface>>();
@@ -86,11 +85,10 @@ export class World {
     const bodyIndex = this.bodies.length;
     const body = new Body(this, uniqueId(), bodyIndex);
     this.bodies.push(body);
-    this.bodyShapeLookup.set(body, shape);
+    this.bodyShape.set(body, shape);
     this.bodyContacts.set(body, new Set<JointInterface>());
     this.bodyJoints.set(body, new Set<JointInterface>());
     this.bodyMotors.set(body, new Set<ConstraintInterface>());
-    this.bodyGraphNodeLookup.set(body, { value: body, siblings: new Set() });
 
     const n = this.bodies.length * 3;
 
@@ -146,8 +144,6 @@ export class World {
     }
     this.bodies.splice(bodyIndex, 1);
     releaseId(body.id);
-    const node = this.bodyGraphNodeLookup.get(body);
-    node.siblings.forEach((sibling) => detach(sibling, node));
 
     const size = this.bodies.length * 3;
     const newPositions = new Float32Array(size);
@@ -185,7 +181,7 @@ export class World {
     this.bodyContacts.delete(body);
     this.bodyJoints.delete(body);
     this.bodyMotors.delete(body);
-    this.bodyShapeLookup.delete(body);
+    this.bodyShape.delete(body);
   }
 
   simulate(dt: number) {
@@ -244,11 +240,6 @@ export class World {
     this._lambdaCache1 = new Float32Array(
       joint.size + this._lambdaCache1.length
     );
-
-    attach(
-      this.bodyGraphNodeLookup.get(bodyA),
-      this.bodyGraphNodeLookup.get(bodyB)
-    );
   }
 
   addPrismaticJoint(
@@ -282,11 +273,6 @@ export class World {
     this._lambdaCache1 = new Float32Array(
       joint.size + this._lambdaCache1.length
     );
-
-    attach(
-      this.bodyGraphNodeLookup.get(bodyA),
-      this.bodyGraphNodeLookup.get(bodyB)
-    );
   }
 
   addRevoluteJoint(bodyA: Body, jointA: vec2, bodyB: Body, jointB: vec2) {
@@ -300,10 +286,6 @@ export class World {
     );
     this._lambdaCache1 = new Float32Array(
       joint.size + this._lambdaCache1.length
-    );
-    attach(
-      this.bodyGraphNodeLookup.get(bodyA),
-      this.bodyGraphNodeLookup.get(bodyB)
     );
   }
 
@@ -324,11 +306,6 @@ export class World {
     );
     this._lambdaCache1 = new Float32Array(
       joint.size + this._lambdaCache1.length
-    );
-
-    attach(
-      this.bodyGraphNodeLookup.get(bodyA),
-      this.bodyGraphNodeLookup.get(bodyB)
     );
   }
 
@@ -375,11 +352,6 @@ export class World {
     this._lambdaCache1 = new Float32Array(
       joint.size + this._lambdaCache1.length
     );
-
-    attach(
-      this.bodyGraphNodeLookup.get(bodyA),
-      this.bodyGraphNodeLookup.get(bodyB)
-    );
   }
 
   addSpring(
@@ -410,10 +382,6 @@ export class World {
     );
     this._lambdaCache1 = new Float32Array(
       joint.size + this._lambdaCache1.length
-    );
-    attach(
-      this.bodyGraphNodeLookup.get(bodyA),
-      this.bodyGraphNodeLookup.get(bodyB)
     );
   }
 
@@ -459,34 +427,16 @@ export class World {
     }
   }
 
-  private _generateIslands(): Body[][] {
-    const bodies = new Set(this.bodies);
-    const islands: Body[][] = [];
-
-    while (bodies.size) {
-      const island: Body[] = [];
-      const body = Array.from(bodies.values())[0];
-      const node = this.bodyGraphNodeLookup.get(body);
-      walkDepthFirst(node, (body) => {
-        bodies.delete(body);
-        island.push(body);
-      });
-      islands.push(island);
-    }
-
-    return islands;
-  }
-
   private generateIslands() {
-    const visitedBodies = new WeakSet<Body>();
-    const visitedJoints = new WeakSet<JointInterface>();
-    const visitedConstraints = new WeakSet<ConstraintInterface>();
+    const bodies = new WeakSet<Body>();
+    const joints = new WeakSet<JointInterface>();
+    const constraints = new WeakSet<ConstraintInterface>();
 
     this.islands.clear();
 
     for (let body of this.bodies) {
       // Skip processed
-      if (visitedBodies.has(body)) {
+      if (bodies.has(body)) {
         continue;
       }
 
@@ -497,53 +447,59 @@ export class World {
       stack.push(body);
       while (stack.length) {
         const body = stack.pop();
-        if (visitedBodies.has(body)) {
+
+        // Skip static bodies
+        if (bodies.has(body)) {
+          continue;
+        }
+
+        if (body.isStatic) {
+          bodies.add(body);
           continue;
         }
 
         // joints
         const bodyJoints = this.bodyJoints.get(body);
         for (const joint of bodyJoints) {
-          if (visitedJoints.has(joint)) {
+          if (joints.has(joint)) {
             continue;
           }
+          island.addJoint(joint);
+          joints.add(joint);
+
           const second = joint.bodyA === body ? joint.bodyB : joint.bodyA;
-          if (!visitedBodies.has(second)) {
+          if (!second.isStatic && !bodies.has(second)) {
             stack.push(second);
           }
-          island.addJoint(joint);
-          visitedJoints.add(joint);
         }
 
         // concacts
         const bodyContacts = this.bodyContacts.get(body);
         for (const contact of bodyContacts) {
-          if (visitedJoints.has(contact)) {
+          if (joints.has(contact)) {
             continue;
           }
+          island.addContact(contact);
+          joints.add(contact);
+
           const second = contact.bodyA === body ? contact.bodyB : contact.bodyA;
-          if (!visitedBodies.has(second)) {
+          if (!second.isStatic && !bodies.has(second)) {
             stack.push(second);
           }
-          island.addContact(contact);
-          visitedJoints.add(contact);
         }
 
         // motors
         const bodyMotors = this.bodyMotors.get(body);
         for (const motor of bodyMotors) {
-          if (visitedConstraints.has(motor)) {
+          if (constraints.has(motor)) {
             continue;
           }
           island.addMotor(motor);
-          visitedConstraints.add(motor);
+          constraints.add(motor);
         }
 
-        // Skip static bodies
-        if (!body.isStatic) {
-          island.addBody(body);
-        }
-        visitedBodies.add(body);
+        island.addBody(body);
+        bodies.add(body);
       }
 
       this.islands.add(island);
