@@ -30,10 +30,10 @@ import { WorldIsland } from './world-island';
 
 export class World {
   public readonly bodies: Body[] = [];
-  public readonly bodyShape = new WeakMap<Body, Shape>();
-  public readonly bodyJoints = new WeakMap<Body, Set<JointInterface>>();
-  public readonly bodyContacts = new WeakMap<Body, Set<JointInterface>>();
-  public readonly bodyMotors = new WeakMap<Body, Set<ConstraintInterface>>();
+  public readonly bodyShape = new Map<Body, Shape>();
+  public readonly bodyJoints = new Map<Body, Set<JointInterface>>();
+  public readonly bodyContacts = new Map<Body, Set<JointInterface>>();
+  public readonly bodyMotors = new Map<Body, Set<ConstraintInterface>>();
   public readonly joints = new Set<JointInterface>();
   public readonly contacts = new Set<JointInterface>();
   public readonly motors = new Set<ConstraintInterface>();
@@ -502,7 +502,9 @@ export class World {
         bodies.add(body);
       }
 
-      this.islands.add(island);
+      if (island.bodies.size) {
+        this.islands.add(island);
+      }
     }
   }
 
