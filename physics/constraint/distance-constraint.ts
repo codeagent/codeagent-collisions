@@ -2,9 +2,9 @@ import { vec2, vec3 } from 'gl-matrix';
 
 import { World } from '../world';
 import { Vector } from '../solver';
-import { ConstraintInterface } from './constraint.interface';
+import { ConstraintBase } from './constraint.base';
 
-export class DistanceConstraint implements ConstraintInterface {
+export class DistanceConstraint extends ConstraintBase {
   constructor(
     public readonly world: World,
     public readonly bodyAIndex: number,
@@ -12,7 +12,9 @@ export class DistanceConstraint implements ConstraintInterface {
     public readonly bodyBIndex: number,
     public readonly jointB: vec2,
     public readonly distance: number
-  ) {}
+  ) {
+    super();
+  }
 
   getJacobian(): Vector {
     const J = new Float32Array(this.world.bodies.length * 3);

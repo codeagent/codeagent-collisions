@@ -1,13 +1,16 @@
 import { World } from '../world';
 import { Vector } from '../solver';
+import { ConstraintBase } from './constraint.base';
 
-export class AngleConstraint {
+export class AngleConstraint extends ConstraintBase {
   constructor(
     public readonly world: World,
     public readonly bodyAIndex: number,
     public readonly bodyBIndex: number,
     public readonly angle: number
-  ) {}
+  ) {
+    super();
+  }
 
   getJacobian(): Vector {
     const J = new Float32Array(this.world.bodies.length * 3);

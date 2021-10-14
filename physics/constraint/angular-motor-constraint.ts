@@ -1,13 +1,16 @@
 import { World } from '../world';
 import { Vector } from '../solver';
+import { ConstraintBase } from './constraint.base';
 
-export class AngularMotorConstraint {
+export class AngularMotorConstraint extends ConstraintBase {
   constructor(
     public readonly world: World,
     public readonly bodyIndex: number,
     public readonly speed: number,
     public readonly torque: number
-  ) {}
+  ) {
+    super();
+  }
 
   getJacobian(): Vector {
     const J = new Float32Array(this.world.bodies.length * 3);

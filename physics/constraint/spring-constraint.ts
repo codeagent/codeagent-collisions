@@ -1,18 +1,22 @@
-import { World } from '../world';
-import { Vector } from '../solver';
 import { vec2, vec3 } from 'gl-matrix';
 
-export class SpringConstraint {
+import { World } from '../world';
+import { Vector } from '../solver';
+import { ConstraintBase } from './constraint.base';
+
+export class SpringConstraint extends ConstraintBase {
   constructor(
-    public world: World,
-    public bodyAIndex: number,
-    public jointA: vec2,
-    public bodyBIndex: number,
-    public jointB: vec2,
-    public length: number,
-    public stiffness: number,
-    public extinction: number
-  ) {}
+    public readonly world: World,
+    public readonly bodyAIndex: number,
+    public readonly jointA: vec2,
+    public readonly bodyBIndex: number,
+    public readonly jointB: vec2,
+    public readonly length: number,
+    public readonly stiffness: number,
+    public readonly extinction: number
+  ) {
+    super();
+  }
 
   getJacobian(): Vector {
     const J = new Float32Array(this.world.bodies.length * 3);

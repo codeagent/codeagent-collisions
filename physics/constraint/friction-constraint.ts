@@ -2,16 +2,19 @@ import { vec2, vec3 } from 'gl-matrix';
 
 import { World } from '../world';
 import { Vector } from '../solver';
+import { ConstraintBase } from './constraint.base';
 
-export class FrictionConstraint {
+export class FrictionConstraint extends ConstraintBase {
   constructor(
-    public world: World,
-    public bodyAIndex: number,
-    public bodyBIndex: number,
-    public joint: vec2,
-    public normal: vec2, // normal at bodyA
-    public mu: number
-  ) {}
+    public readonly world: World,
+    public readonly bodyAIndex: number,
+    public readonly bodyBIndex: number,
+    public readonly joint: vec2,
+    public readonly normal: vec2, // normal at bodyA
+    public readonly mu: number
+  ) {
+    super();
+  }
 
   getJacobian(): Vector {
     const J = new Float32Array(this.world.bodies.length * 3);

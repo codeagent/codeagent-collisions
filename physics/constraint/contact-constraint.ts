@@ -2,17 +2,19 @@ import { World } from '../world';
 import { vec2, vec3 } from 'gl-matrix';
 
 import { Vector, VxV } from '../solver';
-import { ConstraintInterface } from './constraint.interface';
+import { ConstraintBase } from './constraint.base';
 
-export class ContactConstraint implements ConstraintInterface {
+export class ContactConstraint extends ConstraintBase {
   constructor(
-    public world: World,
-    public bodyAIndex: number,
-    public bodyBIndex: number,
-    public joint: vec2,
-    public normal: vec2, // normal at bodyA
-    public penetration: number
-  ) {}
+    public readonly world: World,
+    public readonly bodyAIndex: number,
+    public readonly bodyBIndex: number,
+    public readonly joint: vec2,
+    public readonly normal: vec2, // normal at bodyA
+    public readonly penetration: number
+  ) {
+    super();
+  }
 
   getJacobian(): Vector {
     const J = new Float32Array(this.world.bodies.length * 3);

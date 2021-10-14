@@ -3,8 +3,9 @@ import { vec2, vec3 } from 'gl-matrix';
 import { World } from '../world';
 import { Vector } from '../solver';
 import { transformMat3Vec } from '../collision/utils';
+import { ConstraintBase } from './constraint.base';
 
-export class LineConstraint {
+export class LineConstraint extends ConstraintBase {
   constructor(
     public readonly world: World,
     public readonly bodyAIndex: number,
@@ -12,7 +13,9 @@ export class LineConstraint {
     public readonly bodyBIndex: number,
     public readonly jointB: vec2,
     public readonly axisA: vec2
-  ) {}
+  ) {
+    super();
+  }
 
   getJacobian(): Vector {
     const J = new Float32Array(this.world.bodies.length * 3);

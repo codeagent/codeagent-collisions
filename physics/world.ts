@@ -189,26 +189,33 @@ export class World {
     this.detectCollisions();
     this.generateIslands();
 
+    const length = this._cvForces.length;
     if (this.joints.size || this.contacts.size || this.motors.size) {
       // Resolve
       this.solveConstraints(this._cvForces, dt, this.pushFactor);
       this.solveConstraints(this._c0Forces, dt, 0.0);
 
       //  Correct positions
-      VpV(this._tmpForces, this.forces, this._cvForces);
+      VpV(this._tmpForces, this.forces, this._cvForces, length);
       VcV(this._tmpVelocities, this.velocities);
-      VmV(this._accelerations, this._tmpForces, this.invMasses);
-      VpVxS(this._tmpVelocities, this._tmpVelocities, this._accelerations, dt);
-      VpVxS(this.positions, this.positions, this._tmpVelocities, dt);
+      VmV(this._accelerations, this._tmpForces, this.invMasses, length);
+      VpVxS(
+        this._tmpVelocities,
+        this._tmpVelocities,
+        this._accelerations,
+        dt,
+        length
+      );
+      VpVxS(this.positions, this.positions, this._tmpVelocities, dt, length);
 
       // Correct velocities
-      VpV(this._tmpForces, this.forces, this._c0Forces);
-      VmV(this._accelerations, this._tmpForces, this.invMasses);
-      VpVxS(this.velocities, this.velocities, this._accelerations, dt);
+      VpV(this._tmpForces, this.forces, this._c0Forces, length);
+      VmV(this._accelerations, this._tmpForces, this.invMasses, length);
+      VpVxS(this.velocities, this.velocities, this._accelerations, dt, length);
     } else {
-      VmV(this._accelerations, this.forces, this.invMasses);
-      VpVxS(this.velocities, this.velocities, this._accelerations, dt);
-      VpVxS(this.positions, this.positions, this.velocities, dt);
+      VmV(this._accelerations, this.forces, this.invMasses, length);
+      VpVxS(this.velocities, this.velocities, this._accelerations, dt, length);
+      VpVxS(this.positions, this.positions, this.velocities, dt, length);
     }
 
     this.updateBodiesTransforms();
@@ -432,6 +439,10 @@ export class World {
     const joints = new WeakSet<JointInterface>();
     const constraints = new WeakSet<ConstraintInterface>();
 
+    const bodiesCapacity = this.bodies.length;
+    const constraintsCapacity =
+      this.joints.size * 4 + this.contacts.size * 2 + this.motors.size;
+
     this.islands.clear();
 
     for (let body of this.bodies) {
@@ -440,7 +451,7 @@ export class World {
         continue;
       }
 
-      const island = new WorldIsland();
+      const island = new WorldIsland(this, bodiesCapacity, constraintsCapacity);
 
       // Depth first dependency traverse
       const stack: Body[] = [];
@@ -502,7 +513,7 @@ export class World {
         bodies.add(body);
       }
 
-      if (island.bodies.size) {
+      if (island.bodies.length) {
         this.islands.add(island);
       }
     }
@@ -560,10 +571,10 @@ export class World {
     // csr.MxDxMt(A, csrJ, this.invMasses);
     // const csrA = csr.compress(A, c)
 
-    VmV(bhat, this.invMasses, this.forces);
-    VpVxS(bhat, bhat, this.velocities, 1.0 / dt);
+    VmV(bhat, this.invMasses, this.forces, bhat.length);
+    VpVxS(bhat, bhat, this.velocities, 1.0 / dt, bhat.length);
     csr.MxV(b, csrJ, bhat);
-    VxSpVxS(b, v, 1.0 / dt, b, -1.0);
+    VxSpVxS(b, v, 1.0 / dt, b, -1.0, c);
 
     projectedGaussSeidel(lambdas, csrA, b, cache, cMin, cMax, this.iterations);
     cache.set(lambdas.subarray(0, cacheSize));

@@ -2,15 +2,18 @@ import { vec2 } from 'gl-matrix';
 
 import { World } from '../world';
 import { Vector } from '../solver';
+import { ConstraintBase } from './constraint.base';
 
-export class RevoluteXConstraint {
+export class RevoluteXConstraint extends ConstraintBase {
   constructor(
     public readonly world: World,
     public readonly bodyAIndex: number,
     public readonly jointA: vec2,
     public readonly bodyBIndex: number,
     public readonly jointB: vec2
-  ) {}
+  ) {
+    super();
+  }
 
   getJacobian(): Vector {
     const J = new Float32Array(this.world.bodies.length * 3);
