@@ -440,8 +440,8 @@ export class World {
     const constraints = new WeakSet<ConstraintInterface>();
 
     const bodiesCapacity = this.bodies.length;
-    const constraintsCapacity =
-      this.joints.size * 4 + this.contacts.size * 2 + this.motors.size;
+    // const constraintsCapacity =
+    //   this.joints.size * 4 + this.contacts.size * 2 + this.motors.size;
 
     this.islands.clear();
 
@@ -451,7 +451,7 @@ export class World {
         continue;
       }
 
-      const island = new WorldIsland(this, bodiesCapacity, constraintsCapacity);
+      const island = new WorldIsland(this, bodiesCapacity);
 
       // Depth first dependency traverse
       const stack: Body[] = [];
@@ -547,8 +547,8 @@ export class World {
     const bhat = new Float32Array(n);
 
     const cache = pushFactor ? this._lambdaCache0 : this._lambdaCache1;
-    const initialGuess = new Float32Array(c);
-    initialGuess.set(cache);
+    // const initialGuess = new Float32Array(c);
+    // initialGuess.set(cache);
 
     let i = 0;
     let j = 0;

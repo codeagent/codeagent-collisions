@@ -2,8 +2,9 @@ import { vec2 } from 'gl-matrix';
 
 import { Body } from './body';
 import { ConstraintInterface } from './constraint/constraint.interface';
+import { csr } from './csr';
 import { JointInterface } from './joint';
-import { VmV, VpVxS } from './solver';
+import { projectedGaussSeidel, VcV, VmV, VpV, VpVxS, VxSpVxS } from './solver';
 import { World } from './world';
 
 export class WorldIsland {
@@ -22,12 +23,11 @@ export class WorldIsland {
   private readonly tmpForces = new Float32Array(this.bodiesCapacity * 3);
   private readonly tmpVelocities = new Float32Array(this.bodiesCapacity * 3);
 
-  private readonly lambdaCache = new Float32Array(this.constraintsCapacity);
+  // private readonly lambdaCache = new Float32Array(this.constraintsCapacity);
 
   constructor(
     private readonly world: World,
-    private readonly bodiesCapacity: number,
-    private readonly constraintsCapacity: number
+    private readonly bodiesCapacity: number
   ) {}
 
   addBody(body: Body) {
@@ -58,17 +58,108 @@ export class WorldIsland {
     const length = this.bodies.length * 3;
 
     if (this.joints.length || this.contacts.length || this.motors.length) {
+      // Resolve
+      this.solve(this.cvForces, dt, this.world.pushFactor);
+      this.solve(this.c0Forces, dt, 0.0);
+
+      //  Correct positions
+      VpV(this.tmpForces, this.forces, this.cvForces, length);
+      VcV(this.tmpVelocities, this.velocities);
+      VmV(this.accelerations, this.tmpForces, this.invMasses, length);
+      VpVxS(
+        this.tmpVelocities,
+        this.tmpVelocities,
+        this.accelerations,
+        dt,
+        length
+      );
+      VpVxS(this.positions, this.positions, this.tmpVelocities, dt, length);
+
+      // Correct velocities
+      VpV(this.tmpForces, this.forces, this.c0Forces, length);
+      VmV(this.accelerations, this.tmpForces, this.invMasses, length);
+      VpVxS(this.velocities, this.velocities, this.accelerations, dt, length);
     } else {
       VmV(this.accelerations, this.forces, this.invMasses, length);
       VpVxS(this.velocities, this.velocities, this.accelerations, dt, length);
       VpVxS(this.positions, this.positions, this.velocities, dt, length);
     }
 
-    // this.solve(dt);
     this.arraysToBodies();
   }
 
-  solve(dt: number, pushFactor: number) {}
+  private solve(out: Float32Array, dt: number, pushFactor: number) {
+    let constraints: ConstraintInterface[] = [];
+    for (let joint of this.joints) {
+      constraints = constraints.concat(joint.getConstraints());
+    }
+
+    for (let motor of this.motors) {
+      constraints = constraints.concat(motor);
+    }
+
+    for (let contact of this.contacts) {
+      constraints = constraints.concat(contact.getConstraints());
+    }
+
+    const n = this.bodies.length * 3;
+    const c = constraints.length;
+
+    const J = new Float32Array(n * c);
+    const v = new Float32Array(c);
+    const cMin = new Float32Array(c);
+    const cMax = new Float32Array(c);
+    // const A = new Float32Array(c * c);
+    const lambdas = new Float32Array(c);
+    const b = new Float32Array(c);
+    const bhat = new Float32Array(n);
+    const cacheId = pushFactor ? 0 : 1;
+    const initialGuess = new Float32Array(c);
+
+    let i = 0;
+    let j = 0;
+
+    for (const constraint of constraints) {
+      J.set(constraint.getJacobian(), i);
+      v[j] = constraint.getPushFactor(dt, pushFactor);
+      const { min, max } = constraint.getClamping();
+      cMin[j] = min;
+      cMax[j] = max;
+      initialGuess[j] = constraint.getCache(cacheId);
+      i += n;
+      j++;
+    }
+
+    // A = J * Minv * Jt
+    // b = 1.0 / ∆t * v − J * (1 / ∆t * v1 + Minv * fext)
+
+    const csrJ = csr.compress(J, c);
+
+    const csrA = csr.MxDxMtCsr(csrJ, this.invMasses);
+    // csr.MxDxMt(A, csrJ, this.invMasses);
+    // const csrA = csr.compress(A, c)
+
+    VmV(bhat, this.invMasses, this.forces, bhat.length);
+    VpVxS(bhat, bhat, this.velocities, 1.0 / dt, bhat.length);
+    csr.MxV(b, csrJ, bhat);
+    VxSpVxS(b, v, 1.0 / dt, b, -1.0, c);
+
+    projectedGaussSeidel(
+      lambdas,
+      csrA,
+      b,
+      initialGuess,
+      cMin,
+      cMax,
+      this.world.iterations
+    );
+
+    for (let i = 0; i < c; i++) {
+      constraints[i].setCache(cacheId, lambdas[i]);
+    }
+
+    csr.MtxV(out, csrJ, lambdas);
+  }
 
   private bodiesToArrays() {
     let i = 0;
