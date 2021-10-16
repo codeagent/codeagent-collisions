@@ -28,8 +28,8 @@ export class ContactJoint implements JointInterface {
     this.constraints.push(
       new ContactConstraint(
         world,
-        world.bodies.indexOf(bodyA),
-        world.bodies.indexOf(bodyB),
+        bodyA,
+        bodyB,
         vec2.clone(concact),
         vec2.clone(normal),
         penetration
@@ -40,8 +40,8 @@ export class ContactJoint implements JointInterface {
       this.constraints.push(
         new FrictionConstraint(
           world,
-          world.bodies.indexOf(bodyA),
-          world.bodies.indexOf(bodyB),
+          bodyA,
+          bodyB,
           vec2.clone(concact),
           vec2.clone(normal),
           friction

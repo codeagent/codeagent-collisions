@@ -8,7 +8,7 @@ import { projectedGaussSeidel, VcV, VmV, VpV, VpVxS, VxSpVxS } from './solver';
 import { World } from './world';
 
 export class WorldIsland {
-  public readonly bodies = new Array<Body>();
+  public bodies = new Array<Body>();
   public readonly joints = new Array<JointInterface>();
   public readonly contacts = new Array<JointInterface>();
   public readonly motors = new Array<ConstraintInterface>();
@@ -54,6 +54,19 @@ export class WorldIsland {
   }
 
   step(dt: number) {
+    // const set = new Set<Body>();
+
+    // for (let joint of this.joints) {
+    //   set.add(joint.bodyA);
+    //   set.add(joint.bodyB);
+    // }
+
+    // for (let contact of this.contacts) {
+    //   set.add(contact.bodyA);
+    //   set.add(contact.bodyB);
+    // }
+    // this.bodies = Array.from(set);
+
     this.bodiesToArrays();
     const length = this.bodies.length * 3;
 
@@ -90,16 +103,17 @@ export class WorldIsland {
 
   private solve(out: Float32Array, dt: number, pushFactor: number) {
     let constraints: ConstraintInterface[] = [];
+
     for (let joint of this.joints) {
       constraints = constraints.concat(joint.getConstraints());
     }
 
-    for (let motor of this.motors) {
-      constraints = constraints.concat(motor);
-    }
-
     for (let contact of this.contacts) {
       constraints = constraints.concat(contact.getConstraints());
+    }
+
+    for (let motor of this.motors) {
+      constraints = constraints.concat(motor);
     }
 
     const n = this.bodies.length * 3;

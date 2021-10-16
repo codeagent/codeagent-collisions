@@ -87,7 +87,7 @@ export class Body {
   }
 
   get isStatic() {
-    return !Number.isFinite(this.mass) && !Number.isFinite(this.inertia);
+    return !(Number.isFinite(this.mass) || Number.isFinite(this.inertia));
   }
 
   private _transform = mat3.create();

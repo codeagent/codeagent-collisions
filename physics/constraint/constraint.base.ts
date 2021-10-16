@@ -1,3 +1,5 @@
+import { World } from '../world';
+import { Body } from '../body';
 import { Vector } from '../solver';
 import {
   ConstraintInterface,

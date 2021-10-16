@@ -34,6 +34,7 @@ export class World {
   public readonly bodyJoints = new Map<Body, Set<JointInterface>>();
   public readonly bodyContacts = new Map<Body, Set<JointInterface>>();
   public readonly bodyMotors = new Map<Body, Set<ConstraintInterface>>();
+  public readonly bodyIndex = new Map<Body, number>();
   public readonly joints = new Set<JointInterface>();
   public readonly contacts = new Set<JointInterface>();
   public readonly motors = new Set<ConstraintInterface>();
@@ -89,6 +90,7 @@ export class World {
     this.bodyContacts.set(body, new Set<JointInterface>());
     this.bodyJoints.set(body, new Set<JointInterface>());
     this.bodyMotors.set(body, new Set<ConstraintInterface>());
+    this.bodyIndex.set(body, bodyIndex);
 
     const n = this.bodies.length * 3;
 
@@ -182,12 +184,17 @@ export class World {
     this.bodyJoints.delete(body);
     this.bodyMotors.delete(body);
     this.bodyShape.delete(body);
+    this.bodyIndex.delete(body);
   }
 
   simulate(dt: number) {
     this.applyGlobalForces();
     this.detectCollisions();
     this.generateIslands();
+
+    // for (const island of this.islands) {
+    //   island.step(dt);
+    // }
 
     const length = this._cvForces.length;
     if (this.joints.size || this.contacts.size || this.motors.size) {
@@ -459,11 +466,11 @@ export class World {
       while (stack.length) {
         const body = stack.pop();
 
-        // Skip static bodies
         if (bodies.has(body)) {
           continue;
         }
 
+        // Skip static bodies
         if (body.isStatic) {
           bodies.add(body);
           continue;
@@ -479,7 +486,7 @@ export class World {
           joints.add(joint);
 
           const second = joint.bodyA === body ? joint.bodyB : joint.bodyA;
-          if (!second.isStatic && !bodies.has(second)) {
+          if (!bodies.has(second)) {
             stack.push(second);
           }
         }
@@ -494,7 +501,7 @@ export class World {
           joints.add(contact);
 
           const second = contact.bodyA === body ? contact.bodyB : contact.bodyA;
-          if (!second.isStatic && !bodies.has(second)) {
+          if (!bodies.has(second)) {
             stack.push(second);
           }
         }
