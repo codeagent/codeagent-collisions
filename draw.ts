@@ -164,14 +164,13 @@ export const drawConstraint = (constraint: ConstraintInterface) => {
     constraint instanceof LineConstraint ||
     constraint instanceof SpringConstraint
   ) {
-    const bodyA = constraint.world.bodies[constraint.bodyAIndex];
-    const bodyB = constraint.world.bodies[constraint.bodyBIndex];
+    
 
     const pa = vec2.create();
-    vec2.transformMat3(pa, constraint.jointA, bodyA.transform);
+    vec2.transformMat3(pa, constraint.jointA, constraint.bodyA.transform);
 
     const pb = vec2.create();
-    vec2.transformMat3(pb, constraint.jointB, bodyB.transform);
+    vec2.transformMat3(pb, constraint.jointB, constraint.bodyB.transform);
     drawLineSegment([pa, pb], LINE_COLOR);
     drawDot(pa, BLUISH_COLOR);
     drawDot(pb, BLUISH_COLOR);
@@ -266,17 +265,17 @@ export const drawIsland = (
 
 export const drawWorld = (world: World): void => {
   let index = 0;
-  world.islands.forEach((island) => drawIsland(world, island, COLORS[index++]));
+  // world.islands.forEach((island) => drawIsland(world, island, COLORS[index++]));
   world.bodies
-    .filter((body) => body.isStatic)
+    // .filter((body) => body.isStatic)
     .forEach((body) => drawBody(world, body, DEFAULT_COLOR));
   // world.motors.forEach((constraint) => drawConstraint(constraint));
-  // world.contacts.forEach((contact) =>
-  //   contact.getConstraints().forEach((constraint) => drawConstraint(constraint))
-  // );
-  // world.joints.forEach((joint) =>
-  //   joint.getConstraints().forEach((constraint) => drawConstraint(constraint))
-  // );
+  world.contacts.forEach((contact) =>
+    contact.getConstraints().forEach((constraint) => drawConstraint(constraint))
+  );
+  world.joints.forEach((joint) =>
+    joint.getConstraints().forEach((constraint) => drawConstraint(constraint))
+  );
 };
 
 const COLORS = [

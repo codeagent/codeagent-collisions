@@ -27,6 +27,7 @@ import {
 } from './joint';
 import { WheelJoint } from './joint/wheel-joint';
 import { WorldIsland } from './world-island';
+import { IslandsGenerator } from './islands-generator';
 
 export class World {
   public readonly bodies: Body[] = [];
@@ -38,8 +39,11 @@ export class World {
   public readonly joints = new Set<JointInterface>();
   public readonly contacts = new Set<JointInterface>();
   public readonly motors = new Set<ConstraintInterface>();
+
   private readonly collisionDetector: CollisionDetector;
-  public readonly islands = new Set<WorldIsland>();
+  private readonly islandsGenerator: IslandsGenerator;
+
+  // public readonly islands = new Set<WorldIsland>();
 
   // "read"/"write" variables
   public positions = new Float32Array(0);
@@ -64,6 +68,8 @@ export class World {
     public friction = 0.5,
     public restitution = 0.5
   ) {
+    this.islandsGenerator = new IslandsGenerator(this);
+
     this.collisionDetector = new CollisionDetector(this);
     this.collisionDetector.collideEnter$.subscribe(([bodyA, bodyB]) =>
       this.onCollideEnter(bodyA, bodyB)
@@ -135,6 +141,7 @@ export class World {
     body.updateTransform();
 
     this.collisionDetector.registerBody(body);
+    this.islandsGenerator.resizeIsland(this.bodies.length);
 
     return body;
   }
@@ -185,45 +192,17 @@ export class World {
     this.bodyMotors.delete(body);
     this.bodyShape.delete(body);
     this.bodyIndex.delete(body);
+
+    this.islandsGenerator.resizeIsland(this.bodies.length);
   }
 
   simulate(dt: number) {
     this.applyGlobalForces();
     this.detectCollisions();
-    this.generateIslands();
 
-    for (const island of this.islands) {
+    for (const island of this.islandsGenerator.generateIslands()) {
       island.step(dt);
     }
-
-    // const length = this._cvForces.length;
-    // if (this.joints.size || this.contacts.size || this.motors.size) {
-    //   // Resolve
-    //   this.solveConstraints(this._cvForces, dt, this.pushFactor);
-    //   this.solveConstraints(this._c0Forces, dt, 0.0);
-
-    //   //  Correct positions
-    //   VpV(this._tmpForces, this.forces, this._cvForces, length);
-    //   VcV(this._tmpVelocities, this.velocities);
-    //   VmV(this._accelerations, this._tmpForces, this.invMasses, length);
-    //   VpVxS(
-    //     this._tmpVelocities,
-    //     this._tmpVelocities,
-    //     this._accelerations,
-    //     dt,
-    //     length
-    //   );
-    //   VpVxS(this.positions, this.positions, this._tmpVelocities, dt, length);
-
-    //   // Correct velocities
-    //   VpV(this._tmpForces, this.forces, this._c0Forces, length);
-    //   VmV(this._accelerations, this._tmpForces, this.invMasses, length);
-    //   VpVxS(this.velocities, this.velocities, this._accelerations, dt, length);
-    // } else {
-    //   VmV(this._accelerations, this.forces, this.invMasses, length);
-    //   VpVxS(this.velocities, this.velocities, this._accelerations, dt, length);
-    //   VpVxS(this.positions, this.positions, this.velocities, dt, length);
-    // }
 
     this.updateBodiesTransforms();
     this.clearForces();
@@ -434,153 +413,6 @@ export class World {
       this.bodyContacts.get(this.bodies[contact.bodyAIndex]).add(joint);
       this.bodyContacts.get(this.bodies[contact.bodyBIndex]).add(joint);
     }
-  }
-
-  private generateIslands() {
-    const bodies = new WeakSet<Body>();
-    const joints = new WeakSet<JointInterface>();
-    const constraints = new WeakSet<ConstraintInterface>();
-
-    const bodiesCapacity = this.bodies.length;
-    // const constraintsCapacity =
-    //   this.joints.size * 4 + this.contacts.size * 2 + this.motors.size;
-
-    this.islands.clear();
-
-    for (let body of this.bodies) {
-      // Skip processed
-      if (bodies.has(body)) {
-        continue;
-      }
-
-      const island = new WorldIsland(this, bodiesCapacity);
-
-      // Depth first dependency traverse
-      const stack: Body[] = [];
-      stack.push(body);
-      while (stack.length) {
-        const body = stack.pop();
-
-        if (bodies.has(body)) {
-          continue;
-        }
-
-        // Skip static bodies
-        if (body.isStatic) {
-          bodies.add(body);
-          continue;
-        }
-
-        // joints
-        const bodyJoints = this.bodyJoints.get(body);
-        for (const joint of bodyJoints) {
-          if (joints.has(joint)) {
-            continue;
-          }
-          island.addJoint(joint);
-          joints.add(joint);
-
-          const second = joint.bodyA === body ? joint.bodyB : joint.bodyA;
-          if (!bodies.has(second)) {
-            stack.push(second);
-          }
-        }
-
-        // concacts
-        const bodyContacts = this.bodyContacts.get(body);
-        for (const contact of bodyContacts) {
-          if (joints.has(contact)) {
-            continue;
-          }
-          island.addContact(contact);
-          joints.add(contact);
-
-          const second = contact.bodyA === body ? contact.bodyB : contact.bodyA;
-          if (!bodies.has(second)) {
-            stack.push(second);
-          }
-        }
-
-        // motors
-        const bodyMotors = this.bodyMotors.get(body);
-        for (const motor of bodyMotors) {
-          if (constraints.has(motor)) {
-            continue;
-          }
-          island.addMotor(motor);
-          constraints.add(motor);
-        }
-
-        island.addBody(body);
-        bodies.add(body);
-      }
-
-      if (island.bodies.length) {
-        this.islands.add(island);
-      }
-    }
-  }
-
-  private solveConstraints(out: Vector, dt: number, pushFactor: number) {
-    // WARNING! friction constraints are not involved in position correction
-
-    let constraints = [];
-    for (let joint of this.joints) {
-      constraints = constraints.concat(joint.getConstraints());
-    }
-    for (let motor of this.motors) {
-      constraints = constraints.concat(motor);
-    }
-    const cacheSize = constraints.length;
-    for (let contact of this.contacts) {
-      constraints = constraints.concat(contact.getConstraints());
-    }
-
-    const n = this.bodies.length * 3;
-    const c = constraints.length;
-
-    const J = new Float32Array(n * c);
-    const v = new Float32Array(c);
-    const cMin = new Float32Array(c);
-    const cMax = new Float32Array(c);
-    // const A = new Float32Array(c * c);
-    const lambdas = new Float32Array(c);
-    const b = new Float32Array(c);
-    const bhat = new Float32Array(n);
-
-    const cache = pushFactor ? this._lambdaCache0 : this._lambdaCache1;
-    // const initialGuess = new Float32Array(c);
-    // initialGuess.set(cache);
-
-    let i = 0;
-    let j = 0;
-    for (const constraint of constraints) {
-      constraint.getJacobian(J, i, n);
-      v[j] = constraint.getPushFactor(dt, pushFactor);
-      const { min, max } = constraint.getClamping();
-      cMin[j] = min;
-      cMax[j] = max;
-      i += n;
-      j++;
-    }
-
-    // A = J * Minv * Jt
-    // b = 1.0 / ∆t * v − J * (1 / ∆t * v1 + Minv * fext)
-
-    const csrJ = csr.compress(J, c);
-
-    const csrA = csr.MxDxMtCsr(csrJ, this.invMasses);
-    // csr.MxDxMt(A, csrJ, this.invMasses);
-    // const csrA = csr.compress(A, c)
-
-    VmV(bhat, this.invMasses, this.forces, bhat.length);
-    VpVxS(bhat, bhat, this.velocities, 1.0 / dt, bhat.length);
-    csr.MxV(b, csrJ, bhat);
-    VxSpVxS(b, v, 1.0 / dt, b, -1.0, c);
-
-    projectedGaussSeidel(lambdas, csrA, b, cache, cMin, cMax, this.iterations);
-    cache.set(lambdas.subarray(0, cacheSize));
-    csr.MtxV(out, csrJ, lambdas);
   }
 
   private applyGlobalForces() {
