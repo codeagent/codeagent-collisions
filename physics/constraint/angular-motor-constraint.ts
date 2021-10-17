@@ -13,18 +13,16 @@ export class AngularMotorConstraint extends ConstraintBase {
     super();
   }
 
-  getJacobian(): Vector {
-    const J = new Float32Array(this.world.bodies.length * 3);
+  getJacobian(out: Float32Array, offset: number, length: number): void {
+    const jacobian = out.subarray(offset, offset + length);
+    jacobian.fill(0.0);
 
     if (isFinite(this.body.inertia)) {
       const bodyIndex = this.world.bodyIndex.get(this.body);
-
-      J[bodyIndex * 3] = 0;
-      J[bodyIndex * 3 + 1] = 0;
-      J[bodyIndex * 3 + 2] = 1;
+      jacobian[bodyIndex * 3] = 0;
+      jacobian[bodyIndex * 3 + 1] = 0;
+      jacobian[bodyIndex * 3 + 2] = 1;
     }
-
-    return J;
   }
 
   getPushFactor(dt: number, strength: number): number {

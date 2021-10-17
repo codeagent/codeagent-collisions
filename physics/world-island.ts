@@ -54,18 +54,8 @@ export class WorldIsland {
   }
 
   step(dt: number) {
-    // const set = new Set<Body>();
-
-    // for (let joint of this.joints) {
-    //   set.add(joint.bodyA);
-    //   set.add(joint.bodyB);
-    // }
-
-    // for (let contact of this.contacts) {
-    //   set.add(contact.bodyA);
-    //   set.add(contact.bodyB);
-    // }
-    // this.bodies = Array.from(set);
+    this.world.bodyIndex.clear();
+    this.bodies.forEach((body, index ) => this.world.bodyIndex.set(body, index));
 
     this.bodiesToArrays();
     const length = this.bodies.length * 3;
@@ -134,7 +124,7 @@ export class WorldIsland {
     let j = 0;
 
     for (const constraint of constraints) {
-      J.set(constraint.getJacobian(), i);
+      constraint.getJacobian(J, i, n);
       v[j] = constraint.getPushFactor(dt, pushFactor);
       const { min, max } = constraint.getClamping();
       cMin[j] = min;

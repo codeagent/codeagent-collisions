@@ -19,8 +19,9 @@ export class SpringConstraint extends ConstraintBase {
     super();
   }
 
-  getJacobian(): Vector {
-    const J = new Float32Array(this.world.bodies.length * 3);
+  getJacobian(out: Float32Array, offset: number, length: number): void {
+    const jacobian = out.subarray(offset, offset + length);
+    jacobian.fill(0.0);
 
     const pa = vec2.create();
     vec2.transformMat3(pa, this.jointA, this.bodyA.transform);
@@ -38,9 +39,9 @@ export class SpringConstraint extends ConstraintBase {
       vec2.sub(ra, pa, this.bodyA.position);
 
       const bodyAIndex = this.world.bodyIndex.get(this.bodyA);
-      J[bodyAIndex * 3] = -pbpa[0];
-      J[bodyAIndex * 3 + 1] = -pbpa[1];
-      J[bodyAIndex * 3 + 2] = -vec2.cross(x, ra, pbpa)[2];
+      jacobian[bodyAIndex * 3] = -pbpa[0];
+      jacobian[bodyAIndex * 3 + 1] = -pbpa[1];
+      jacobian[bodyAIndex * 3 + 2] = -vec2.cross(x, ra, pbpa)[2];
     }
 
     if (!this.bodyB.isStatic) {
@@ -48,12 +49,10 @@ export class SpringConstraint extends ConstraintBase {
       vec2.sub(rb, pb, this.bodyB.position);
 
       const bodyBIndex = this.world.bodyIndex.get(this.bodyB);
-      J[bodyBIndex * 3] = pbpa[0];
-      J[bodyBIndex * 3 + 1] = pbpa[1];
-      J[bodyBIndex * 3 + 2] = vec2.cross(x, rb, pbpa)[2];
+      jacobian[bodyBIndex * 3] = pbpa[0];
+      jacobian[bodyBIndex * 3 + 1] = pbpa[1];
+      jacobian[bodyBIndex * 3 + 2] = vec2.cross(x, rb, pbpa)[2];
     }
-
-    return J;
   }
 
   getPushFactor(dt: number, strength: number): number {

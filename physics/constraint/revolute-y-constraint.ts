@@ -16,8 +16,9 @@ export class RevoluteYConstraint extends ConstraintBase {
     super();
   }
 
-  getJacobian(): Vector {
-    const J = new Float32Array(this.world.bodies.length * 3);
+  getJacobian(out: Float32Array, offset: number, length: number): void {
+    const jacobian = out.subarray(offset, offset + length);
+    jacobian.fill(0.0);
 
     if (!this.bodyA.isStatic) {
       const pa = vec2.create();
@@ -27,9 +28,9 @@ export class RevoluteYConstraint extends ConstraintBase {
       vec2.sub(ra, pa, this.bodyA.position);
 
       const bodyAIndex = this.world.bodyIndex.get(this.bodyA);
-      J[bodyAIndex * 3] = 0;
-      J[bodyAIndex * 3 + 1] = 1;
-      J[bodyAIndex * 3 + 2] = ra[0];
+      jacobian[bodyAIndex * 3] = 0;
+      jacobian[bodyAIndex * 3 + 1] = 1;
+      jacobian[bodyAIndex * 3 + 2] = ra[0];
     }
 
     if (!this.bodyB.isStatic) {
@@ -40,12 +41,10 @@ export class RevoluteYConstraint extends ConstraintBase {
       vec2.sub(rb, pb, this.bodyB.position);
 
       const bodyBIndex = this.world.bodyIndex.get(this.bodyB);
-      J[bodyBIndex * 3] = 0;
-      J[bodyBIndex * 3 + 1] = -1;
-      J[bodyBIndex * 3 + 2] = -rb[0];
+      jacobian[bodyBIndex * 3] = 0;
+      jacobian[bodyBIndex * 3 + 1] = -1;
+      jacobian[bodyBIndex * 3 + 2] = -rb[0];
     }
-
-    return J;
   }
 
   getPushFactor(dt: number, strength: number): number {

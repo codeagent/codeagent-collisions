@@ -192,38 +192,38 @@ export class World {
     this.detectCollisions();
     this.generateIslands();
 
-    // for (const island of this.islands) {
-    //   island.step(dt);
-    // }
-
-    const length = this._cvForces.length;
-    if (this.joints.size || this.contacts.size || this.motors.size) {
-      // Resolve
-      this.solveConstraints(this._cvForces, dt, this.pushFactor);
-      this.solveConstraints(this._c0Forces, dt, 0.0);
-
-      //  Correct positions
-      VpV(this._tmpForces, this.forces, this._cvForces, length);
-      VcV(this._tmpVelocities, this.velocities);
-      VmV(this._accelerations, this._tmpForces, this.invMasses, length);
-      VpVxS(
-        this._tmpVelocities,
-        this._tmpVelocities,
-        this._accelerations,
-        dt,
-        length
-      );
-      VpVxS(this.positions, this.positions, this._tmpVelocities, dt, length);
-
-      // Correct velocities
-      VpV(this._tmpForces, this.forces, this._c0Forces, length);
-      VmV(this._accelerations, this._tmpForces, this.invMasses, length);
-      VpVxS(this.velocities, this.velocities, this._accelerations, dt, length);
-    } else {
-      VmV(this._accelerations, this.forces, this.invMasses, length);
-      VpVxS(this.velocities, this.velocities, this._accelerations, dt, length);
-      VpVxS(this.positions, this.positions, this.velocities, dt, length);
+    for (const island of this.islands) {
+      island.step(dt);
     }
+
+    // const length = this._cvForces.length;
+    // if (this.joints.size || this.contacts.size || this.motors.size) {
+    //   // Resolve
+    //   this.solveConstraints(this._cvForces, dt, this.pushFactor);
+    //   this.solveConstraints(this._c0Forces, dt, 0.0);
+
+    //   //  Correct positions
+    //   VpV(this._tmpForces, this.forces, this._cvForces, length);
+    //   VcV(this._tmpVelocities, this.velocities);
+    //   VmV(this._accelerations, this._tmpForces, this.invMasses, length);
+    //   VpVxS(
+    //     this._tmpVelocities,
+    //     this._tmpVelocities,
+    //     this._accelerations,
+    //     dt,
+    //     length
+    //   );
+    //   VpVxS(this.positions, this.positions, this._tmpVelocities, dt, length);
+
+    //   // Correct velocities
+    //   VpV(this._tmpForces, this.forces, this._c0Forces, length);
+    //   VmV(this._accelerations, this._tmpForces, this.invMasses, length);
+    //   VpVxS(this.velocities, this.velocities, this._accelerations, dt, length);
+    // } else {
+    //   VmV(this._accelerations, this.forces, this.invMasses, length);
+    //   VpVxS(this.velocities, this.velocities, this._accelerations, dt, length);
+    //   VpVxS(this.positions, this.positions, this.velocities, dt, length);
+    // }
 
     this.updateBodiesTransforms();
     this.clearForces();
@@ -555,7 +555,7 @@ export class World {
     let i = 0;
     let j = 0;
     for (const constraint of constraints) {
-      J.set(constraint.getJacobian(), i);
+      constraint.getJacobian(J, i, n);
       v[j] = constraint.getPushFactor(dt, pushFactor);
       const { min, max } = constraint.getClamping();
       cMin[j] = min;

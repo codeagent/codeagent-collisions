@@ -1,12 +1,10 @@
-import { Vector } from '../solver';
-
 export interface ConstraintClamping {
   min: number;
   max: number;
 }
 
 export interface ConstraintInterface {
-  getJacobian(): Vector;
+  getJacobian(out: Float32Array, offset: number, length: number): void;
   getPushFactor(dt: number, strength: number): number;
   getClamping(): ConstraintClamping;
   getCache(id: 0 | 1): number;

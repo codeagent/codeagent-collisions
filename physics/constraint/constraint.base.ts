@@ -1,6 +1,3 @@
-import { World } from '../world';
-import { Body } from '../body';
-import { Vector } from '../solver';
 import {
   ConstraintInterface,
   ConstraintClamping,
@@ -20,7 +17,7 @@ export abstract class ConstraintBase implements ConstraintInterface {
     this.cache.set(id, value);
   }
 
-  abstract getJacobian(): Vector;
+  abstract getJacobian(out: Float32Array, offset: number, length: number): void;
   abstract getPushFactor(dt: number, strength: number): number;
   abstract getClamping(): ConstraintClamping;
 }
