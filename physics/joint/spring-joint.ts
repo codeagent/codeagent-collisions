@@ -25,9 +25,9 @@ export class SpringJoint implements JointInterface {
     this.constraints.push(
       new SpringConstraint(
         world,
-        world.bodies.indexOf(bodyA),
+        bodyA,
         vec2.clone(pivotA),
-        world.bodies.indexOf(bodyB),
+        bodyB,
         vec2.clone(pivotB),
         distance,
         stiffness,

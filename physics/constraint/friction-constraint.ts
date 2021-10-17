@@ -20,25 +20,24 @@ export class FrictionConstraint extends ConstraintBase {
   getJacobian(): Vector {
     const J = new Float32Array(this.world.bodies.length * 3);
 
-    const bodyAIndex = this.world.bodyIndex.get(this.bodyA);
-    const bodyBIndex = this.world.bodyIndex.get(this.bodyB);
-
-    const ra = vec2.create();
-    vec2.sub(ra, this.joint, this.bodyA.position);
-
-    const rb = vec2.create();
-    vec2.sub(rb, this.joint, this.bodyB.position);
-
     const x = vec3.create();
     const normal = vec2.fromValues(-this.normal[1], this.normal[0]);
 
     if (!this.bodyA.isStatic) {
+      const ra = vec2.create();
+      vec2.sub(ra, this.joint, this.bodyA.position);
+
+      const bodyAIndex = this.world.bodyIndex.get(this.bodyA);
       J[bodyAIndex * 3] = -normal[0];
       J[bodyAIndex * 3 + 1] = -normal[1];
       J[bodyAIndex * 3 + 2] = -vec2.cross(x, ra, normal)[2];
     }
 
     if (!this.bodyB.isStatic) {
+      const rb = vec2.create();
+      vec2.sub(rb, this.joint, this.bodyB.position);
+
+      const bodyBIndex = this.world.bodyIndex.get(this.bodyB);
       J[bodyBIndex * 3] = normal[0];
       J[bodyBIndex * 3 + 1] = normal[1];
       J[bodyBIndex * 3 + 2] = vec2.cross(x, rb, normal)[2];
@@ -51,11 +50,8 @@ export class FrictionConstraint extends ConstraintBase {
   }
 
   getClamping() {
-    const bodyAIndex = this.world.bodyIndex.get(this.bodyA);
-    const bodyBIndex = this.world.bodyIndex.get(this.bodyB);
-
-    const m1 = this.world.bodies[bodyAIndex].mass;
-    const m2 = this.world.bodies[bodyBIndex].mass;
+    const m1 = this.bodyA.mass;
+    const m2 = this.bodyB.mass;
 
     const combined =
       Number.isFinite(m1) && Number.isFinite(m2)

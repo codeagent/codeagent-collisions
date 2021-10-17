@@ -27,9 +27,9 @@ export class RevoluteJoint implements JointInterface {
     this.constraints.push(
       new RevoluteXConstraint(
         world,
-        world.bodies.indexOf(bodyA),
+        bodyA,
         vec2.clone(pivotA),
-        world.bodies.indexOf(bodyB),
+        bodyB,
         vec2.clone(pivotB)
       )
     );
@@ -37,9 +37,9 @@ export class RevoluteJoint implements JointInterface {
     this.constraints.push(
       new RevoluteYConstraint(
         world,
-        world.bodies.indexOf(bodyA),
+        bodyA,
         vec2.clone(pivotA),
-        world.bodies.indexOf(bodyB),
+        bodyB,
         vec2.clone(pivotB)
       )
     );

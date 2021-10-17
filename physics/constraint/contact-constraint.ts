@@ -1,6 +1,6 @@
-import { World } from '../world';
 import { vec2, vec3 } from 'gl-matrix';
 
+import { World } from '../world';
 import { Vector, VxV } from '../solver';
 import { ConstraintBase } from './constraint.base';
 import { Body } from '../body';
@@ -20,24 +20,25 @@ export class ContactConstraint extends ConstraintBase {
   getJacobian(): Vector {
     const J = new Float32Array(this.world.bodies.length * 3);
 
-    const bodyAIndex = this.world.bodyIndex.get(this.bodyA) ?? -1;
-    const bodyBIndex = this.world.bodyIndex.get(this.bodyB) ?? -1;
-
-    const ra = vec2.create();
-    vec2.sub(ra, this.joint, this.bodyA.position);
-
-    const rb = vec2.create();
-    vec2.sub(rb, this.joint, this.bodyB.position);
-
     const x = vec3.create();
 
-    if (!this.bodyA.isStatic && bodyAIndex >= 0) {
+    if (!this.bodyA.isStatic) {
+      const bodyAIndex = this.world.bodyIndex.get(this.bodyA);
+
+      const ra = vec2.create();
+      vec2.sub(ra, this.joint, this.bodyA.position);
+
       J[bodyAIndex * 3] = -this.normal[0];
       J[bodyAIndex * 3 + 1] = -this.normal[1];
       J[bodyAIndex * 3 + 2] = -vec2.cross(x, ra, this.normal)[2];
     }
 
-    if (!this.bodyB.isStatic && bodyAIndex >= 0) {
+    if (!this.bodyB.isStatic) {
+      const bodyBIndex = this.world.bodyIndex.get(this.bodyB);
+
+      const rb = vec2.create();
+      vec2.sub(rb, this.joint, this.bodyB.position);
+
       J[bodyBIndex * 3] = this.normal[0];
       J[bodyBIndex * 3 + 1] = this.normal[1];
       J[bodyBIndex * 3 + 2] = vec2.cross(x, rb, this.normal)[2];

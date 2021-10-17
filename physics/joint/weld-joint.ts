@@ -50,8 +50,8 @@ export class WeldJoint implements JointInterface {
     this.constraints.push(
       new MinAngleConstraint(
         world,
-        world.bodies.indexOf(bodyA),
-        world.bodies.indexOf(bodyB),
+        bodyA,
+        bodyB,
         refAngle ? refAngle : bodyB.angle - bodyA.angle
       )
     );
@@ -59,8 +59,8 @@ export class WeldJoint implements JointInterface {
     this.constraints.push(
       new MaxAngleConstraint(
         world,
-        world.bodies.indexOf(bodyA),
-        world.bodies.indexOf(bodyB),
+        bodyA,
+        bodyB,
         refAngle ? refAngle : bodyB.angle - bodyA.angle
       )
     );

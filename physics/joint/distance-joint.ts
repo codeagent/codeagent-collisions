@@ -1,9 +1,8 @@
-import { vec2, vec3 } from 'gl-matrix';
+import { vec2 } from 'gl-matrix';
 
 import { World } from '../world';
 import { JointInterface } from './joint.interface';
-import { ConstraintInterface } from '../constraint/constraint.interface';
-import { DistanceConstraint } from '../constraint';
+import { DistanceConstraint, ConstraintInterface } from '../constraint';
 import { Body } from '../body';
 
 export class DistanceJoint implements JointInterface {
@@ -24,9 +23,9 @@ export class DistanceJoint implements JointInterface {
     this.constraints.push(
       new DistanceConstraint(
         world,
-        world.bodies.indexOf(bodyA),
+        bodyA,
         vec2.clone(pivotA),
-        world.bodies.indexOf(bodyB),
+        bodyB,
         vec2.clone(pivotB),
         distance
       )

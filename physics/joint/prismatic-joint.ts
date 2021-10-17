@@ -33,30 +33,23 @@ export class PrismaticJoint implements JointInterface {
     this.constraints.push(
       new LineConstraint(
         world,
-        world.bodies.indexOf(bodyA),
+        bodyA,
         vec2.clone(pivotA),
-        world.bodies.indexOf(bodyB),
+        bodyB,
         vec2.clone(pivotB),
         vec2.clone(localAxis)
       )
     );
 
-    this.constraints.push(
-      new AngleConstraint(
-        world,
-        world.bodies.indexOf(bodyA),
-        world.bodies.indexOf(bodyB),
-        refAngle
-      )
-    );
+    this.constraints.push(new AngleConstraint(world, bodyA, bodyB, refAngle));
 
     if (minDistance) {
       this.constraints.push(
         new MinDistanceConstraint(
           world,
-          world.bodies.indexOf(bodyA),
+          bodyA,
           vec2.clone(pivotA),
-          world.bodies.indexOf(bodyB),
+          bodyB,
           vec2.clone(pivotB),
           minDistance
         )
@@ -67,9 +60,9 @@ export class PrismaticJoint implements JointInterface {
       this.constraints.push(
         new MaxDistanceConstraint(
           world,
-          world.bodies.indexOf(bodyA),
+          bodyA,
           vec2.clone(pivotA),
-          world.bodies.indexOf(bodyB),
+          bodyB,
           vec2.clone(pivotB),
           maxDistance
         )

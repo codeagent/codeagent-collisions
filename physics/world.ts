@@ -324,12 +324,7 @@ export class World {
   }
 
   addMotor(body: Body, speed: number, torque: number) {
-    const motor = new AngularMotorConstraint(
-      this,
-      this.bodies.indexOf(body),
-      speed,
-      torque
-    );
+    const motor = new AngularMotorConstraint(this, body, speed, torque);
     this.motors.add(motor);
     this.bodyMotors.get(body).add(motor);
     this._lambdaCache0 = new Float32Array(this._lambdaCache0.length + 1);

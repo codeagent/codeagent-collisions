@@ -30,9 +30,9 @@ export class WheelJoint implements JointInterface {
     this.constraints.push(
       new LineConstraint(
         world,
-        world.bodies.indexOf(bodyA),
+        bodyA,
         vec2.clone(pivotA),
-        world.bodies.indexOf(bodyB),
+        bodyB,
         vec2.clone(pivotB),
         vec2.clone(localAxis)
       )
@@ -42,9 +42,9 @@ export class WheelJoint implements JointInterface {
       this.constraints.push(
         new MinDistanceConstraint(
           world,
-          world.bodies.indexOf(bodyA),
+          bodyA,
           vec2.clone(pivotA),
-          world.bodies.indexOf(bodyB),
+          bodyB,
           vec2.clone(pivotB),
           minDistance
         )
@@ -55,9 +55,9 @@ export class WheelJoint implements JointInterface {
       this.constraints.push(
         new MaxDistanceConstraint(
           world,
-          world.bodies.indexOf(bodyA),
+          bodyA,
           vec2.clone(pivotA),
-          world.bodies.indexOf(bodyB),
+          bodyB,
           vec2.clone(pivotB),
           maxDistance
         )

@@ -3,13 +3,14 @@ import { vec2 } from 'gl-matrix';
 import { World } from '../world';
 import { Vector } from '../solver';
 import { ConstraintBase } from './constraint.base';
+import { Body } from '../body';
 
 export class RevoluteYConstraint extends ConstraintBase {
   constructor(
     public readonly world: World,
-    public readonly bodyAIndex: number,
+    public readonly bodyA: Body,
     public readonly jointA: vec2,
-    public readonly bodyBIndex: number,
+    public readonly bodyB: Body,
     public readonly jointB: vec2
   ) {
     super();
@@ -18,41 +19,41 @@ export class RevoluteYConstraint extends ConstraintBase {
   getJacobian(): Vector {
     const J = new Float32Array(this.world.bodies.length * 3);
 
-    const bodyA = this.world.bodies[this.bodyAIndex];
-    const bodyB = this.world.bodies[this.bodyBIndex];
+    if (!this.bodyA.isStatic) {
+      const pa = vec2.create();
+      vec2.transformMat3(pa, this.jointA, this.bodyA.transform);
 
-    const pa = vec2.create();
-    vec2.transformMat3(pa, this.jointA, bodyA.transform);
+      const ra = vec2.create();
+      vec2.sub(ra, pa, this.bodyA.position);
 
-    const pb = vec2.create();
-    vec2.transformMat3(pb, this.jointB, bodyB.transform);
+      const bodyAIndex = this.world.bodyIndex.get(this.bodyA);
+      J[bodyAIndex * 3] = 0;
+      J[bodyAIndex * 3 + 1] = 1;
+      J[bodyAIndex * 3 + 2] = ra[0];
+    }
 
-    const ra = vec2.create();
-    vec2.sub(ra, pa, bodyA.position);
+    if (!this.bodyB.isStatic) {
+      const pb = vec2.create();
+      vec2.transformMat3(pb, this.jointB, this.bodyB.transform);
 
-    const rb = vec2.create();
-    vec2.sub(rb, pb, bodyB.position);
+      const rb = vec2.create();
+      vec2.sub(rb, pb, this.bodyB.position);
 
-    J[this.bodyAIndex * 3] = 0;
-    J[this.bodyAIndex * 3 + 1] = 1;
-    J[this.bodyAIndex * 3 + 2] = ra[0];
-
-    J[this.bodyBIndex * 3] = 0;
-    J[this.bodyBIndex * 3 + 1] = -1;
-    J[this.bodyBIndex * 3 + 2] = -rb[0];
+      const bodyBIndex = this.world.bodyIndex.get(this.bodyB);
+      J[bodyBIndex * 3] = 0;
+      J[bodyBIndex * 3 + 1] = -1;
+      J[bodyBIndex * 3 + 2] = -rb[0];
+    }
 
     return J;
   }
 
   getPushFactor(dt: number, strength: number): number {
-    const bodyA = this.world.bodies[this.bodyAIndex];
-    const bodyB = this.world.bodies[this.bodyBIndex];
-
     const pa = vec2.create();
-    vec2.transformMat3(pa, this.jointA, bodyA.transform);
+    vec2.transformMat3(pa, this.jointA, this.bodyA.transform);
 
     const pb = vec2.create();
-    vec2.transformMat3(pb, this.jointB, bodyB.transform);
+    vec2.transformMat3(pb, this.jointB, this.bodyB.transform);
 
     return -((pa[1] - pb[1]) / dt) * strength;
   }
