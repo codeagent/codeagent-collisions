@@ -1,17 +1,7 @@
 import { vec2 } from 'gl-matrix';
 
-import { csr } from './csr';
 import { Body } from './body';
 import { ConstraintInterface, AngularMotorConstraint } from './constraint';
-import {
-  VxSpVxS,
-  projectedGaussSeidel,
-  Vector,
-  VcV,
-  VpV,
-  VmV,
-  VpVxS,
-} from './solver';
 import { CollisionDetector } from './detector';
 import { Shape } from './collision';
 import { releaseId, uniqueId } from './unique-id';
@@ -26,7 +16,6 @@ import {
   WeldJoint,
 } from './joint';
 import { WheelJoint } from './joint/wheel-joint';
-import { WorldIsland } from './world-island';
 import { IslandsGenerator } from './islands-generator';
 
 export class World {
@@ -34,11 +23,8 @@ export class World {
   public readonly bodyShape = new Map<Body, Shape>();
   public readonly bodyJoints = new Map<Body, Set<JointInterface>>();
   public readonly bodyContacts = new Map<Body, Set<JointInterface>>();
-  public readonly bodyMotors = new Map<Body, Set<ConstraintInterface>>();
+  public readonly bodyConstraints = new Map<Body, Set<ConstraintInterface>>();
   public readonly bodyIndex = new Map<Body, number>();
-  public readonly joints = new Set<JointInterface>();
-  public readonly contacts = new Set<JointInterface>();
-  public readonly motors = new Set<ConstraintInterface>();
 
   private readonly collisionDetector: CollisionDetector;
   private readonly islandsGenerator: IslandsGenerator;
@@ -85,7 +71,7 @@ export class World {
     this.bodyShape.set(body, shape);
     this.bodyContacts.set(body, new Set<JointInterface>());
     this.bodyJoints.set(body, new Set<JointInterface>());
-    this.bodyMotors.set(body, new Set<ConstraintInterface>());
+    this.bodyConstraints.set(body, new Set<ConstraintInterface>());
     this.bodyIndex.set(body, bodyIndex);
 
     const n = this.bodies.length * 3;
@@ -167,7 +153,7 @@ export class World {
     this.invMasses = newInvMasses;
     this.bodyContacts.delete(body);
     this.bodyJoints.delete(body);
-    this.bodyMotors.delete(body);
+    this.bodyConstraints.delete(body);
     this.bodyShape.delete(body);
     this.bodyIndex.delete(body);
 
@@ -201,7 +187,6 @@ export class World {
       positionB,
       distance
     );
-    this.joints.add(joint);
     this.bodyJoints.get(bodyA).add(joint);
     this.bodyJoints.get(bodyB).add(joint);
   }
@@ -229,14 +214,12 @@ export class World {
     );
     this.bodyJoints.get(bodyA).add(joint);
     this.bodyJoints.get(bodyB).add(joint);
-    this.joints.add(joint);
   }
 
   addRevoluteJoint(bodyA: Body, jointA: vec2, bodyB: Body, jointB: vec2) {
     const joint = new RevoluteJoint(this, bodyA, jointA, bodyB, jointB);
     this.bodyJoints.get(bodyA).add(joint);
     this.bodyJoints.get(bodyB).add(joint);
-    this.joints.add(joint);
   }
 
   addWeldJoint(
@@ -249,13 +232,11 @@ export class World {
     const joint = new WeldJoint(this, bodyA, jointA, bodyB, jointB, refAngle);
     this.bodyJoints.get(bodyA).add(joint);
     this.bodyJoints.get(bodyB).add(joint);
-    this.joints.add(joint);
   }
 
   addMotor(body: Body, speed: number, torque: number) {
     const motor = new AngularMotorConstraint(this, body, speed, torque);
-    this.motors.add(motor);
-    this.bodyMotors.get(body).add(motor);
+    this.bodyConstraints.get(body).add(motor);
   }
 
   addWheelJonit(
@@ -278,7 +259,6 @@ export class World {
       maxDistance
     );
 
-    this.joints.add(joint);
     this.bodyJoints.get(bodyA).add(joint);
     this.bodyJoints.get(bodyB).add(joint);
   }
@@ -302,24 +282,26 @@ export class World {
       stiffness,
       extinction
     );
-    this.joints.add(joint);
+
     this.bodyJoints.get(bodyA).add(joint);
     this.bodyJoints.get(bodyB).add(joint);
   }
 
   removeMotor(motor: ConstraintInterface) {
-    this.motors.delete(motor);
+    for (const [, constraints] of this.bodyConstraints) {
+      if (constraints.has(motor)) {
+        constraints.delete(motor);
+        break;
+      }
+    }
   }
 
   removeJoint(joint: JointInterface) {
-    this.joints.delete(joint);
     this.bodyJoints.get(joint.bodyA).delete(joint);
     this.bodyJoints.get(joint.bodyB).delete(joint);
   }
 
   private detectCollisions() {
-    this.contacts.clear();
-
     for (const body of this.bodies) {
       this.bodyContacts.get(body).clear();
     }
@@ -334,7 +316,7 @@ export class World {
         contact.depth,
         this.friction
       );
-      this.contacts.add(joint);
+
       this.bodyContacts.get(this.bodies[contact.bodyAIndex]).add(joint);
       this.bodyContacts.get(this.bodies[contact.bodyBIndex]).add(joint);
     }

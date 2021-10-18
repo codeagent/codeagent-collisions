@@ -164,8 +164,6 @@ export const drawConstraint = (constraint: ConstraintInterface) => {
     constraint instanceof LineConstraint ||
     constraint instanceof SpringConstraint
   ) {
-    
-
     const pa = vec2.create();
     vec2.transformMat3(pa, constraint.jointA, constraint.bodyA.transform);
 
@@ -270,11 +268,15 @@ export const drawWorld = (world: World): void => {
     // .filter((body) => body.isStatic)
     .forEach((body) => drawBody(world, body, DEFAULT_COLOR));
   // world.motors.forEach((constraint) => drawConstraint(constraint));
-  world.contacts.forEach((contact) =>
-    contact.getConstraints().forEach((constraint) => drawConstraint(constraint))
+  world.bodyContacts.forEach((contacts) =>
+    contacts.forEach((concact) =>
+      Array.from(concact).forEach((constraint) => drawConstraint(constraint))
+    )
   );
-  world.joints.forEach((joint) =>
-    joint.getConstraints().forEach((constraint) => drawConstraint(constraint))
+  world.bodyJoints.forEach((joints) =>
+    joints.forEach((joint) =>
+      Array.from(joint).forEach((constraint) => drawConstraint(constraint))
+    )
   );
 };
 

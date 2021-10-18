@@ -84,14 +84,14 @@ export class IslandsGenerator {
           }
         }
 
-        // motors
-        const bodyMotors = this.world.bodyMotors.get(body);
-        for (const motor of bodyMotors) {
-          if (this.constraints.has(motor)) {
+        // misc/arbitrary constraints
+        const bodyConstraints = this.world.bodyConstraints.get(body);
+        for (const constraint of bodyConstraints) {
+          if (this.constraints.has(constraint)) {
             continue;
           }
-          this.island.addConstraint(motor);
-          this.constraints.add(motor);
+          this.island.addConstraint(constraint);
+          this.constraints.add(constraint);
         }
 
         this.island.addBody(body);
