@@ -51,16 +51,6 @@ export class World {
   public forces = new Float32Array(0);
   public invMasses = new Float32Array(0);
 
-  // "helper" variables
-  private _accelerations = new Float32Array(0);
-  private _c0Forces = new Float32Array(0);
-  private _cvForces = new Float32Array(0);
-  private _tmpForces = new Float32Array(0);
-  private _tmpVelocities = new Float32Array(0);
-
-  private _lambdaCache0 = new Float32Array(0);
-  private _lambdaCache1 = new Float32Array(0);
-
   constructor(
     public gravity = vec2.fromValues(0.0, -9.8),
     public pushFactor = 0.6,
@@ -132,12 +122,6 @@ export class World {
     this.positions[bodyIndex * 3 + 1] = position[1];
     this.positions[bodyIndex * 3 + 2] = angle;
 
-    this._accelerations = new Float32Array(n);
-    this._c0Forces = new Float32Array(n);
-    this._cvForces = new Float32Array(n);
-    this._tmpVelocities = new Float32Array(n);
-    this._tmpForces = new Float32Array(n);
-
     body.updateTransform();
 
     this.collisionDetector.registerBody(body);
@@ -159,12 +143,6 @@ export class World {
     const newVelocities = new Float32Array(size);
     const newForces = new Float32Array(size);
     const newInvMasses = new Float32Array(size);
-
-    this._accelerations = new Float32Array(size);
-    this._c0Forces = new Float32Array(size);
-    this._cvForces = new Float32Array(size);
-    this._tmpForces = new Float32Array(size);
-    this._tmpVelocities = new Float32Array(size);
 
     newPositions.set([
       ...this.positions.subarray(0, bodyIndex * 3),
@@ -226,13 +204,6 @@ export class World {
     this.joints.add(joint);
     this.bodyJoints.get(bodyA).add(joint);
     this.bodyJoints.get(bodyB).add(joint);
-
-    this._lambdaCache0 = new Float32Array(
-      joint.size + this._lambdaCache0.length
-    );
-    this._lambdaCache1 = new Float32Array(
-      joint.size + this._lambdaCache1.length
-    );
   }
 
   addPrismaticJoint(
@@ -259,13 +230,6 @@ export class World {
     this.bodyJoints.get(bodyA).add(joint);
     this.bodyJoints.get(bodyB).add(joint);
     this.joints.add(joint);
-
-    this._lambdaCache0 = new Float32Array(
-      joint.size + this._lambdaCache0.length
-    );
-    this._lambdaCache1 = new Float32Array(
-      joint.size + this._lambdaCache1.length
-    );
   }
 
   addRevoluteJoint(bodyA: Body, jointA: vec2, bodyB: Body, jointB: vec2) {
@@ -273,13 +237,6 @@ export class World {
     this.bodyJoints.get(bodyA).add(joint);
     this.bodyJoints.get(bodyB).add(joint);
     this.joints.add(joint);
-
-    this._lambdaCache0 = new Float32Array(
-      joint.size + this._lambdaCache0.length
-    );
-    this._lambdaCache1 = new Float32Array(
-      joint.size + this._lambdaCache1.length
-    );
   }
 
   addWeldJoint(
@@ -293,21 +250,12 @@ export class World {
     this.bodyJoints.get(bodyA).add(joint);
     this.bodyJoints.get(bodyB).add(joint);
     this.joints.add(joint);
-
-    this._lambdaCache0 = new Float32Array(
-      joint.size + this._lambdaCache0.length
-    );
-    this._lambdaCache1 = new Float32Array(
-      joint.size + this._lambdaCache1.length
-    );
   }
 
   addMotor(body: Body, speed: number, torque: number) {
     const motor = new AngularMotorConstraint(this, body, speed, torque);
     this.motors.add(motor);
     this.bodyMotors.get(body).add(motor);
-    this._lambdaCache0 = new Float32Array(this._lambdaCache0.length + 1);
-    this._lambdaCache1 = new Float32Array(this._lambdaCache1.length + 1);
   }
 
   addWheelJonit(
@@ -333,13 +281,6 @@ export class World {
     this.joints.add(joint);
     this.bodyJoints.get(bodyA).add(joint);
     this.bodyJoints.get(bodyB).add(joint);
-
-    this._lambdaCache0 = new Float32Array(
-      joint.size + this._lambdaCache0.length
-    );
-    this._lambdaCache1 = new Float32Array(
-      joint.size + this._lambdaCache1.length
-    );
   }
 
   addSpring(
@@ -364,32 +305,16 @@ export class World {
     this.joints.add(joint);
     this.bodyJoints.get(bodyA).add(joint);
     this.bodyJoints.get(bodyB).add(joint);
-
-    this._lambdaCache0 = new Float32Array(
-      joint.size + this._lambdaCache0.length
-    );
-    this._lambdaCache1 = new Float32Array(
-      joint.size + this._lambdaCache1.length
-    );
   }
 
   removeMotor(motor: ConstraintInterface) {
     this.motors.delete(motor);
-    this._lambdaCache0 = new Float32Array(this._lambdaCache0.length - 1);
-    this._lambdaCache1 = new Float32Array(this._lambdaCache1.length - 1);
   }
 
   removeJoint(joint: JointInterface) {
     this.joints.delete(joint);
     this.bodyJoints.get(joint.bodyA).delete(joint);
     this.bodyJoints.get(joint.bodyB).delete(joint);
-
-    this._lambdaCache0 = new Float32Array(
-      this._lambdaCache0.length - joint.size
-    );
-    this._lambdaCache1 = new Float32Array(
-      this._lambdaCache1.length - joint.size
-    );
   }
 
   private detectCollisions() {

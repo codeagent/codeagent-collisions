@@ -8,10 +8,11 @@ import { projectedGaussSeidel, VcV, VmV, VpV, VpVxS, VxSpVxS } from './solver';
 import { World } from './world';
 
 export class WorldIsland {
-  public bodies = new Array<Body>();
-  public readonly joints = new Array<JointInterface>();
-  public readonly contacts = new Array<JointInterface>();
-  public readonly motors = new Array<ConstraintInterface>();
+  public readonly bodies = new Array<Body>();
+  public readonly constraints = Array<ConstraintInterface>();
+  // public readonly joints = new Array<JointInterface>();
+  // public readonly contacts = new Array<JointInterface>();
+  // public readonly motors = new Array<ConstraintInterface>();
 
   private readonly positions = new Float32Array(this.bodiesCapacity * 3);
   private readonly velocities = new Float32Array(this.bodiesCapacity * 3);
@@ -34,33 +35,23 @@ export class WorldIsland {
     this.bodies.push(body);
   }
 
-  addJoint(joint: JointInterface) {
-    this.joints.push(joint);
-  }
-
-  addContact(contact: JointInterface) {
-    this.contacts.push(contact);
-  }
-
-  addMotor(motor: ConstraintInterface) {
-    this.motors.push(motor);
+  addConstraint(constraint: ConstraintInterface) {
+    this.constraints.push(constraint);
   }
 
   clear() {
     this.bodies.length = 0;
-    this.joints.length = 0;
-    this.contacts.length = 0;
-    this.motors.length = 0;
+    this.constraints.length = 0;
   }
 
   step(dt: number) {
     this.world.bodyIndex.clear();
-    this.bodies.forEach((body, index ) => this.world.bodyIndex.set(body, index));
+    this.bodies.forEach((body, index) => this.world.bodyIndex.set(body, index));
 
     this.bodiesToArrays();
     const length = this.bodies.length * 3;
 
-    if (this.joints.length || this.contacts.length || this.motors.length) {
+    if (this.constraints.length) {
       // Resolve
       this.solve(this.cvForces, dt, this.world.pushFactor);
       this.solve(this.c0Forces, dt, 0.0);
@@ -92,22 +83,8 @@ export class WorldIsland {
   }
 
   private solve(out: Float32Array, dt: number, pushFactor: number) {
-    let constraints: ConstraintInterface[] = [];
-
-    for (let joint of this.joints) {
-      constraints = constraints.concat(joint.getConstraints());
-    }
-
-    for (let contact of this.contacts) {
-      constraints = constraints.concat(contact.getConstraints());
-    }
-
-    for (let motor of this.motors) {
-      constraints = constraints.concat(motor);
-    }
-
     const n = this.bodies.length * 3;
-    const c = constraints.length;
+    const c = this.constraints.length;
 
     const J = new Float32Array(n * c);
     const v = new Float32Array(c);
@@ -123,7 +100,7 @@ export class WorldIsland {
     let i = 0;
     let j = 0;
 
-    for (const constraint of constraints) {
+    for (const constraint of this.constraints) {
       constraint.getJacobian(J, i, n);
       v[j] = constraint.getPushFactor(dt, pushFactor);
       const { min, max } = constraint.getClamping();
@@ -159,7 +136,7 @@ export class WorldIsland {
     );
 
     for (let i = 0; i < c; i++) {
-      constraints[i].setCache(cacheId, lambdas[i]);
+      this.constraints[i].setCache(cacheId, lambdas[i]);
     }
 
     csr.MtxV(out, csrJ, lambdas);

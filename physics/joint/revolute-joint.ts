@@ -13,10 +13,6 @@ import { Body } from '../body';
 export class RevoluteJoint implements JointInterface {
   private readonly constraints: ConstraintInterface[] = [];
 
-  get size() {
-    return 2;
-  }
-
   constructor(
     public readonly world: World,
     public readonly bodyA: Body,
@@ -43,6 +39,10 @@ export class RevoluteJoint implements JointInterface {
         vec2.clone(pivotB)
       )
     );
+  }
+  *[Symbol.iterator]() {
+    yield this.constraints[0];
+    yield this.constraints[1];
   }
 
   getConstraints() {

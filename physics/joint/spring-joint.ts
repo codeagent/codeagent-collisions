@@ -8,10 +8,6 @@ import { Body } from '../body';
 export class SpringJoint implements JointInterface {
   private readonly constraints: ConstraintInterface[] = [];
 
-  get size() {
-    return 1;
-  }
-
   constructor(
     public readonly world: World,
     public readonly bodyA: Body,
@@ -34,6 +30,10 @@ export class SpringJoint implements JointInterface {
         extinction
       )
     );
+  }
+
+  *[Symbol.iterator]() {
+    yield this.constraints[0];
   }
 
   getConstraints() {

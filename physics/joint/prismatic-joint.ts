@@ -15,10 +15,6 @@ import { Body } from '../body';
 export class PrismaticJoint implements JointInterface {
   private readonly constraints: ConstraintInterface[] = [];
 
-  get size() {
-    return this.constraints.length;
-  }
-
   constructor(
     public readonly world: World,
     public readonly bodyA: Body,
@@ -67,6 +63,12 @@ export class PrismaticJoint implements JointInterface {
           maxDistance
         )
       );
+    }
+  }
+
+  *[Symbol.iterator]() {
+    for (let i = 0, length = this.constraints.length; i < length; i++) {
+      yield this.constraints[i];
     }
   }
 

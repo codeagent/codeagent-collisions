@@ -15,10 +15,6 @@ import { Body } from '../body';
 export class WeldJoint implements JointInterface {
   private readonly constraints: ConstraintInterface[] = [];
 
-  get size() {
-    return 4;
-  }
-
   constructor(
     public readonly world: World,
     public readonly bodyA: Body,
@@ -30,9 +26,9 @@ export class WeldJoint implements JointInterface {
     this.constraints.push(
       new RevoluteXConstraint(
         world,
-        world.bodies.indexOf(bodyA),
+        bodyA,
         vec2.clone(pivotA),
-        world.bodies.indexOf(bodyB),
+        bodyB,
         vec2.clone(pivotB)
       )
     );
@@ -40,9 +36,9 @@ export class WeldJoint implements JointInterface {
     this.constraints.push(
       new RevoluteYConstraint(
         world,
-        world.bodies.indexOf(bodyA),
+        bodyA,
         vec2.clone(pivotA),
-        world.bodies.indexOf(bodyB),
+        bodyB,
         vec2.clone(pivotB)
       )
     );
@@ -64,6 +60,13 @@ export class WeldJoint implements JointInterface {
         refAngle ? refAngle : bodyB.angle - bodyA.angle
       )
     );
+  }
+
+  *[Symbol.iterator]() {
+    yield this.constraints[0];
+    yield this.constraints[1];
+    yield this.constraints[2];
+    yield this.constraints[3];
   }
 
   getConstraints() {

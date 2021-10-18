@@ -52,7 +52,11 @@ export class IslandsGenerator {
           if (this.joints.has(joint)) {
             continue;
           }
-          this.island.addJoint(joint);
+
+          for (const constraint of joint) {
+            this.island.addConstraint(constraint);
+          }
+
           this.joints.add(joint);
 
           const second = joint.bodyA === body ? joint.bodyB : joint.bodyA;
@@ -67,7 +71,11 @@ export class IslandsGenerator {
           if (this.joints.has(contact)) {
             continue;
           }
-          this.island.addContact(contact);
+
+          for (const constraint of contact) {
+            this.island.addConstraint(constraint);
+          }
+
           this.joints.add(contact);
 
           const second = contact.bodyA === body ? contact.bodyB : contact.bodyA;
@@ -82,7 +90,7 @@ export class IslandsGenerator {
           if (this.constraints.has(motor)) {
             continue;
           }
-          this.island.addMotor(motor);
+          this.island.addConstraint(motor);
           this.constraints.add(motor);
         }
 
