@@ -15,10 +15,11 @@ export class RevoluteXConstraint extends ConstraintBase {
     super();
   }
 
-  getJacobian(out: Float32Array, offset: number, length: number): void {
-    const jacobian = out.subarray(offset, offset + length);
-    jacobian.fill(0.0);
+  getJacobian(values: number[], columns: number[]): number {
+    // const jacobian = out.subarray(offset, offset + length);
+    // jacobian.fill(0.0);
 
+    let written = 0;
     if (!this.bodyA.isStatic) {
       const pa = vec2.create();
       vec2.transformMat3(pa, this.jointA, this.bodyA.transform);
@@ -27,9 +28,12 @@ export class RevoluteXConstraint extends ConstraintBase {
       vec2.sub(ra, pa, this.bodyA.position);
 
       const bodyAIndex = this.world.bodyIndex.get(this.bodyA);
-      jacobian[bodyAIndex * 3] = 1;
-      jacobian[bodyAIndex * 3 + 1] = 0;
-      jacobian[bodyAIndex * 3 + 2] = -ra[1];
+      // jacobian[bodyAIndex * 3] = 1;
+      // jacobian[bodyAIndex * 3 + 1] = 0;
+      // jacobian[bodyAIndex * 3 + 2] = -ra[1];
+      values.push(1, -ra[1]);
+      columns.push(bodyAIndex * 3, bodyAIndex * 3 + 2);
+      written += 2;
     }
 
     if (!this.bodyB.isStatic) {
@@ -40,10 +44,15 @@ export class RevoluteXConstraint extends ConstraintBase {
       vec2.sub(rb, pb, this.bodyB.position);
 
       const bodyBIndex = this.world.bodyIndex.get(this.bodyB);
-      jacobian[bodyBIndex * 3] = -1;
-      jacobian[bodyBIndex * 3 + 1] = 0;
-      jacobian[bodyBIndex * 3 + 2] = rb[1];
+      // jacobian[bodyBIndex * 3] = -1;
+      // jacobian[bodyBIndex * 3 + 1] = 0;
+      // jacobian[bodyBIndex * 3 + 2] = rb[1];
+      values.push(-1, rb[1]);
+      columns.push(bodyBIndex * 3, bodyBIndex * 3 + 2);
+      written += 2;
     }
+
+    return written;
   }
 
   getPushFactor(dt: number, strength: number): number {

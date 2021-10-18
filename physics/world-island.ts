@@ -94,9 +94,15 @@ export class WorldIsland {
 
     let i = 0;
     let j = 0;
+    let written = 0;
+    const rows: number[] = [written];
+    const columns: number[] = [];
+    const values: number[] = [];
 
     for (const constraint of this.constraints) {
-      constraint.getJacobian(J, i, n);
+      written += constraint.getJacobian(values, columns);
+      rows.push(written);
+
       v[j] = constraint.getPushFactor(dt, pushFactor);
       const { min, max } = constraint.getClamping();
       cMin[j] = min;
@@ -109,7 +115,14 @@ export class WorldIsland {
     // A = J * Minv * Jt
     // b = 1.0 / ∆t * v − J * (1 / ∆t * v1 + Minv * fext)
 
-    const csrJ = csr.compress(J, c);
+    // const csrJ = csr.compress(J, c);
+    const csrJ = {
+      m: c,
+      n: n,
+      values: Float32Array.from(values),
+      columns: Uint16Array.from(columns),
+      rows: Uint16Array.from(rows),
+    };
 
     const csrA = csr.MxDxMtCsr(csrJ, this.invMasses);
     // csr.MxDxMt(A, csrJ, this.invMasses);

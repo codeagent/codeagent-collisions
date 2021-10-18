@@ -17,7 +17,7 @@ export abstract class ConstraintBase implements ConstraintInterface {
     this.cache.set(id, value);
   }
 
-  abstract getJacobian(out: Float32Array, offset: number, length: number): void;
+  abstract getJacobian(values: number[], columns: number[]): number;
   abstract getPushFactor(dt: number, strength: number): number;
   abstract getClamping(): ConstraintClamping;
 }

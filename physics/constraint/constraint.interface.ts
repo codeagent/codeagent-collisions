@@ -3,8 +3,10 @@ export interface ConstraintClamping {
   max: number;
 }
 
+export interface CsrMatrix {}
+
 export interface ConstraintInterface {
-  getJacobian(out: Float32Array, offset: number, length: number): void;
+  getJacobian(values: number[], columns: number[]): number;
   getPushFactor(dt: number, strength: number): number;
   getClamping(): ConstraintClamping;
   getCache(id: 0 | 1): number;

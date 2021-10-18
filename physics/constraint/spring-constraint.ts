@@ -19,9 +19,9 @@ export class SpringConstraint extends ConstraintBase {
     super();
   }
 
-  getJacobian(out: Float32Array, offset: number, length: number): void {
-    const jacobian = out.subarray(offset, offset + length);
-    jacobian.fill(0.0);
+  getJacobian(values: number[], columns: number[]): number {
+    // const jacobian = out.subarray(offset, offset + length);
+    // jacobian.fill(0.0);
 
     const pa = vec2.create();
     vec2.transformMat3(pa, this.jointA, this.bodyA.transform);
@@ -34,14 +34,18 @@ export class SpringConstraint extends ConstraintBase {
     vec2.normalize(pbpa, pbpa);
     const x = vec3.create();
 
+    let written = 0;
     if (!this.bodyA.isStatic) {
       const ra = vec2.create();
       vec2.sub(ra, pa, this.bodyA.position);
 
       const bodyAIndex = this.world.bodyIndex.get(this.bodyA);
-      jacobian[bodyAIndex * 3] = -pbpa[0];
-      jacobian[bodyAIndex * 3 + 1] = -pbpa[1];
-      jacobian[bodyAIndex * 3 + 2] = -vec2.cross(x, ra, pbpa)[2];
+      // jacobian[bodyAIndex * 3] = -pbpa[0];
+      // jacobian[bodyAIndex * 3 + 1] = -pbpa[1];
+      // jacobian[bodyAIndex * 3 + 2] = -vec2.cross(x, ra, pbpa)[2];
+      values.push(-pbpa[0], -pbpa[1], -vec2.cross(x, ra, pbpa)[2]);
+      columns.push(bodyAIndex * 3, bodyAIndex * 3 + 1, bodyAIndex * 3 + 2);
+      written += 3;
     }
 
     if (!this.bodyB.isStatic) {
@@ -49,10 +53,15 @@ export class SpringConstraint extends ConstraintBase {
       vec2.sub(rb, pb, this.bodyB.position);
 
       const bodyBIndex = this.world.bodyIndex.get(this.bodyB);
-      jacobian[bodyBIndex * 3] = pbpa[0];
-      jacobian[bodyBIndex * 3 + 1] = pbpa[1];
-      jacobian[bodyBIndex * 3 + 2] = vec2.cross(x, rb, pbpa)[2];
+      // jacobian[bodyBIndex * 3] = pbpa[0];
+      // jacobian[bodyBIndex * 3 + 1] = pbpa[1];
+      // jacobian[bodyBIndex * 3 + 2] = vec2.cross(x, rb, pbpa)[2];
+      values.push(pbpa[0], pbpa[1], vec2.cross(x, rb, pbpa)[2]);
+      columns.push(bodyBIndex * 3, bodyBIndex * 3 + 1, bodyBIndex * 3 + 2);
+      written += 3;
     }
+
+    return written;
   }
 
   getPushFactor(dt: number, strength: number): number {
