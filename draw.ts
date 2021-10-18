@@ -240,34 +240,15 @@ export const drawBody = (world: World, body: Body, color: string) => {
   }
 };
 
-export const drawIsland = (
-  world: World,
-  island: WorldIsland,
-  color: string
-) => {
-  island.bodies.forEach((body) => {
-    drawDot(body.position, BLUISH_COLOR);
-    drawBody(world, body, color);
-  });
-  island.joints.forEach((joint) =>
-    drawLineSegment([joint.bodyA.position, joint.bodyB.position], LINE_COLOR)
-  );
-  island.contacts.forEach((contact) =>
-    drawLineSegment(
-      [contact.bodyA.position, contact.bodyB.position],
-      REDISH_COLOR
+export const drawWorld = (world: World): void => {
+  world.bodies.forEach((body) =>
+    drawBody(
+      world,
+      body,
+      body.isStatic ? DEFAULT_COLOR : COLORS[world.bodyIsland.get(body)]
     )
   );
-  island.motors.forEach((constraint) => drawConstraint(constraint));
-};
 
-export const drawWorld = (world: World): void => {
-  let index = 0;
-  // world.islands.forEach((island) => drawIsland(world, island, COLORS[index++]));
-  world.bodies
-    // .filter((body) => body.isStatic)
-    .forEach((body) => drawBody(world, body, DEFAULT_COLOR));
-  // world.motors.forEach((constraint) => drawConstraint(constraint));
   world.bodyContacts.forEach((contacts) =>
     contacts.forEach((concact) =>
       Array.from(concact).forEach((constraint) => drawConstraint(constraint))

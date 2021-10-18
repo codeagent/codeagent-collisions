@@ -1,19 +1,14 @@
 import { vec2 } from 'gl-matrix';
 
 import { Body } from './body';
-import { ConstraintInterface } from './constraint/constraint.interface';
+import { ConstraintInterface } from './constraint';
 import { csr } from './csr';
-import { JointInterface } from './joint';
 import { projectedGaussSeidel, VcV, VmV, VpV, VpVxS, VxSpVxS } from './solver';
 import { World } from './world';
 
 export class WorldIsland {
   public readonly bodies = new Array<Body>();
   public readonly constraints = Array<ConstraintInterface>();
-  // public readonly joints = new Array<JointInterface>();
-  // public readonly contacts = new Array<JointInterface>();
-  // public readonly motors = new Array<ConstraintInterface>();
-
   private readonly positions = new Float32Array(this.bodiesCapacity * 3);
   private readonly velocities = new Float32Array(this.bodiesCapacity * 3);
   private readonly forces = new Float32Array(this.bodiesCapacity * 3);
@@ -23,8 +18,6 @@ export class WorldIsland {
   private readonly cvForces = new Float32Array(this.bodiesCapacity * 3);
   private readonly tmpForces = new Float32Array(this.bodiesCapacity * 3);
   private readonly tmpVelocities = new Float32Array(this.bodiesCapacity * 3);
-
-  // private readonly lambdaCache = new Float32Array(this.constraintsCapacity);
 
   constructor(
     private readonly world: World,
@@ -44,13 +37,14 @@ export class WorldIsland {
     this.constraints.length = 0;
   }
 
-  step(dt: number) {
+  integrate(dt: number) {
     this.world.bodyIndex.clear();
     this.bodies.forEach((body, index) => this.world.bodyIndex.set(body, index));
 
     this.bodiesToArrays();
-    const length = this.bodies.length * 3;
+    this.applyGlobalForces();
 
+    const length = this.bodies.length * 3;
     if (this.constraints.length) {
       // Resolve
       this.solve(this.cvForces, dt, this.world.pushFactor);
@@ -79,6 +73,7 @@ export class WorldIsland {
       VpVxS(this.positions, this.positions, this.velocities, dt, length);
     }
 
+    this.clearForces();
     this.arraysToBodies();
   }
 
@@ -182,6 +177,24 @@ export class WorldIsland {
       vec2.set(v, this.velocities[i], this.velocities[i + 1]);
       body.velocity = v;
       body.omega = this.velocities[i + 2];
+
+      vec2.set(v, this.forces[i], this.forces[i + 1]);
+      body.force = v;
+      body.torque = this.forces[i + 2];
     }
+  }
+
+  private applyGlobalForces() {
+    for (let i = 0, length = this.forces.length; i < length; i += 3) {
+      if (this.invMasses[i]) {
+        const mass = 1.0 / this.invMasses[i];
+        this.forces[i] += mass * this.world.gravity[0];
+        this.forces[i + 1] += mass * this.world.gravity[1];
+      }
+    }
+  }
+
+  private clearForces() {
+    this.forces.fill(0.0);
   }
 }

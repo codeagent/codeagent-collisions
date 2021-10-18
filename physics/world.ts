@@ -25,8 +25,9 @@ export class World {
   public readonly bodyContacts = new Map<Body, Set<JointInterface>>();
   public readonly bodyConstraints = new Map<Body, Set<ConstraintInterface>>();
   public readonly bodyIndex = new Map<Body, number>();
+  public readonly bodyIsland = new Map<Body, number>();
+  public readonly collisionDetector: CollisionDetector;
 
-  private readonly collisionDetector: CollisionDetector;
   private readonly islandsGenerator: IslandsGenerator;
 
   // public readonly islands = new Set<WorldIsland>();
@@ -45,17 +46,7 @@ export class World {
     public restitution = 0.5
   ) {
     this.islandsGenerator = new IslandsGenerator(this);
-
     this.collisionDetector = new CollisionDetector(this);
-    this.collisionDetector.collideEnter$.subscribe(([bodyA, bodyB]) =>
-      this.onCollideEnter(bodyA, bodyB)
-    );
-    this.collisionDetector.collide$.subscribe(([bodyA, bodyB]) =>
-      this.onCollide(bodyA, bodyB)
-    );
-    this.collisionDetector.collideLeave$.subscribe(([bodyA, bodyB]) =>
-      this.onCollideLeave(bodyA, bodyB)
-    );
   }
 
   createBody(
@@ -161,15 +152,17 @@ export class World {
   }
 
   simulate(dt: number) {
-    this.applyGlobalForces();
     this.detectCollisions();
 
+    let islandId = 0;
+    this.bodyIsland.clear();
     for (const island of this.islandsGenerator.generateIslands()) {
-      island.step(dt);
+      island.integrate(dt);
+      island.bodies.forEach((body) => this.bodyIsland.set(body, islandId));
+      islandId++;
     }
 
     this.updateBodiesTransforms();
-    this.clearForces();
   }
 
   addDistanceJoint(
@@ -322,40 +315,7 @@ export class World {
     }
   }
 
-  private applyGlobalForces() {
-    let i = 0;
-    while (i < this.forces.length) {
-      if (!Number.isFinite(this.bodies[i / 3].mass)) {
-        i += 3;
-        continue;
-      }
-      this.forces[i] += this.bodies[i / 3].mass * this.gravity[0];
-      this.forces[i + 1] += this.bodies[i / 3].mass * this.gravity[1];
-      i += 3;
-    }
-  }
-
-  private clearForces() {
-    this.forces.fill(0.0);
-  }
-
   private updateBodiesTransforms() {
     this.bodies.forEach((b) => b.updateTransform());
-  }
-
-  private onCollideEnter(bodyA: Body, bodyB: Body) {
-    // attach(
-    //   this.bodyGraphNodeLookup.get(bodyA),
-    //   this.bodyGraphNodeLookup.get(bodyB)
-    // );
-  }
-  private onCollide(bodyA: Body, bodyB: Body) {
-    // console.log('onCollide', bodyA, bodyB);
-  }
-  private onCollideLeave(bodyA: Body, bodyB: Body) {
-    // detach(
-    //   this.bodyGraphNodeLookup.get(bodyA),
-    //   this.bodyGraphNodeLookup.get(bodyB)
-    // );
   }
 }
