@@ -56,48 +56,19 @@ export class World {
     position: vec2,
     angle: number
   ) {
-    const bodyIndex = this.bodies.length;
-    const body = new Body(this, uniqueId(), bodyIndex);
+    const bodyId = this.bodies.length;
+    const body = new Body(uniqueId(), bodyId);
+    body.mass = mass;
+    body.inertia = intertia;
+    body.position = position;
+    body.angle = angle;
+
     this.bodies.push(body);
     this.bodyShape.set(body, shape);
     this.bodyContacts.set(body, new Set<JointInterface>());
     this.bodyJoints.set(body, new Set<JointInterface>());
     this.bodyConstraints.set(body, new Set<ConstraintInterface>());
-    this.bodyIndex.set(body, bodyIndex);
-
-    const n = this.bodies.length * 3;
-
-    if (this.positions.length < n) {
-      const tmp = new Float32Array(this.positions.length + 3);
-      tmp.set(this.positions);
-      this.positions = tmp;
-    }
-
-    if (this.velocities.length < n) {
-      const tmp = new Float32Array(this.velocities.length + 3);
-      tmp.set(this.velocities);
-      this.velocities = tmp;
-    }
-
-    if (this.forces.length < n) {
-      const tmp = new Float32Array(this.forces.length + 3);
-      tmp.set(this.forces);
-      this.forces = tmp;
-    }
-
-    if (this.invMasses.length < n) {
-      const tmp = new Float32Array(this.invMasses.length + 3);
-      tmp.set(this.invMasses);
-      this.invMasses = tmp;
-    }
-
-    this.invMasses[bodyIndex * 3] = 1.0 / mass;
-    this.invMasses[bodyIndex * 3 + 1] = 1.0 / mass;
-    this.invMasses[bodyIndex * 3 + 2] = 1.0 / intertia;
-
-    this.positions[bodyIndex * 3] = position[0];
-    this.positions[bodyIndex * 3 + 1] = position[1];
-    this.positions[bodyIndex * 3 + 2] = angle;
+    this.bodyIndex.set(body, bodyId);
 
     body.updateTransform();
 
@@ -115,33 +86,6 @@ export class World {
     this.bodies.splice(bodyIndex, 1);
     releaseId(body.id);
 
-    const size = this.bodies.length * 3;
-    const newPositions = new Float32Array(size);
-    const newVelocities = new Float32Array(size);
-    const newForces = new Float32Array(size);
-    const newInvMasses = new Float32Array(size);
-
-    newPositions.set([
-      ...this.positions.subarray(0, bodyIndex * 3),
-      ...this.positions.subarray((bodyIndex + 1) * 3),
-    ]);
-    newVelocities.set([
-      ...this.velocities.subarray(0, bodyIndex * 3),
-      ...this.velocities.subarray((bodyIndex + 1) * 3),
-    ]);
-    newForces.set([
-      ...this.forces.subarray(0, bodyIndex * 3),
-      ...this.forces.subarray((bodyIndex + 1) * 3),
-    ]);
-    newInvMasses.set([
-      ...this.invMasses.subarray(0, bodyIndex * 3),
-      ...this.invMasses.subarray((bodyIndex + 1) * 3),
-    ]);
-
-    this.positions = newPositions;
-    this.velocities = newVelocities;
-    this.forces = newForces;
-    this.invMasses = newInvMasses;
     this.bodyContacts.delete(body);
     this.bodyJoints.delete(body);
     this.bodyConstraints.delete(body);
