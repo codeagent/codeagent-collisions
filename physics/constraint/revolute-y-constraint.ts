@@ -47,9 +47,9 @@ export class RevoluteYConstraint extends ConstraintBase {
       // jacobian[bodyBIndex * 3] = 0;
       // jacobian[bodyBIndex * 3 + 1] = -1;
       // jacobian[bodyBIndex * 3 + 2] = -rb[0];
-      values.push(-1 - rb[0]);
+      values.push(-1, -rb[0]);
       columns.push(bodyBIndex * 3 + 1, bodyBIndex * 3 + 2);
-      written += 3;
+      written += 2;
     }
     return written;
   }
