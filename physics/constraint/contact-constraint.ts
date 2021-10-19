@@ -24,6 +24,14 @@ export class ContactConstraint extends ConstraintBase {
     // const jacobian = out.subarray(offset, offset + length);
     // jacobian.fill(0.0);
 
+    const bodyAIndex = this.world.bodyIndex.get(this.bodyA);
+    const bodyBIndex = this.world.bodyIndex.get(this.bodyB);
+    if (bodyAIndex < bodyBIndex) {
+      return this.processA(values, columns) + this.processB(values, columns);
+    } else {
+      return this.processB(values, columns) + this.processA(values, columns);
+    }
+
     let written = 0;
     const x = vec3.create();
     if (!this.bodyA.isStatic) {
@@ -34,14 +42,24 @@ export class ContactConstraint extends ConstraintBase {
       // jacobian[bodyAIndex * 3] = -this.normal[0];
       // jacobian[bodyAIndex * 3 + 1] = -this.normal[1];
       // jacobian[bodyAIndex * 3 + 2] = -vec2.cross(x, ra, this.normal)[2];
+      if (this.normal[0]) {
+        values.push(-this.normal[0]);
+        columns.push(bodyAIndex * 3);
+        written++;
+      }
 
-      values.push(
-        -this.normal[0],
-        -this.normal[1],
-        -vec2.cross(x, ra, this.normal)[2]
-      );
-      columns.push(bodyAIndex * 3, bodyAIndex * 3 + 1, bodyAIndex * 3 + 2);
-      written += 3;
+      if (this.normal[1]) {
+        values.push(-this.normal[1]);
+        columns.push(bodyAIndex * 3 + 1);
+        written++;
+      }
+
+      const c = -vec2.cross(x, ra, this.normal)[2];
+      if (c) {
+        values.push(c);
+        columns.push(bodyAIndex * 3 + 2);
+        written++;
+      }
     }
 
     if (!this.bodyB.isStatic) {
@@ -52,13 +70,108 @@ export class ContactConstraint extends ConstraintBase {
       // jacobian[bodyBIndex * 3] = this.normal[0];
       // jacobian[bodyBIndex * 3 + 1] = this.normal[1];
       // jacobian[bodyBIndex * 3 + 2] = vec2.cross(x, rb, this.normal)[2];
-      values.push(
-        this.normal[0],
-        this.normal[1],
-        vec2.cross(x, rb, this.normal)[2]
-      );
-      columns.push(bodyBIndex * 3, bodyBIndex * 3 + 1, bodyBIndex * 3 + 2);
-      written += 3;
+      // values.push(
+      //   this.normal[0],
+      //   this.normal[1],
+      //   vec2.cross(x, rb, this.normal)[2]
+      // );
+      // columns.push(bodyBIndex * 3, bodyBIndex * 3 + 1, bodyBIndex * 3 + 2);
+      // written += 3;
+
+      if (this.normal[0]) {
+        values.push(this.normal[0]);
+        columns.push(bodyBIndex * 3);
+        written++;
+      }
+
+      if (this.normal[1]) {
+        values.push(this.normal[1]);
+        columns.push(bodyBIndex * 3 + 1);
+        written++;
+      }
+
+      const c = vec2.cross(x, rb, this.normal)[2];
+      if (c) {
+        values.push(c);
+        columns.push(bodyBIndex * 3 + 2);
+        written++;
+      }
+    }
+
+    return written;
+  }
+
+  private processB(values: number[], columns: number[]): number {
+    let written = 0;
+    const x = vec3.create();
+    if (!this.bodyB.isStatic) {
+      const rb = vec2.create();
+      vec2.sub(rb, this.joint, this.bodyB.position);
+
+      const bodyBIndex = this.world.bodyIndex.get(this.bodyB);
+      // jacobian[bodyBIndex * 3] = this.normal[0];
+      // jacobian[bodyBIndex * 3 + 1] = this.normal[1];
+      // jacobian[bodyBIndex * 3 + 2] = vec2.cross(x, rb, this.normal)[2];
+      // values.push(
+      //   this.normal[0],
+      //   this.normal[1],
+      //   vec2.cross(x, rb, this.normal)[2]
+      // );
+      // columns.push(bodyBIndex * 3, bodyBIndex * 3 + 1, bodyBIndex * 3 + 2);
+      // written += 3;
+
+      if (this.normal[0]) {
+        values.push(this.normal[0]);
+        columns.push(bodyBIndex * 3);
+        written++;
+      }
+
+      if (this.normal[1]) {
+        values.push(this.normal[1]);
+        columns.push(bodyBIndex * 3 + 1);
+        written++;
+      }
+
+      const c = vec2.cross(x, rb, this.normal)[2];
+      if (c) {
+        values.push(c);
+        columns.push(bodyBIndex * 3 + 2);
+        written++;
+      }
+    }
+
+    return written;
+  }
+
+  private processA(values: number[], columns: number[]): number {
+    let written = 0;
+    const x = vec3.create();
+    if (!this.bodyA.isStatic) {
+      const ra = vec2.create();
+      vec2.sub(ra, this.joint, this.bodyA.position);
+
+      const bodyAIndex = this.world.bodyIndex.get(this.bodyA);
+      // jacobian[bodyAIndex * 3] = -this.normal[0];
+      // jacobian[bodyAIndex * 3 + 1] = -this.normal[1];
+      // jacobian[bodyAIndex * 3 + 2] = -vec2.cross(x, ra, this.normal)[2];
+      if (this.normal[0]) {
+        values.push(-this.normal[0]);
+        columns.push(bodyAIndex * 3);
+        written++;
+      }
+
+      if (this.normal[1]) {
+        values.push(-this.normal[1]);
+        columns.push(bodyAIndex * 3 + 1);
+        written++;
+      }
+
+      const c = -vec2.cross(x, ra, this.normal)[2];
+      if (c) {
+        values.push(c);
+        columns.push(bodyAIndex * 3 + 2);
+        written++;
+      }
     }
 
     return written;
