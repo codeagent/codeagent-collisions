@@ -1,10 +1,17 @@
 import { vec2, vec3 } from 'gl-matrix';
 
 import { World } from '../world';
-import { Vector } from '../solver';
 import { transformMat3Vec } from '../collision/utils';
 import { ConstraintBase } from './constraint.base';
 import { Body } from '../body';
+
+const t = vec2.create();
+const u = vec2.create();
+const pa = vec2.create();
+const ra = vec2.create();
+const pb = vec2.create();
+const rb = vec2.create();
+const x = vec3.create();
 
 export class LineConstraint extends ConstraintBase {
   constructor(
@@ -19,58 +26,26 @@ export class LineConstraint extends ConstraintBase {
   }
 
   getJacobian(values: number[], columns: number[]): number {
-    // const jacobian = out.subarray(offset, offset + length);
-    // jacobian.fill(0.0);
-
-    const t = vec2.create();
     transformMat3Vec(
       t,
       vec2.fromValues(-this.axisA[1], this.axisA[0]),
       this.bodyA.transform
     );
-
-    const pb = vec2.create();
     vec2.transformMat3(pb, this.jointB, this.bodyB.transform);
 
-    const x = vec3.create();
-
-    let written = 0;
-    if (!this.bodyA.isStatic) {
-      const pa = vec2.create();
-      vec2.transformMat3(pa, this.jointA, this.bodyA.transform);
-
-      const u = vec2.create();
-      vec2.sub(u, pb, pa);
-
-      const ra = vec2.create();
-      vec2.sub(ra, pa, this.bodyA.position);
-      vec2.add(ra, ra, u);
-
-      const bodyAIndex = this.world.bodyIndex.get(this.bodyA);
-      // jacobian[bodyAIndex * 3] = -t[0];
-      // jacobian[bodyAIndex * 3 + 1] = -t[1];
-      // jacobian[bodyAIndex * 3 + 2] = -vec2.cross(x, ra, t)[2];
-
-      values.push(-t[0], -t[1], -vec2.cross(x, ra, t)[2]);
-      columns.push(bodyAIndex * 3, bodyAIndex * 3 + 1, bodyAIndex * 3 + 2);
-      written += 3;
+    const bodyAIndex = this.world.bodyIndex.get(this.bodyA);
+    const bodyBIndex = this.world.bodyIndex.get(this.bodyB);
+    if (bodyAIndex < bodyBIndex) {
+      return (
+        this.writeA(values, columns, bodyAIndex * 3, t, pb) +
+        this.writeB(values, columns, bodyBIndex * 3, t, pb)
+      );
+    } else {
+      return (
+        this.writeB(values, columns, bodyBIndex * 3, t, pb) +
+        this.writeA(values, columns, bodyAIndex * 3, t, pb)
+      );
     }
-
-    if (!this.bodyB.isStatic) {
-      const rb = vec2.create();
-      vec2.sub(rb, pb, this.bodyB.position);
-
-      const bodyBIndex = this.world.bodyIndex.get(this.bodyB);
-      // jacobian[bodyBIndex * 3] = t[0];
-      // jacobian[bodyBIndex * 3 + 1] = t[1];
-      // jacobian[bodyBIndex * 3 + 2] = vec2.cross(x, rb, t)[2];
-
-      values.push(t[0], t[1], vec2.cross(x, rb, t)[2]);
-      columns.push(bodyBIndex * 3, bodyBIndex * 3 + 1, bodyBIndex * 3 + 2);
-      written += 3;
-    }
-
-    return written;
   }
 
   getPushFactor(dt: number, strength: number): number {
@@ -95,5 +70,40 @@ export class LineConstraint extends ConstraintBase {
 
   getClamping() {
     return { min: Number.NEGATIVE_INFINITY, max: Number.POSITIVE_INFINITY };
+  }
+
+  private writeA(
+    values: number[],
+    columns: number[],
+    offset: number,
+    t: vec2,
+    pb: vec2
+  ): number {
+    if (!this.bodyA.isStatic) {
+      vec2.transformMat3(pa, this.jointA, this.bodyA.transform);
+      vec2.sub(u, pb, pa);
+      vec2.sub(ra, pa, this.bodyA.position);
+      vec2.add(ra, ra, u);
+      values.push(-t[0], -t[1], -vec2.cross(x, ra, t)[2]);
+      columns.push(offset, offset + 1, offset + 2);
+      return 3;
+    }
+    return 0;
+  }
+
+  private writeB(
+    values: number[],
+    columns: number[],
+    offset: number,
+    t: vec2,
+    pb: vec2
+  ): number {
+    if (!this.bodyB.isStatic) {
+      vec2.sub(rb, pb, this.bodyB.position);
+      values.push(t[0], t[1], vec2.cross(x, rb, t)[2]);
+      columns.push(offset, offset + 1, offset + 2);
+      return 3;
+    }
+    return 0;
   }
 }
