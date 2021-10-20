@@ -32,18 +32,18 @@ export class ContactJoint implements JointInterface {
       )
     );
 
-    // if (friction) {
-    //   this.constraints.push(
-    //     new FrictionConstraint(
-    //       world,
-    //       bodyA,
-    //       bodyB,
-    //       vec2.clone(concact),
-    //       vec2.clone(normal),
-    //       friction
-    //     )
-    //   );
-    // }
+    if (friction) {
+      this.constraints.push(
+        new FrictionConstraint(
+          world,
+          bodyA,
+          bodyB,
+          vec2.clone(concact),
+          vec2.clone(normal),
+          friction
+        )
+      );
+    }
   }
 
   *[Symbol.iterator]() {
