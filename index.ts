@@ -13,7 +13,7 @@ import {
   createChainScene,
   createSATScene,
   createJointScene,
-  createSuspensionScene
+  createSuspensionScene,
 } from './scene';
 import { Draggable, Rotatable } from './controls';
 import { satTest } from './physics/collision/test';
@@ -28,7 +28,7 @@ const lookup = {
   gauss: () => createGaussianScene(),
   sat: () => createSATScene(),
   joint: () => createJointScene(),
-  suspension: () => createSuspensionScene()
+  suspension: () => createSuspensionScene(),
 };
 
 let rotatables: Rotatable[] = [];
@@ -37,49 +37,53 @@ let sceneId: string = '';
 
 merge(
   fromEvent(document.getElementById('chain'), 'click').pipe(
-    map(e => e.srcElement['id'])
+    map((e) => e.srcElement['id'])
   ),
   fromEvent(document.getElementById('pendulum'), 'click').pipe(
-    map(e => e.srcElement['id'])
+    map((e) => e.srcElement['id'])
   ),
   fromEvent(document.getElementById('stairs'), 'click').pipe(
-    map(e => e.srcElement['id'])
+    map((e) => e.srcElement['id'])
   ),
   fromEvent(document.getElementById('stack'), 'click').pipe(
-    map(e => e.srcElement['id'])
+    map((e) => e.srcElement['id'])
   ),
   fromEvent(document.getElementById('gauss'), 'click').pipe(
-    map(e => e.srcElement['id'])
+    map((e) => e.srcElement['id'])
   ),
   fromEvent(document.getElementById('joint'), 'click').pipe(
-    map(e => e.srcElement['id'])
+    map((e) => e.srcElement['id'])
   ),
-    fromEvent(document.getElementById('suspension'), 'click').pipe(
-    map(e => e.srcElement['id'])
+  fromEvent(document.getElementById('suspension'), 'click').pipe(
+    map((e) => e.srcElement['id'])
   ),
   fromEvent(document.getElementById('sat'), 'click').pipe(
-    map(e => e.srcElement['id'])
+    map((e) => e.srcElement['id'])
   ),
 
-  of('suspension').pipe(delay(1000))
+  of('joint').pipe(delay(1000))
 )
   .pipe(
-    tap(id => {
+    tap((id) => {
       document
         .querySelectorAll('.nav-link')
-        .forEach(e => e.classList.remove('active'));
+        .forEach((e) => e.classList.remove('active'));
 
       document.getElementById(id).classList.add('active');
     })
   )
-  .subscribe(id => {
-    rotatables.forEach(r => r.release()), (rotatables.length = 0);
-    draggables.forEach(d => d.release()), (draggables.length = 0);
+  .subscribe((id) => {
+    rotatables.forEach((r) => r.release()), (rotatables.length = 0);
+    draggables.forEach((d) => d.release()), (draggables.length = 0);
     while (world.bodies.length) world.destroyBody(world.bodies[0]);
-    world.constraints.forEach(c => world.removeConstraint(c));
+
     lookup[(sceneId = id)]();
-    world.bodies.forEach(b => draggables.push(new Draggable(canvas, world, b)));
-    world.bodies.forEach(b => rotatables.push(new Rotatable(canvas, world, b)));
+    world.bodies.forEach((b) =>
+      draggables.push(new Draggable(canvas, world, b))
+    );
+    world.bodies.forEach((b) =>
+      rotatables.push(new Rotatable(canvas, world, b))
+    );
   });
 
 const dt = 1.0 / 60.0;

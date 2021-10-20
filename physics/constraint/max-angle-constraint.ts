@@ -1,20 +1,14 @@
 import { World } from '../world';
 import { AngleConstraint } from './angle-constraint';
+import { Body } from '../body';
 
 export class MaxAngleConstraint extends AngleConstraint {
-  constructor(
-    world: World,
-    bodyAIndex: number,
-    bodyBIndex: number,
-    angle: number
-  ) {
-    super(world, bodyAIndex, bodyBIndex, angle);
+  constructor(world: World, bodyA: Body, bodyB: Body, angle: number) {
+    super(world, bodyA, bodyB, angle);
   }
 
   getPushFactor(dt: number, strength: number): number {
-    const bodyA = this.world.bodies[this.bodyAIndex];
-    const bodyB = this.world.bodies[this.bodyBIndex];
-    const violation = this.angle - (bodyB.angle - bodyA.angle);
+    const violation = this.angle - (this.bodyB.angle - this.bodyA.angle);
     // violation < 0 means constraint is broken
     return violation > 0 ? violation / dt : (strength * violation) / dt;
   }

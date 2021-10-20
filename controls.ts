@@ -9,7 +9,7 @@ const invProjMat = mat3.create();
 mat3.invert(invProjMat, projMat);
 
 const containsPoint = (world: World, body: Body, point: vec2) => {
-  const shape = world.bodyShapeLookup.get(body);
+  const shape = world.bodyShape.get(body);
   const invTransform = mat3.create();
   mat3.invert(invTransform, body.transform);
   vec2.transformMat3(point, point, invTransform);

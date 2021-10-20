@@ -36,7 +36,7 @@ export namespace csr {
       n,
       values: Float32Array.from(values),
       columns: Uint16Array.from(columns),
-      rows: Uint16Array.from(rows)
+      rows: Uint16Array.from(rows),
     };
   };
 
@@ -161,7 +161,7 @@ export namespace csr {
       n: mat.m,
       rows,
       columns,
-      values
+      values,
     };
   };
 
@@ -264,7 +264,7 @@ export namespace csr {
       n: mat.m,
       rows,
       columns,
-      values
+      values,
     };
   };
 

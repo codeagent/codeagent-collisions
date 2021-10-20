@@ -12,7 +12,9 @@ import {
   MaxDistanceConstraint,
   MinDistanceConstraint,
   SpringConstraint,
+  Body,
 } from './physics';
+import { WorldIsland } from './physics/world-island';
 
 export const canvas = document.getElementById('canvas') as HTMLCanvasElement;
 const context = canvas.getContext('2d') as CanvasRenderingContext2D;
@@ -162,14 +164,11 @@ export const drawConstraint = (constraint: ConstraintInterface) => {
     constraint instanceof LineConstraint ||
     constraint instanceof SpringConstraint
   ) {
-    const bodyA = constraint.world.bodies[constraint.bodyAIndex];
-    const bodyB = constraint.world.bodies[constraint.bodyBIndex];
-
     const pa = vec2.create();
-    vec2.transformMat3(pa, constraint.jointA, bodyA.transform);
+    vec2.transformMat3(pa, constraint.jointA, constraint.bodyA.transform);
 
     const pb = vec2.create();
-    vec2.transformMat3(pb, constraint.jointB, bodyB.transform);
+    vec2.transformMat3(pb, constraint.jointB, constraint.bodyB.transform);
     drawLineSegment([pa, pb], LINE_COLOR);
     drawDot(pa, BLUISH_COLOR);
     drawDot(pb, BLUISH_COLOR);
@@ -231,21 +230,35 @@ export const drawGround = (origin: vec2, normal: vec2) => {
   }
 };
 
-export const drawWorld = (world: World): void => {
-  world.islands?.forEach((island, index) => {
-    const color = COLORS[index];
-    island.forEach((body) => {
-      const shape = world.bodyShapeLookup.get(body);
-      drawCross(body.transform, color);
-      if (shape instanceof Polygon) {
-        drawPolyShape(shape, body.transform, color);
-      } else if (shape instanceof Circle) {
-        drawCircleShape(shape.radius, body.transform, color);
-      }
-    });
-  });
+export const drawBody = (world: World, body: Body, color: string) => {
+  const shape = world.bodyShape.get(body);
+  drawCross(body.transform, color);
+  if (shape instanceof Polygon) {
+    drawPolyShape(shape, body.transform, color);
+  } else if (shape instanceof Circle) {
+    drawCircleShape(shape.radius, body.transform, color);
+  }
+};
 
-  world.constraints.forEach((constraint) => drawConstraint(constraint));
+export const drawWorld = (world: World): void => {
+  world.bodies.forEach((body) =>
+    drawBody(
+      world,
+      body,
+      body.isStatic ? DEFAULT_COLOR : COLORS[world.bodyIsland.get(body)]
+    )
+  );
+
+  world.bodyContacts.forEach((contacts) =>
+    contacts.forEach((concact) =>
+      Array.from(concact).forEach((constraint) => drawConstraint(constraint))
+    )
+  );
+  world.bodyJoints.forEach((joints) =>
+    joints.forEach((joint) =>
+      Array.from(joint).forEach((constraint) => drawConstraint(constraint))
+    )
+  );
 };
 
 const COLORS = [

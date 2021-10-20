@@ -2,31 +2,29 @@ import { vec2 } from 'gl-matrix';
 
 import { World } from '../world';
 import { DistanceConstraint } from '../constraint';
+import { Body } from '../body';
 
 export class MinDistanceConstraint extends DistanceConstraint {
   constructor(
     world: World,
-    bodyAIndex: number,
+    bodyA: Body,
     jointA: vec2,
-    bodyBIndex: number,
+    bodyB: Body,
     jointB: vec2,
     distance: number
   ) {
-    super(world, bodyAIndex, jointA, bodyBIndex, jointB, distance);
+    super(world, bodyA, jointA, bodyB, jointB, distance);
   }
 
   getPushFactor(dt: number, strength = 1.0): number {
-    const bodyA = this.world.bodies[this.bodyAIndex];
-    const bodyB = this.world.bodies[this.bodyBIndex];
-
     const pa = vec2.create();
-    vec2.transformMat3(pa, this.jointA, bodyA.transform);
+    vec2.transformMat3(pa, this.jointA, this.bodyA.transform);
 
     const pb = vec2.create();
-    vec2.transformMat3(pb, this.jointB, bodyB.transform);
+    vec2.transformMat3(pb, this.jointB, this.bodyB.transform);
 
     const violation = this.distance - vec2.distance(pb, pa);
-    // violation > 0 means constraint is broken 
+    // violation > 0 means constraint is broken
     return violation < 0 ? violation / dt : (strength * violation) / dt;
   }
 

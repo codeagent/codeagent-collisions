@@ -1,4 +1,4 @@
-import { csr } from "./csr";
+import { csr } from './csr';
 
 export type Vector = Float32Array;
 export type Matrix = Float32Array;
@@ -50,23 +50,26 @@ export const JxDxJt = (out: Matrix, J: Matrix, D: Vector) => {
   }
 };
 
-export const VmV = (out: Vector, V1: Vector, V2: Vector) => {
-  const n = out.length;
-  for (let i = 0; i < n; i++) {
+export const VmV = (out: Vector, V1: Vector, V2: Vector, length: number) => {
+  for (let i = 0; i < length; i++) {
     out[i] = V1[i] * V2[i];
   }
 };
 
-export const VpVxS = (out: Vector, V1: Vector, V2: Vector, S: number) => {
-  const n = out.length;
-  for (let i = 0; i < n; i++) {
+export const VpVxS = (
+  out: Vector,
+  V1: Vector,
+  V2: Vector,
+  S: number,
+  length: number
+) => {
+  for (let i = 0; i < length; i++) {
     out[i] = V1[i] + V2[i] * S;
   }
 };
 
-export const VpV = (out: Vector, V1: Vector, V2: Vector) => {
-  const n = out.length;
-  for (let i = 0; i < n; i++) {
+export const VpV = (out: Vector, V1: Vector, V2: Vector, length: number) => {
+  for (let i = 0; i < length; i++) {
     out[i] = V1[i] + V2[i];
   }
 };
@@ -76,15 +79,16 @@ export const VxSpVxS = (
   V1: Vector,
   S1: number,
   V2: Vector,
-  S2: number
+  S2: number,
+  length: number
 ) => {
-  const n = out.length;
-  for (let i = 0; i < n; i++) {
+  
+  for (let i = 0; i < length; i++) {
     out[i] = V1[i] * S1 + V2[i] * S2;
   }
 };
 
-export const projectedGussSeidel = (
+export const projectedGaussSeidel = (
   out: Vector,
   A: csr.Matrix,
   b: Vector,
