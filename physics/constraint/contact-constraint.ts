@@ -5,6 +5,10 @@ import { ConstraintBase } from './constraint.base';
 import { Body } from '../body';
 import { VxV } from '../solver';
 
+const ra = vec2.create();
+const rb = vec2.create();
+const x = vec3.create();
+
 export class ContactConstraint extends ConstraintBase {
   private readonly jacobian = new Float32Array(6);
   private readonly velocities = new Float32Array(6);
@@ -38,8 +42,6 @@ export class ContactConstraint extends ConstraintBase {
 
   private writeA(values: number[], columns: number[], offset: number): number {
     if (!this.bodyA.isStatic) {
-      const ra = vec2.create();
-      const x = vec3.create();
       vec2.sub(ra, this.joint, this.bodyA.position);
       values.push(
         -this.normal[0],
@@ -55,8 +57,6 @@ export class ContactConstraint extends ConstraintBase {
 
   private writeB(values: number[], columns: number[], offset: number): number {
     if (!this.bodyB.isStatic) {
-      const rb = vec2.create();
-      const x = vec3.create();
       vec2.sub(rb, this.joint, this.bodyB.position);
       values.push(
         this.normal[0],
@@ -73,12 +73,10 @@ export class ContactConstraint extends ConstraintBase {
     if (strength) {
       return (this.penetration / dt) * strength;
     } else {
-      const x = vec3.create();
       this.jacobian.fill(0);
       this.velocities.fill(0);
 
       if (!this.bodyA.isStatic) {
-        const ra = vec2.create();
         vec2.sub(ra, this.joint, this.bodyA.position);
 
         this.jacobian[0] = -this.normal[0];
@@ -91,7 +89,6 @@ export class ContactConstraint extends ConstraintBase {
       }
 
       if (!this.bodyB.isStatic) {
-        const rb = vec2.create();
         vec2.sub(rb, this.joint, this.bodyB.position);
 
         this.jacobian[3] = this.normal[0];

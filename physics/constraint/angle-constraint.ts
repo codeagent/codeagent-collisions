@@ -14,33 +14,37 @@ export class AngleConstraint extends ConstraintBase {
   }
 
   getJacobian(values: number[], columns: number[]): number {
-    // const jacobian = out.subarray(offset, offset + length);
-    // jacobian.fill(0.0);
+    const bodyAIndex = this.world.bodyIndex.get(this.bodyA);
+    const bodyBIndex = this.world.bodyIndex.get(this.bodyB);
+    if (bodyAIndex < bodyBIndex) {
+      return (
+        this.writeA(values, columns, bodyAIndex * 3) +
+        this.writeB(values, columns, bodyBIndex * 3)
+      );
+    } else {
+      return (
+        this.writeB(values, columns, bodyBIndex * 3) +
+        this.writeA(values, columns, bodyAIndex * 3)
+      );
+    }
+  }
 
-    let written = 0;
+  private writeA(values: number[], columns: number[], offset: number): number {
     if (isFinite(this.bodyA.inertia)) {
-      const bodyAIndex = this.world.bodyIndex.get(this.bodyA);
-
-      // jacobian[bodyAIndex * 3] = 0;
-      // jacobian[bodyAIndex * 3 + 1] = 0;
-      // jacobian[bodyAIndex * 3 + 2] = -1;
       values.push(-1);
-      columns.push(bodyAIndex * 3 + 2);
-      written++;
+      columns.push(offset + 2);
+      return 1;
     }
+    return 0;
+  }
 
+  private writeB(values: number[], columns: number[], offset: number): number {
     if (isFinite(this.bodyB.inertia)) {
-      const bodyBIndex = this.world.bodyIndex.get(this.bodyB);
-      // jacobian[bodyBIndex * 3] = 0;
-      // jacobian[bodyBIndex * 3 + 1] = 0;
-      // jacobian[bodyBIndex * 3 + 2] = 1;
-
       values.push(1);
-      columns.push(bodyBIndex * 3 + 2);
-      written++;
+      columns.push(offset + 2);
+      return 1;
     }
-
-    return written;
+    return 0;
   }
 
   getPushFactor(dt: number, strength: number): number {
