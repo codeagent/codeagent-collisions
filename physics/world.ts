@@ -17,6 +17,7 @@ import {
 } from './joint';
 import { WheelJoint } from './joint/wheel-joint';
 import { IslandsGenerator } from './islands-generator';
+import { Profiler } from './profiler';
 
 export class World {
   public readonly bodies: Body[] = [];
@@ -27,10 +28,8 @@ export class World {
   public readonly bodyIndex = new Map<Body, number>();
   public readonly bodyIsland = new Map<Body, number>();
   public readonly collisionDetector: CollisionDetector;
-
   private readonly islandsGenerator: IslandsGenerator;
-
-  // public readonly islands = new Set<WorldIsland>();
+  private readonly profiler = Profiler.instance;
 
   // "read"/"write" variables
   public positions = new Float32Array(0);
@@ -97,15 +96,7 @@ export class World {
 
   simulate(dt: number) {
     this.detectCollisions();
-
-    let islandId = 0;
-    this.bodyIsland.clear();
-    for (const island of this.islandsGenerator.generateIslands()) {
-      island.integrate(dt);
-      island.bodies.forEach((body) => this.bodyIsland.set(body, islandId));
-      islandId++;
-    }
-
+    this.integrate(dt);
     this.updateBodiesTransforms();
   }
 
@@ -238,7 +229,23 @@ export class World {
     this.bodyJoints.get(joint.bodyB).delete(joint);
   }
 
+  private integrate(dt: number) {
+    this.profiler.begin('World.integrate');
+
+    let islandId = 0;
+    this.bodyIsland.clear();
+    for (const island of this.islandsGenerator.generateIslands()) {
+      island.integrate(dt);
+      island.bodies.forEach((body) => this.bodyIsland.set(body, islandId));
+      islandId++;
+    }
+
+    this.profiler.end('World.integrate');
+  }
+
   private detectCollisions() {
+    this.profiler.begin('World.detectCollisions');
+
     for (const body of this.bodies) {
       this.bodyContacts.get(body).clear();
     }
@@ -257,9 +264,13 @@ export class World {
       this.bodyContacts.get(this.bodies[contact.bodyAIndex]).add(joint);
       this.bodyContacts.get(this.bodies[contact.bodyBIndex]).add(joint);
     }
+
+    this.profiler.end('World.detectCollisions');
   }
 
   private updateBodiesTransforms() {
+    this.profiler.begin('World.updateBodiesTransforms');
     this.bodies.forEach((b) => b.updateTransform());
+    this.profiler.end('World.updateBodiesTransforms');
   }
 }

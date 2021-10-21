@@ -17,6 +17,7 @@ import {
 } from './scene';
 import { Draggable, Rotatable } from './controls';
 import { satTest } from './physics/collision/test';
+import { Profiler } from './physics/profiler';
 
 self['world'] = world;
 
@@ -90,7 +91,10 @@ const dt = 1.0 / 60.0;
 const step = () => {
   world.simulate(dt);
   clear();
+
+  Profiler.instance.begin('drawWorld');
   drawWorld(world);
+  Profiler.instance.end('drawWorld');
   if (sceneId === 'sat') {
     satTest(world);
   }
@@ -98,3 +102,10 @@ const step = () => {
 };
 
 step();
+
+Profiler.instance
+  .listen('World.integrate')
+  .subscribe((e) => console.log('World.integrate', e));
+// Profiler.instance
+//   .listen('drawWorld')
+//   .subscribe((e) => console.log('drawWorld', e));

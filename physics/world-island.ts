@@ -3,7 +3,15 @@ import { vec2 } from 'gl-matrix';
 import { Body } from './body';
 import { ConstraintInterface } from './constraint';
 import { csr } from './csr';
-import { debugMatrix, projectedGaussSeidel, VcV, VmV, VpV, VpVxS, VxSpVxS } from './solver';
+import {
+  debugMatrix,
+  projectedGaussSeidel,
+  VcV,
+  VmV,
+  VpV,
+  VpVxS,
+  VxSpVxS,
+} from './solver';
 import { World } from './world';
 
 export class WorldIsland {
@@ -81,18 +89,16 @@ export class WorldIsland {
     const n = this.bodies.length * 3;
     const c = this.constraints.length;
 
-    let J = new Float32Array(n * c);
     const v = new Float32Array(c);
     const cMin = new Float32Array(c);
     const cMax = new Float32Array(c);
-    // const A = new Float32Array(c * c);
+
     const lambdas = new Float32Array(c);
     const b = new Float32Array(c);
     const bhat = new Float32Array(n);
     const cacheId = pushFactor ? 0 : 1;
     const initialGuess = new Float32Array(c);
 
-    let i = 0;
     let j = 0;
     let written = 0;
     const rows: number[] = [written];
@@ -103,19 +109,17 @@ export class WorldIsland {
       written += constraint.getJacobian(values, columns);
       rows.push(written);
 
-      v[j] = constraint.getPushFactor(dt, pushFactor);
       const { min, max } = constraint.getClamping();
       cMin[j] = min;
       cMax[j] = max;
+      v[j] = constraint.getPushFactor(dt, pushFactor);
       initialGuess[j] = constraint.getCache(cacheId);
-      i += n;
       j++;
     }
 
     // A = J * Minv * Jt
     // b = 1.0 / ∆t * v − J * (1 / ∆t * v1 + Minv * fext)
 
-    // const csrJ = csr.compress(J, c);
     let csrJ = {
       m: c,
       n: n,
@@ -124,13 +128,7 @@ export class WorldIsland {
       rows: Uint16Array.from(rows),
     };
 
-// J = csr.decompress(csrJ);
-//     debugMatrix(J, n);
-    // csrJ = csr.compress(csr.decompress(csrJ), c)
-
     const csrA = csr.MxDxMtCsr(csrJ, this.invMasses);
-    // csr.MxDxMt(A, csrJ, this.invMasses);
-    // const csrA = csr.compress(A, c)
 
     VmV(bhat, this.invMasses, this.forces, bhat.length);
     VpVxS(bhat, bhat, this.velocities, 1.0 / dt, bhat.length);

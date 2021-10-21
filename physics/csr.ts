@@ -10,6 +10,8 @@ export namespace csr {
     rows: Uint16Array;
   }
 
+  const row = new Float32Array(1024);
+
   export const compress = (mat: Float32Array, m: number): Matrix => {
     const values = [];
     const columns = [];
@@ -195,7 +197,7 @@ export namespace csr {
     }
   };
 
-  export const MxDxMtCsr = (mat: Matrix, diag: Float32Array): Matrix => {
+  export const MxDxMtCsrOld = (mat: Matrix, diag: Float32Array): Matrix => {
     const countIndex = new Map<number, number>(); // row:count
     const columnsIndex = new Map<number, number[]>(); // row:columns
     const valuesIndex = new Map<number, number[]>(); // row:values
@@ -267,7 +269,42 @@ export namespace csr {
       values,
     };
   };
+  export const MxDxMtCsr = (mat: Matrix, diag: Float32Array): Matrix => {
+    const values = [];
+    const columns = [];
+    const rows = [];
 
+    const row = new Float32Array(mat.n);
+
+    rows.push(0);
+    for (let j = 0; j < mat.m; j++) {
+      row.fill(0);
+
+      for (let k = mat.rows[j]; k < mat.rows[j + 1]; k++) {
+        row[mat.columns[k]] = mat.values[k] * diag[mat.columns[k]];
+      }
+
+      for (let i = 0; i < mat.m; i++) {
+        let v = 0;
+        for (let k = mat.rows[i]; k < mat.rows[i + 1]; k++) {
+          v += row[mat.columns[k]] * mat.values[k];
+        }
+        if (v) {
+          values.push(v);
+          columns.push(i);
+        }
+      }
+      rows.push(values.length);
+    }
+
+    return {
+      m: mat.m,
+      n: mat.m,
+      values: Float32Array.from(values),
+      columns: Uint16Array.from(columns),
+      rows: Uint16Array.from(rows),
+    };
+  };
   export const MtxV = (out: Float32Array, mat: Matrix, vec: Float32Array) => {
     out.fill(0.0);
 
