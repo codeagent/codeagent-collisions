@@ -1,6 +1,8 @@
 // Compressed Sparse Row Matrix
 // https://en.wikipedia.org/wiki/Sparse_matrix
 
+import { PriorityMap } from './priority-map';
+
 export namespace csr {
   export interface Matrix {
     m: number; // rows
@@ -197,6 +199,72 @@ export namespace csr {
     }
   };
 
+  export const MxDxMtCsr = (mat: Matrix, diag: Float32Array) => {
+    const index = new PriorityMap<number, number>(
+      [],
+      (a: number, b: number) => a - b
+    );
+
+    for (let i = 0; i < mat.m; i++) {
+      for (let j = i; j < mat.m; j++) {
+        let v = 0.0;
+        let k = mat.rows[i];
+        let kt = mat.rows[j];
+
+        while (k < mat.rows[i + 1] && kt < mat.rows[j + 1]) {
+          if (mat.columns[kt] < mat.columns[k]) {
+            kt++;
+          } else if (mat.columns[kt] > mat.columns[k]) {
+            k++;
+          } else {
+            v += diag[mat.columns[k]] * mat.values[k] * mat.values[kt];
+            kt++;
+            k++;
+          }
+        }
+
+        if (v) {
+          index.set((i << 16) | j, v);
+
+          if (i !== j) {
+            index.set((j << 16) | i, v);
+          }
+        }
+      }
+    }
+
+    const values = [];
+    const columns = [];
+    const rows = [];
+    let lastRow = -1;
+    let counter = 0;
+
+    for (const [id, value] of index) {
+      const row = (id >> 16) & 0xffff;
+      const col = id & 0xffff;
+
+      if (lastRow !== row) {
+        while (lastRow < row) {
+          rows.push(counter);
+          lastRow++;
+        }
+      }
+      values.push(value);
+      columns.push(col);
+      lastRow = row;
+      counter++;
+    }
+    rows.push(counter);
+
+    return {
+      m: mat.m,
+      n: mat.m,
+      values: Float32Array.from(values),
+      columns: Uint16Array.from(columns),
+      rows: Uint16Array.from(rows),
+    };
+  };
+
   export const MxDxMtCsrOld = (mat: Matrix, diag: Float32Array): Matrix => {
     const countIndex = new Map<number, number>(); // row:count
     const columnsIndex = new Map<number, number[]>(); // row:columns
@@ -269,7 +337,7 @@ export namespace csr {
       values,
     };
   };
-  export const MxDxMtCsr = (mat: Matrix, diag: Float32Array): Matrix => {
+  export const MxDxMtCsr_ = (mat: Matrix, diag: Float32Array): Matrix => {
     const values = [];
     const columns = [];
     const rows = [];
