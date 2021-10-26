@@ -254,11 +254,11 @@ export const drawWorld = (world: World): void => {
   //     Array.from(concact).forEach((constraint) => drawConstraint(constraint))
   //   )
   // );
-  // world.bodyJoints.forEach((joints) =>
-  //   joints.forEach((joint) =>
-  //     Array.from(joint).forEach((constraint) => drawConstraint(constraint))
-  //   )
-  // );
+  world.bodyJoints.forEach((joints) =>
+    joints.forEach((joint) =>
+      Array.from(joint).forEach((constraint) => drawConstraint(constraint))
+    )
+  );
 };
 
 const COLORS = [

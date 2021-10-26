@@ -3,15 +3,8 @@ import { vec2 } from 'gl-matrix';
 import { Body } from './body';
 import { ConstraintInterface } from './constraint';
 import { csr } from './csr';
-import {
-  debugMatrix,
-  projectedGaussSeidel,
-  VcV,
-  VmV,
-  VpV,
-  VpVxS,
-  VxSpVxS,
-} from './solver';
+import { Profiler } from './profiler';
+import { projectedGaussSeidel, VcV, VmV, VpV, VpVxS, VxSpVxS } from './solver';
 import { World } from './world';
 
 export class WorldIsland {
@@ -55,8 +48,7 @@ export class WorldIsland {
     const length = this.bodies.length * 3;
     if (this.constraints.length) {
       // Resolve
-      this.solve(this.cvForces, dt, this.world.pushFactor);
-      this.solve(this.c0Forces, dt, 0.0);
+      this.solve(this.cvForces, this.c0Forces, dt, this.world.pushFactor);
 
       //  Correct positions
       VpV(this.tmpForces, this.forces, this.cvForces, length);
@@ -85,19 +77,26 @@ export class WorldIsland {
     this.arraysToBodies();
   }
 
-  private solve(out: Float32Array, dt: number, pushFactor: number) {
+  private solve(
+    outForces0: Float32Array,
+    outForces1: Float32Array,
+    dt: number,
+    pushFactor: number
+  ) {
     const n = this.bodies.length * 3;
     const c = this.constraints.length;
-
-    const v = new Float32Array(c);
+    const v0 = new Float32Array(c);
+    const v1 = new Float32Array(c);
     const cMin = new Float32Array(c);
     const cMax = new Float32Array(c);
 
-    const lambdas = new Float32Array(c);
+    const lambdas0 = new Float32Array(c);
+    const lambdas1 = new Float32Array(c);
     const b = new Float32Array(c);
+    const bt = new Float32Array(c);
     const bhat = new Float32Array(n);
-    const cacheId = pushFactor ? 0 : 1;
-    const initialGuess = new Float32Array(c);
+    const initialGuess0 = new Float32Array(c);
+    const initialGuess1 = new Float32Array(c);
 
     let j = 0;
     let written = 0;
@@ -112,15 +111,17 @@ export class WorldIsland {
       const { min, max } = constraint.getClamping();
       cMin[j] = min;
       cMax[j] = max;
-      v[j] = constraint.getPushFactor(dt, pushFactor);
-      initialGuess[j] = constraint.getCache(cacheId);
+      v0[j] = constraint.getPushFactor(dt, pushFactor);
+      v1[j] = constraint.getPushFactor(dt, 0);
+      initialGuess0[j] = constraint.getCache(0);
+      initialGuess1[j] = constraint.getCache(1);
       j++;
     }
 
     // A = J * Minv * Jt
     // b = 1.0 / ∆t * v − J * (1 / ∆t * v1 + Minv * fext)
 
-    let csrJ = {
+    const csrJ = {
       m: c,
       n: n,
       values: Float32Array.from(values),
@@ -130,26 +131,38 @@ export class WorldIsland {
 
     const csrA = csr.MxDxMtCsr(csrJ, this.invMasses);
 
-    VmV(bhat, this.invMasses, this.forces, bhat.length);
-    VpVxS(bhat, bhat, this.velocities, 1.0 / dt, bhat.length);
+    VmV(bhat, this.invMasses, this.forces, n);
+    VpVxS(bhat, bhat, this.velocities, 1.0 / dt, n);
     csr.MxV(b, csrJ, bhat);
-    VxSpVxS(b, v, 1.0 / dt, b, -1.0, c);
 
+    VxSpVxS(bt, v0, 1.0 / dt, b, -1.0, c);
     projectedGaussSeidel(
-      lambdas,
+      lambdas0,
       csrA,
-      b,
-      initialGuess,
+      bt,
+      initialGuess0,
       cMin,
       cMax,
       this.world.iterations
     );
+    csr.MtxV(outForces0, csrJ, lambdas0);
 
-    for (let i = 0; i < c; i++) {
-      this.constraints[i].setCache(cacheId, lambdas[i]);
+    VxSpVxS(bt, v1, 1.0 / dt, b, -1.0, c);
+    projectedGaussSeidel(
+      lambdas1,
+      csrA,
+      bt,
+      initialGuess1,
+      cMin,
+      cMax,
+      this.world.iterations
+    );
+    csr.MtxV(outForces1, csrJ, lambdas1);
+
+    for (let j = 0; j < c; j++) {
+      this.constraints[j].setCache(0 as 0 | 1, lambdas0[j]);
+      this.constraints[j].setCache(1 as 0 | 1, lambdas1[j]);
     }
-
-    csr.MtxV(out, csrJ, lambdas);
   }
 
   private bodiesToArrays() {

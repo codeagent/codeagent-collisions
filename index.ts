@@ -62,7 +62,7 @@ merge(
     map((e) => e.srcElement['id'])
   ),
 
-  of('joint').pipe(delay(1000))
+  of('gauss').pipe(delay(1000))
 )
   .pipe(
     tap((id) => {
@@ -106,6 +106,10 @@ step();
 Profiler.instance
   .listen('World.integrate')
   .subscribe((e) => console.log('World.integrate', e));
+
+Profiler.instance
+  .listen('WorldIsland.projectedGaussSeidel')
+  .subscribe((e) => console.log('WorldIsland.projectedGaussSeidel', e));
 // Profiler.instance
 //   .listen('drawWorld')
 //   .subscribe((e) => console.log('drawWorld', e));

@@ -82,7 +82,6 @@ export const VxSpVxS = (
   S2: number,
   length: number
 ) => {
-  
   for (let i = 0; i < length; i++) {
     out[i] = V1[i] * S1 + V2[i] * S2;
   }
