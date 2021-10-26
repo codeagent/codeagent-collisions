@@ -88,34 +88,43 @@ export const VxSpVxS = (
 };
 
 export const projectedGaussSeidel = (
-  out: Vector,
+  out0: Vector,
+  out1: Vector,
   A: csr.Matrix,
-  b: Vector,
-  initialGuess: Vector,
+  b0: Vector,
+  b1: Vector,
   cMin: Vector,
   cMax: Vector,
   maxIterations: number
 ) => {
-  const n = b.length;
-
-  out.set(initialGuess, 0);
+  const n = b0.length;
 
   while (maxIterations-- > 0) {
     for (let j = 0; j < n; j++) {
-      out[j] = b[j];
-      let denom = 1.0;
+      out0[j] = b0[j];
+      out1[j] = b1[j];
 
+      let denom = 1.0;
       for (let k = A.rows[j]; k < A.rows[j + 1]; k++) {
         if (A.columns[k] === j) {
           denom = A.values[k];
           continue;
         }
-        out[j] -= A.values[k] * out[A.columns[k]];
+        const c = A.columns[k];
+        const v = A.values[k];
+
+        out0[j] -= v * out0[c];
+        out1[j] -= v * out1[c];
       }
 
-      out[j] /= denom;
-      out[j] = Math.min(out[j], cMax[j]);
-      out[j] = Math.max(out[j], cMin[j]);
+      out0[j] /= denom;
+      out1[j] /= denom;
+
+      out0[j] = Math.min(out0[j], cMax[j]);
+      out1[j] = Math.min(out1[j], cMax[j]);
+
+      out0[j] = Math.max(out0[j], cMin[j]);
+      out1[j] = Math.max(out1[j], cMin[j]);
     }
   }
 };

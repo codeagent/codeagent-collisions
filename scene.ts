@@ -241,7 +241,7 @@ export const createStairsScene = (n: number) => {
 
 export const createGaussianScene = () => {
   const n = 512;
-  let columns = 9;
+  let columns = 0;
   let band = 2.0;
   const colW = 0.25;
   const sinkSlope = Math.PI * 0.35;

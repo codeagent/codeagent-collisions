@@ -93,10 +93,10 @@ export class WorldIsland {
     const lambdas0 = new Float32Array(c);
     const lambdas1 = new Float32Array(c);
     const b = new Float32Array(c);
-    const bt = new Float32Array(c);
+    const bt0 = new Float32Array(c);
+    const bt1 = new Float32Array(c);
+
     const bhat = new Float32Array(n);
-    const initialGuess0 = new Float32Array(c);
-    const initialGuess1 = new Float32Array(c);
 
     let j = 0;
     let written = 0;
@@ -113,8 +113,8 @@ export class WorldIsland {
       cMax[j] = max;
       v0[j] = constraint.getPushFactor(dt, pushFactor);
       v1[j] = constraint.getPushFactor(dt, 0);
-      initialGuess0[j] = constraint.getCache(0);
-      initialGuess1[j] = constraint.getCache(1);
+      lambdas0[j] = constraint.getCache(0);
+      lambdas1[j] = constraint.getCache(1);
       j++;
     }
 
@@ -135,28 +135,20 @@ export class WorldIsland {
     VpVxS(bhat, bhat, this.velocities, 1.0 / dt, n);
     csr.MxV(b, csrJ, bhat);
 
-    VxSpVxS(bt, v0, 1.0 / dt, b, -1.0, c);
+    VxSpVxS(bt0, v0, 1.0 / dt, b, -1.0, c);
+    VxSpVxS(bt1, v1, 1.0 / dt, b, -1.0, c);
+
     projectedGaussSeidel(
       lambdas0,
+      lambdas1,
       csrA,
-      bt,
-      initialGuess0,
+      bt0,
+      bt1,
       cMin,
       cMax,
       this.world.iterations
     );
     csr.MtxV(outForces0, csrJ, lambdas0);
-
-    VxSpVxS(bt, v1, 1.0 / dt, b, -1.0, c);
-    projectedGaussSeidel(
-      lambdas1,
-      csrA,
-      bt,
-      initialGuess1,
-      cMin,
-      cMax,
-      this.world.iterations
-    );
     csr.MtxV(outForces1, csrJ, lambdas1);
 
     for (let j = 0; j < c; j++) {
