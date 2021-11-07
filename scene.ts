@@ -57,15 +57,14 @@ export const createChainScene = (links: number, x = 0.0) => {
 
 export const createStackScene = (n: number) => {
   world.restitution = 0.5;
-  world.pushFactor = 0.4;
-  world.friction = 0.05;
+  world.pushFactor = 0.1;
+  world.friction = 0.72;
 
   // floor
   world.createBody(
     createRectShape(20, 1),
     Number.POSITIVE_INFINITY,
     Number.POSITIVE_INFINITY,
-
     vec2.fromValues(0.0, -9),
     0.0
   );
@@ -88,27 +87,16 @@ export const createStackScene = (n: number) => {
     0.0
   );
 
-  world.createBody(
-    new Circle(2),
-    Number.POSITIVE_INFINITY,
-    Number.POSITIVE_INFINITY,
-    vec2.fromValues(0, 0),
-    0.0
-  );
-
-  let offset = 5.0;
-  while (n--) {
-    world.createBody(
-      n % 2 == 1
-        ? createRectShape(rangeRandom(1.0, 2.5), rangeRandom(1.0, 2.5))
-        : new Circle(rangeRandom(1.0, 1.5) * 0.5),
-      1.0,
-      1.0,
-      vec2.fromValues(rangeRandom(-0.1, 0.1), offset),
-      0.0
-    );
-
-    offset += 2.2;
+  for (let x = -8.0; x <= 8.0; x += 1) {
+    for (let y = -8.0; y <= 2.0; y += 1) {
+      world.createBody(
+        createRectShape(1, 1),
+        1.0,
+        1.0,
+        vec2.fromValues(x, y),
+        0.0
+      );
+    }
   }
 };
 
