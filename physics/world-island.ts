@@ -124,9 +124,9 @@ export class WorldIsland {
     const csrJ = {
       m: c,
       n: n,
-      values: Float32Array.from(values),
-      columns: Uint16Array.from(columns),
-      rows: Uint16Array.from(rows),
+      values: values,
+      columns: columns,
+      rows: rows,
     };
 
     const csrA = csr.MxDxMtCsr(csrJ, this.invMasses);

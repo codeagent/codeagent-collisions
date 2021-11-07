@@ -253,7 +253,7 @@ export const createGaussianScene = () => {
 
   world.restitution = 0.5;
   world.pushFactor = 0.4;
-  world.friction = 0.0;
+  world.friction = 0.3;
 
   // floor
   world.createBody(
