@@ -5,13 +5,10 @@ import { ConstraintBase } from './constraint.base';
 import { Body } from '../body';
 import { VxV } from '../solver';
 
-const ra = vec2.create();
-const rb = vec2.create();
-const x = vec3.create();
-const jacobian = new Float32Array(6);
-const velocities = new Float32Array(6);
-
 export class ContactConstraint extends ConstraintBase {
+  private readonly jacobian = new Float32Array(6);
+  private readonly velocities = new Float32Array(6);
+
   constructor(
     public readonly world: World,
     public readonly bodyA: Body,
@@ -23,82 +20,68 @@ export class ContactConstraint extends ConstraintBase {
     super();
   }
 
-  getJacobian(values: number[], columns: number[]): number {
-    const bodyAIndex = this.world.bodyIndex.get(this.bodyA);
-    const bodyBIndex = this.world.bodyIndex.get(this.bodyB);
-    if (bodyAIndex < bodyBIndex) {
-      return (
-        this.writeA(values, columns, bodyAIndex * 3) +
-        this.writeB(values, columns, bodyBIndex * 3)
-      );
-    } else {
-      return (
-        this.writeB(values, columns, bodyBIndex * 3) +
-        this.writeA(values, columns, bodyAIndex * 3)
-      );
-    }
-  }
+  getJacobian(out: Float32Array, offset: number, length: number): void {
+    const jacobian = out.subarray(offset, offset + length);
+    jacobian.fill(0.0);
 
-  private writeA(values: number[], columns: number[], offset: number): number {
+    const x = vec3.create();
+
     if (!this.bodyA.isStatic) {
+      const ra = vec2.create();
       vec2.sub(ra, this.joint, this.bodyA.position);
-      values.push(
-        -this.normal[0],
-        -this.normal[1],
-        -vec2.cross(x, ra, this.normal)[2]
-      );
-      columns.push(offset, offset + 1, offset + 2);
-      return 3;
-    }
-    return 0;
-  }
 
-  private writeB(values: number[], columns: number[], offset: number): number {
-    if (!this.bodyB.isStatic) {
-      vec2.sub(rb, this.joint, this.bodyB.position);
-      values.push(
-        this.normal[0],
-        this.normal[1],
-        vec2.cross(x, rb, this.normal)[2]
-      );
-      columns.push(offset, offset + 1, offset + 2);
-      return 3;
+      const bodyAIndex = this.world.bodyIndex.get(this.bodyA);
+      jacobian[bodyAIndex * 3] = -this.normal[0];
+      jacobian[bodyAIndex * 3 + 1] = -this.normal[1];
+      jacobian[bodyAIndex * 3 + 2] = -vec2.cross(x, ra, this.normal)[2];
     }
-    return 0;
+
+    if (!this.bodyB.isStatic) {
+      const rb = vec2.create();
+      vec2.sub(rb, this.joint, this.bodyB.position);
+
+      const bodyBIndex = this.world.bodyIndex.get(this.bodyB);
+      jacobian[bodyBIndex * 3] = this.normal[0];
+      jacobian[bodyBIndex * 3 + 1] = this.normal[1];
+      jacobian[bodyBIndex * 3 + 2] = vec2.cross(x, rb, this.normal)[2];
+    }
   }
 
   getPushFactor(dt: number, strength: number): number {
     if (strength) {
       return (this.penetration / dt) * strength;
     } else {
-      jacobian.fill(0);
-      velocities.fill(0);
+      const x = vec3.create();
+      this.jacobian.fill(0);
+      this.velocities.fill(0);
 
       if (!this.bodyA.isStatic) {
+        const ra = vec2.create();
         vec2.sub(ra, this.joint, this.bodyA.position);
 
-        jacobian[0] = -this.normal[0];
-        jacobian[1] = -this.normal[1];
-        jacobian[2] = -vec2.cross(x, ra, this.normal)[2];
+        this.jacobian[0] = -this.normal[0];
+        this.jacobian[1] = -this.normal[1];
+        this.jacobian[2] = -vec2.cross(x, ra, this.normal)[2];
 
-        velocities[0] = this.bodyA.velocity[0];
-        velocities[1] = this.bodyA.velocity[1];
-        velocities[2] = this.bodyA.omega;
+        this.velocities[0] = this.bodyA.velocity[0];
+        this.velocities[1] = this.bodyA.velocity[1];
+        this.velocities[2] = this.bodyA.omega;
       }
 
       if (!this.bodyB.isStatic) {
+        const rb = vec2.create();
         vec2.sub(rb, this.joint, this.bodyB.position);
 
-        jacobian[3] = this.normal[0];
-        jacobian[4] = this.normal[1];
-        jacobian[5] = vec2.cross(x, rb, this.normal)[2];
+        this.jacobian[3] = this.normal[0];
+        this.jacobian[4] = this.normal[1];
+        this.jacobian[5] = vec2.cross(x, rb, this.normal)[2];
 
-        velocities[3] = this.bodyB.velocity[0];
-        velocities[4] = this.bodyB.velocity[1];
-        velocities[5] = this.bodyB.omega;
+        this.velocities[3] = this.bodyB.velocity[0];
+        this.velocities[4] = this.bodyB.velocity[1];
+        this.velocities[5] = this.bodyB.omega;
       }
     }
-    return -VxV(jacobian, velocities) * this.world.restitution;
+    return -VxV(this.jacobian, this.velocities) * this.world.restitution;
   }
 
   getClamping() {

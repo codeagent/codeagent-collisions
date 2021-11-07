@@ -97,17 +97,13 @@ export class WorldIsland {
     const bt1 = new Float32Array(c);
 
     const bhat = new Float32Array(n);
+    const J = new Float32Array(n * c);
 
     let j = 0;
-    let written = 0;
-    const rows: number[] = [written];
-    const columns: number[] = [];
-    const values: number[] = [];
+    let i = 0;
 
     for (const constraint of this.constraints) {
-      written += constraint.getJacobian(values, columns);
-      rows.push(written);
-
+      constraint.getJacobian(J, i, n);
       const { min, max } = constraint.getClamping();
       cMin[j] = min;
       cMax[j] = max;
@@ -115,20 +111,14 @@ export class WorldIsland {
       v1[j] = constraint.getPushFactor(dt, 0);
       lambdas0[j] = constraint.getCache(0);
       lambdas1[j] = constraint.getCache(1);
+      i += n;
       j++;
     }
 
     // A = J * Minv * Jt
     // b = 1.0 / ∆t * v − J * (1 / ∆t * v1 + Minv * fext)
 
-    const csrJ = {
-      m: c,
-      n: n,
-      values: values,
-      columns: columns,
-      rows: rows,
-    };
-
+    const csrJ = csr.compress(J, c);
     const csrA = csr.MxDxMtCsr(csrJ, this.invMasses);
 
     VmV(bhat, this.invMasses, this.forces, n);

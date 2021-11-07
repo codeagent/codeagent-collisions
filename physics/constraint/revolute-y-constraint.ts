@@ -4,11 +4,6 @@ import { World } from '../world';
 import { ConstraintBase } from './constraint.base';
 import { Body } from '../body';
 
-const pa = vec2.create();
-const ra = vec2.create();
-const pb = vec2.create();
-const rb = vec2.create();
-
 export class RevoluteYConstraint extends ConstraintBase {
   constructor(
     public readonly world: World,
@@ -20,51 +15,48 @@ export class RevoluteYConstraint extends ConstraintBase {
     super();
   }
 
-  getJacobian(values: number[], columns: number[]): number {
-    const bodyAIndex = this.world.bodyIndex.get(this.bodyA);
-    const bodyBIndex = this.world.bodyIndex.get(this.bodyB);
-    if (bodyAIndex < bodyBIndex) {
-      return (
-        this.writeA(values, columns, bodyAIndex * 3) +
-        this.writeB(values, columns, bodyBIndex * 3)
-      );
-    } else {
-      return (
-        this.writeB(values, columns, bodyBIndex * 3) +
-        this.writeA(values, columns, bodyAIndex * 3)
-      );
+  getJacobian(out: Float32Array, offset: number, length: number): void {
+    const jacobian = out.subarray(offset, offset + length);
+    jacobian.fill(0.0);
+
+    if (!this.bodyA.isStatic) {
+      const pa = vec2.create();
+      vec2.transformMat3(pa, this.jointA, this.bodyA.transform);
+
+      const ra = vec2.create();
+      vec2.sub(ra, pa, this.bodyA.position);
+
+      const bodyAIndex = this.world.bodyIndex.get(this.bodyA);
+      jacobian[bodyAIndex * 3] = 0;
+      jacobian[bodyAIndex * 3 + 1] = 1;
+      jacobian[bodyAIndex * 3 + 2] = ra[0];
+    }
+
+    if (!this.bodyB.isStatic) {
+      const pb = vec2.create();
+      vec2.transformMat3(pb, this.jointB, this.bodyB.transform);
+
+      const rb = vec2.create();
+      vec2.sub(rb, pb, this.bodyB.position);
+
+      const bodyBIndex = this.world.bodyIndex.get(this.bodyB);
+      jacobian[bodyBIndex * 3] = 0;
+      jacobian[bodyBIndex * 3 + 1] = -1;
+      jacobian[bodyBIndex * 3 + 2] = -rb[0];
     }
   }
 
   getPushFactor(dt: number, strength: number): number {
+    const pa = vec2.create();
     vec2.transformMat3(pa, this.jointA, this.bodyA.transform);
+
+    const pb = vec2.create();
     vec2.transformMat3(pb, this.jointB, this.bodyB.transform);
+
     return -((pa[1] - pb[1]) / dt) * strength;
   }
 
   getClamping() {
     return { min: Number.NEGATIVE_INFINITY, max: Number.POSITIVE_INFINITY };
-  }
-
-  private writeA(values: number[], columns: number[], offset: number): number {
-    if (!this.bodyA.isStatic) {
-      vec2.transformMat3(pa, this.jointA, this.bodyA.transform);
-      vec2.sub(ra, pa, this.bodyA.position);
-      values.push(1, ra[0]);
-      columns.push(offset + 1, offset + 2);
-      return 2;
-    }
-    return 0;
-  }
-
-  private writeB(values: number[], columns: number[], offset: number): number {
-    if (!this.bodyB.isStatic) {
-      vec2.transformMat3(pb, this.jointB, this.bodyB.transform);
-      vec2.sub(rb, pb, this.bodyB.position);
-      values.push(-1, -rb[0]);
-      columns.push(offset + 1, offset + 2);
-      return 2;
-    }
-    return 0;
   }
 }

@@ -54,17 +54,19 @@ export namespace csr {
     const rows = [];
 
     const n = mat.length / m;
+    let k = 0;
+    for (let i = 0; i < m; i++) {
+      rows.push(values.length);
 
-    for (let i = 0; i < mat.length; i++) {
-      if (i % n === 0) {
-        rows.push(values.length);
-      }
-
-      if (mat[i]) {
-        values.push(mat[i]);
-        columns.push(i % n);
+      for (let j = 0; j < n; j++) {
+        if (mat[k]) {
+          values.push(mat[k]);
+          columns.push(j);
+        }
+        k++;
       }
     }
+
     rows.push(values.length);
 
     return {

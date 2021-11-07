@@ -1,5 +1,4 @@
 import { World } from '../world';
-
 import { ConstraintBase } from './constraint.base';
 import { Body } from '../body';
 
@@ -13,38 +12,23 @@ export class AngleConstraint extends ConstraintBase {
     super();
   }
 
-  getJacobian(values: number[], columns: number[]): number {
-    const bodyAIndex = this.world.bodyIndex.get(this.bodyA);
-    const bodyBIndex = this.world.bodyIndex.get(this.bodyB);
-    if (bodyAIndex < bodyBIndex) {
-      return (
-        this.writeA(values, columns, bodyAIndex * 3) +
-        this.writeB(values, columns, bodyBIndex * 3)
-      );
-    } else {
-      return (
-        this.writeB(values, columns, bodyBIndex * 3) +
-        this.writeA(values, columns, bodyAIndex * 3)
-      );
-    }
-  }
+  getJacobian(out: Float32Array, offset: number, length: number): void {
+    const jacobian = out.subarray(offset, offset + length);
+    jacobian.fill(0.0);
 
-  private writeA(values: number[], columns: number[], offset: number): number {
     if (isFinite(this.bodyA.inertia)) {
-      values.push(-1);
-      columns.push(offset + 2);
-      return 1;
+      const bodyAIndex = this.world.bodyIndex.get(this.bodyA);
+      jacobian[bodyAIndex * 3] = 0;
+      jacobian[bodyAIndex * 3 + 1] = 0;
+      jacobian[bodyAIndex * 3 + 2] = -1;
     }
-    return 0;
-  }
 
-  private writeB(values: number[], columns: number[], offset: number): number {
     if (isFinite(this.bodyB.inertia)) {
-      values.push(1);
-      columns.push(offset + 2);
-      return 1;
+      const bodyBIndex = this.world.bodyIndex.get(this.bodyB);
+      jacobian[bodyBIndex * 3] = 0;
+      jacobian[bodyBIndex * 3 + 1] = 0;
+      jacobian[bodyBIndex * 3 + 2] = 1;
     }
-    return 0;
   }
 
   getPushFactor(dt: number, strength: number): number {
