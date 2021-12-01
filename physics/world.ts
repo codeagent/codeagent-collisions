@@ -1,7 +1,11 @@
 import { vec2 } from 'gl-matrix';
 
 import { Body } from './body';
-import { ConstraintInterface, AngularMotorConstraint } from './constraint';
+import {
+  ConstraintInterface,
+  AngularMotorConstraint,
+  MouseConstraint,
+} from './constraint';
 import { CollisionDetector } from './detector';
 import { Shape } from './collision';
 import { releaseId, uniqueId } from './unique-id';
@@ -18,6 +22,7 @@ import {
 import { WheelJoint } from './joint/wheel-joint';
 import { IslandsGenerator } from './islands-generator';
 import { Profiler } from './profiler';
+import { MouseControlInterface } from './mouse-control.interface';
 
 export class World {
   public readonly bodies: Body[] = [];
@@ -117,6 +122,7 @@ export class World {
     );
     this.bodyJoints.get(bodyA).add(joint);
     this.bodyJoints.get(bodyB).add(joint);
+    return joint;
   }
 
   addPrismaticJoint(
@@ -142,12 +148,14 @@ export class World {
     );
     this.bodyJoints.get(bodyA).add(joint);
     this.bodyJoints.get(bodyB).add(joint);
+    return joint;
   }
 
   addRevoluteJoint(bodyA: Body, jointA: vec2, bodyB: Body, jointB: vec2) {
     const joint = new RevoluteJoint(this, bodyA, jointA, bodyB, jointB);
     this.bodyJoints.get(bodyA).add(joint);
     this.bodyJoints.get(bodyB).add(joint);
+    return joint;
   }
 
   addWeldJoint(
@@ -160,11 +168,13 @@ export class World {
     const joint = new WeldJoint(this, bodyA, jointA, bodyB, jointB, refAngle);
     this.bodyJoints.get(bodyA).add(joint);
     this.bodyJoints.get(bodyB).add(joint);
+    return joint;
   }
 
   addMotor(body: Body, speed: number, torque: number) {
     const motor = new AngularMotorConstraint(this, body, speed, torque);
     this.bodyConstraints.get(body).add(motor);
+    return motor;
   }
 
   addWheelJonit(
@@ -186,9 +196,9 @@ export class World {
       minDistance,
       maxDistance
     );
-
     this.bodyJoints.get(bodyA).add(joint);
     this.bodyJoints.get(bodyB).add(joint);
+    return joint;
   }
 
   addSpring(
@@ -210,15 +220,24 @@ export class World {
       stiffness,
       extinction
     );
-
     this.bodyJoints.get(bodyA).add(joint);
     this.bodyJoints.get(bodyB).add(joint);
+    return joint;
   }
 
-  removeMotor(motor: ConstraintInterface) {
+  addMouseConstraint(
+    control: MouseControlInterface,
+    joint: vec2,
+    stiffness: number,
+    extinction: number
+  ) {
+    return new MouseConstraint(this, joint, control, stiffness, extinction);
+  }
+
+  removeConstraint(constraint: ConstraintInterface) {
     for (const [, constraints] of this.bodyConstraints) {
-      if (constraints.has(motor)) {
-        constraints.delete(motor);
+      if (constraints.has(constraint)) {
+        constraints.delete(constraint);
         break;
       }
     }

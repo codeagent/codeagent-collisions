@@ -12,3 +12,4 @@ export * from './min-angle-constraint';
 export * from './max-angle-constraint';
 export * from './angular-motor-constraint';
 export * from './spring-constraint';
+export * from './mouse-constraint';

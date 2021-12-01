@@ -6,3 +6,4 @@ export * from './world';
 export * from './csr';
 export * from './collision';
 export * from './world-island';
+export * from './mouse-control.interface';
