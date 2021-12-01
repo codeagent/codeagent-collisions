@@ -13,11 +13,11 @@ export class MouseConstraint extends ConstraintBase {
     public readonly extinction: number
   ) {
     super();
+    console.log('construc');
   }
 
   getJacobian(out: Float32Array, offset: number, length: number): void {
     const jacobian = out.subarray(offset, offset + length);
-    jacobian.fill(0.0);
 
     if (!this.control.body.isStatic) {
       const pa = vec2.create();
@@ -27,7 +27,10 @@ export class MouseConstraint extends ConstraintBase {
       vec2.copy(pb, this.control.cursor);
 
       const pbpa = vec2.create();
+
       vec2.sub(pbpa, pb, pa);
+   
+      console.log(pbpa);
       vec2.normalize(pbpa, pbpa);
       const x = vec3.create();
 
@@ -38,6 +41,7 @@ export class MouseConstraint extends ConstraintBase {
       jacobian[bodyAIndex * 3] = -pbpa[0];
       jacobian[bodyAIndex * 3 + 1] = -pbpa[1];
       jacobian[bodyAIndex * 3 + 2] = -vec2.cross(x, ra, pbpa)[2];
+      // console.log(jacobian);
     }
   }
 

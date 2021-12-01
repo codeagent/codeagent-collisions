@@ -231,7 +231,15 @@ export class World {
     stiffness: number,
     extinction: number
   ) {
-    return new MouseConstraint(this, joint, control, stiffness, extinction);
+    const constraint = new MouseConstraint(
+      this,
+      joint,
+      control,
+      stiffness,
+      extinction
+    );
+    this.bodyConstraints.get(control.body).add(constraint);
+    return constraint;
   }
 
   removeConstraint(constraint: ConstraintInterface) {

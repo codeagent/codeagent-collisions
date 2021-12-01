@@ -90,7 +90,7 @@ export class MouseControl implements MouseControlInterface {
   }
 
   private onMouseUp() {
-    this.world.bodyConstraints.get(this._body).delete(this.constraint);
+    this.world.removeConstraint(this.constraint);
     this.constraint = this._body = null;
     this.stop$.next();
   }
@@ -99,15 +99,16 @@ export class MouseControl implements MouseControlInterface {
     vec2.copy(this._cursor, p);
   }
 
+
   private findBody(point: vec2): Body | null {
     const invTransform = mat3.create();
-
+    const p = vec2.create();
     for (const body of this.world.bodies) {
       mat3.invert(invTransform, body.transform);
-      vec2.transformMat3(point, point, invTransform);
+      vec2.transformMat3(p, point, invTransform);
 
       const shape = this.world.bodyShape.get(body);
-      if (shape.testPoint(point)) {
+      if (shape.testPoint(p)) {
         return body;
       }
     }

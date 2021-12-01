@@ -18,6 +18,7 @@ import {
 import { Draggable, Rotatable } from './controls';
 import { satTest } from './physics/collision/test';
 import { Profiler } from './physics/profiler';
+import { MouseControl } from './mouse-control';
 
 self['world'] = world;
 
@@ -34,6 +35,7 @@ const lookup = {
 
 let rotatables: Rotatable[] = [];
 let draggables: Draggable[] = [];
+let control: MouseControl;
 let sceneId: string = '';
 
 merge(
@@ -74,17 +76,25 @@ merge(
     })
   )
   .subscribe((id) => {
-    rotatables.forEach((r) => r.release()), (rotatables.length = 0);
-    draggables.forEach((d) => d.release()), (draggables.length = 0);
+    if (control) {
+      control.release();
+    }
+
+    // rotatables.forEach((r) => r.release()), (rotatables.length = 0);
+    // draggables.forEach((d) => d.release()), (draggables.length = 0);
     while (world.bodies.length) world.destroyBody(world.bodies[0]);
 
     lookup[(sceneId = id)]();
-    world.bodies.forEach((b) =>
-      draggables.push(new Draggable(canvas, world, b))
-    );
-    world.bodies.forEach((b) =>
-      rotatables.push(new Rotatable(canvas, world, b))
-    );
+
+    control = new MouseControl(world, 100.1, 100.1);
+    control.attach(canvas);
+
+    // world.bodies.forEach((b) =>
+    //   draggables.push(new Draggable(canvas, world, b))
+    // );
+    // world.bodies.forEach((b) =>
+    //   rotatables.push(new Rotatable(canvas, world, b))
+    // );
   });
 
 const dt = 1.0 / 60.0;
@@ -103,13 +113,13 @@ const step = () => {
 
 step();
 
-Profiler.instance
-  .listen('World.integrate')
-  .subscribe((e) => console.log('World.integrate', e));
+// Profiler.instance
+//   .listen('World.integrate')
+//   .subscribe((e) => console.log('World.integrate', e));
 
-Profiler.instance
-  .listen('WorldIsland.projectedGaussSeidel')
-  .subscribe((e) => console.log('WorldIsland.projectedGaussSeidel', e));
+// Profiler.instance
+//   .listen('WorldIsland.projectedGaussSeidel')
+//   .subscribe((e) => console.log('WorldIsland.projectedGaussSeidel', e));
 // Profiler.instance
 //   .listen('drawWorld')
 //   .subscribe((e) => console.log('drawWorld', e));
