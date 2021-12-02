@@ -86,7 +86,7 @@ merge(
 
     lookup[(sceneId = id)]();
 
-    control = new MouseControl(world, 100.1, 100.1);
+    control = new MouseControl(world, 0.5, 0.5);
     control.attach(canvas);
 
     // world.bodies.forEach((b) =>

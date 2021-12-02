@@ -4,7 +4,8 @@ import { Body } from './body';
 import {
   ConstraintInterface,
   AngularMotorConstraint,
-  MouseConstraint,
+  MouseXConstraint,
+  MouseYConstraint,
 } from './constraint';
 import { CollisionDetector } from './detector';
 import { Shape } from './collision';
@@ -225,21 +226,31 @@ export class World {
     return joint;
   }
 
-  addMouseConstraint(
+  addMouseConstraints(
     control: MouseControlInterface,
     joint: vec2,
     stiffness: number,
     extinction: number
   ) {
-    const constraint = new MouseConstraint(
+    const constraintX = new MouseXConstraint(
       this,
       joint,
       control,
       stiffness,
       extinction
     );
-    this.bodyConstraints.get(control.body).add(constraint);
-    return constraint;
+    this.bodyConstraints.get(control.body).add(constraintX);
+
+    const constraintY = new MouseYConstraint(
+      this,
+      joint,
+      control,
+      stiffness,
+      extinction
+    );
+    this.bodyConstraints.get(control.body).add(constraintY);
+
+    return [constraintX, constraintY];
   }
 
   removeConstraint(constraint: ConstraintInterface) {

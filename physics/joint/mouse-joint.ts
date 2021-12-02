@@ -16,16 +16,7 @@ export class MouseJoint implements JointInterface {
     public readonly extinction: number
   ) {
     this.constraints.push(
-      new SpringConstraint(
-        world,
-        bodyA,
-        vec2.clone(pivotA),
-        bodyB,
-        vec2.clone(pivotB),
-        distance,
-        stiffness,
-        extinction
-      )
+      
     );
   }
 

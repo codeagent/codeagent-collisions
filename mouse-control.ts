@@ -19,7 +19,7 @@ export class MouseControl implements MouseControlInterface {
   }
   private canvas: HTMLElement;
   private _body: Body | null;
-  private constraint: ConstraintInterface;
+  private constraints: ConstraintInterface[];
   private readonly release$ = new Subject();
   private readonly stop$ = new Subject();
   private readonly _cursor = vec2.create();
@@ -81,7 +81,7 @@ export class MouseControl implements MouseControlInterface {
     const invTransform = mat3.create();
     mat3.invert(invTransform, this._body.transform);
     vec2.transformMat3(p, p, invTransform);
-    this.constraint = this.world.addMouseConstraint(
+    this.constraints = this.world.addMouseConstraints(
       this,
       p,
       this.stiffness,
@@ -90,8 +90,9 @@ export class MouseControl implements MouseControlInterface {
   }
 
   private onMouseUp() {
-    this.world.removeConstraint(this.constraint);
-    this.constraint = this._body = null;
+    this.world.removeConstraint(this.constraints[0]);
+    this.world.removeConstraint(this.constraints[1]);
+    this.constraints = this._body = null;
     this.stop$.next();
   }
 
@@ -99,11 +100,13 @@ export class MouseControl implements MouseControlInterface {
     vec2.copy(this._cursor, p);
   }
 
-
   private findBody(point: vec2): Body | null {
     const invTransform = mat3.create();
     const p = vec2.create();
     for (const body of this.world.bodies) {
+      if (body.isStatic) {
+        continue;
+      }
       mat3.invert(invTransform, body.transform);
       vec2.transformMat3(p, point, invTransform);
 
