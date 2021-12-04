@@ -14,7 +14,6 @@ import {
   SpringConstraint,
   Body,
 } from './physics';
-import { WorldIsland } from './physics/world-island';
 
 export const canvas = document.getElementById('canvas') as HTMLCanvasElement;
 const context = canvas.getContext('2d') as CanvasRenderingContext2D;
@@ -24,20 +23,42 @@ const REDISH_COLOR = '#ff0000';
 const BLUISH_COLOR = '#0356fc';
 const LINE_COLOR = '#f5ad42';
 
-export const projMat = mat3.fromValues(
-  canvas.width / 30.0,
-  0,
-  0,
-  0,
-  -canvas.height / 20.0,
-  0,
-  canvas.width * 0.5,
-  canvas.height * 0.5,
-  1
+const createProjectionMatrix = (
+  xmin: number,
+  xmax: number,
+  ymin: number,
+  ymax: number,
+  width: number,
+  height: number
+) =>
+  mat3.fromValues(
+    width / (xmax - xmin),
+    0,
+    0,
+    0,
+    height / (ymin - ymax),
+    0,
+    (xmin * width) / (xmin - xmax),
+    (ymax * height) / (ymax - ymin),
+    1
+  );
+
+export const projMat = createProjectionMatrix(
+  -15,
+  15,
+  -20,
+  10,
+  Math.max(canvas.width, canvas.height),
+  Math.max(canvas.width, canvas.height)
 );
 
 export const clear = (): void => {
-  context.clearRect(0, 0, canvas.width, canvas.height);
+  context.clearRect(
+    0,
+    0,
+    Math.max(canvas.width, canvas.height),
+    Math.max(canvas.width, canvas.height)
+  );
 };
 
 export const drawPolyShape = (
@@ -131,6 +152,47 @@ export const drawLineSegment = (ed: [vec2, vec2], color = '#666666') => {
   context.lineTo(p1[0], p1[1]);
 
   context.stroke();
+};
+
+export const drawGrid = (lines: number, step: number) => {
+  let x = 0;
+  let y = 0;
+  const edge = -20;
+  const AXIS = '#3399ff';
+  const LINE = '#cce6ff';
+  context.lineWidth = 0.5;
+  for (let i = 0; i < lines; i++) {
+    if (i === 0) {
+      drawLineSegment(
+        [vec2.fromValues(-edge, y), vec2.fromValues(edge, y)],
+        AXIS
+      );
+      drawLineSegment(
+        [vec2.fromValues(x, -edge), vec2.fromValues(x, edge)],
+        AXIS
+      );
+    } else {
+      drawLineSegment(
+        [vec2.fromValues(-edge, y), vec2.fromValues(edge, y)],
+        LINE
+      );
+      drawLineSegment(
+        [vec2.fromValues(-edge, -y), vec2.fromValues(edge, -y)],
+        LINE
+      );
+      drawLineSegment(
+        [vec2.fromValues(x, -edge), vec2.fromValues(x, edge)],
+        LINE
+      );
+      drawLineSegment(
+        [vec2.fromValues(-x, -edge), vec2.fromValues(-x, edge)],
+        LINE
+      );
+    }
+
+    x += step;
+    y += step;
+  }
 };
 
 export const drawManifold = (manifold: ContactManifold) => {
@@ -259,6 +321,8 @@ export const drawWorld = (world: World): void => {
       Array.from(joint).forEach((constraint) => drawConstraint(constraint))
     )
   );
+
+  drawGrid(20, 1.0);
 };
 
 const COLORS = [

@@ -490,7 +490,7 @@ export const createJointScene = () => {
   );
 
   const cube = world.createBody(
-    createRectShape(0.85, 0.85),
+    createRectShape(1.0, 1.0),
     1.1,
     0.1,
     vec2.fromValues(3.0, -8.0),

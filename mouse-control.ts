@@ -11,12 +11,6 @@ import {
 import { projMat } from './draw';
 
 export class MouseControl implements MouseControlInterface {
-  get cursor(): vec2 {
-    return vec2.clone(this._cursor);
-  }
-  get body(): Body | null {
-    return this._body;
-  }
   private canvas: HTMLElement;
   private _body: Body | null;
   private constraints: ConstraintInterface[];
@@ -29,8 +23,7 @@ export class MouseControl implements MouseControlInterface {
 
   constructor(
     private readonly world: World,
-    public readonly stiffness: number,
-    public readonly extinction: number
+    public readonly stiffness: number
   ) {}
 
   attach(canvas: HTMLElement): void {
@@ -51,6 +44,10 @@ export class MouseControl implements MouseControlInterface {
 
   release(): void {
     this.release$.next();
+  }
+
+  getCursorPosition(): vec2 {
+    return vec2.clone(this._cursor);
   }
 
   private onMouseDown(p: vec2) {
@@ -75,17 +72,18 @@ export class MouseControl implements MouseControlInterface {
       )
       .subscribe((p) => this.onMouseMove(p));
 
-    vec2.copy(this.locked, this.body.position);
+    vec2.copy(this.locked, p);
     vec2.copy(this._cursor, p);
 
     const invTransform = mat3.create();
     mat3.invert(invTransform, this._body.transform);
     vec2.transformMat3(p, p, invTransform);
+
     this.constraints = this.world.addMouseConstraints(
       this,
+      this._body,
       p,
-      this.stiffness,
-      this.extinction
+      this.stiffness
     );
   }
 

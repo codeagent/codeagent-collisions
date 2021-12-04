@@ -228,28 +228,20 @@ export class World {
 
   addMouseConstraints(
     control: MouseControlInterface,
+    body: Body,
     joint: vec2,
-    stiffness: number,
-    extinction: number
+    stiffness: number
   ) {
     const constraintX = new MouseXConstraint(
       this,
+      body,
       joint,
       control,
-      stiffness,
-      extinction
+      stiffness
     );
-    this.bodyConstraints.get(control.body).add(constraintX);
-
-    const constraintY = new MouseYConstraint(
-      this,
-      joint,
-      control,
-      stiffness,
-      extinction
-    );
-    this.bodyConstraints.get(control.body).add(constraintY);
-
+    this.bodyConstraints.get(body).add(constraintX);
+    const constraintY = new MouseYConstraint(this, body, joint, control, stiffness);
+    this.bodyConstraints.get(body).add(constraintY);
     return [constraintX, constraintY];
   }
 

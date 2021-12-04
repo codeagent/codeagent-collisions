@@ -15,7 +15,7 @@ import {
   createJointScene,
   createSuspensionScene,
 } from './scene';
-import { Draggable, Rotatable } from './controls';
+
 import { satTest } from './physics/collision/test';
 import { Profiler } from './physics/profiler';
 import { MouseControl } from './mouse-control';
@@ -33,8 +33,6 @@ const lookup = {
   suspension: () => createSuspensionScene(),
 };
 
-let rotatables: Rotatable[] = [];
-let draggables: Draggable[] = [];
 let control: MouseControl;
 let sceneId: string = '';
 
@@ -79,22 +77,10 @@ merge(
     if (control) {
       control.release();
     }
-
-    // rotatables.forEach((r) => r.release()), (rotatables.length = 0);
-    // draggables.forEach((d) => d.release()), (draggables.length = 0);
     while (world.bodies.length) world.destroyBody(world.bodies[0]);
-
     lookup[(sceneId = id)]();
-
-    control = new MouseControl(world, 0.5, 0.5);
+    control = new MouseControl(world, 0.25);
     control.attach(canvas);
-
-    // world.bodies.forEach((b) =>
-    //   draggables.push(new Draggable(canvas, world, b))
-    // );
-    // world.bodies.forEach((b) =>
-    //   rotatables.push(new Rotatable(canvas, world, b))
-    // );
   });
 
 const dt = 1.0 / 60.0;
