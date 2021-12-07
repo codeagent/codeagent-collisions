@@ -71,9 +71,9 @@ const getEigenVectors = (m: mat2): vec2[] => {
 
   const x1 = vec2.create();
   if (c00 !== lambda1) {
-    vec2.set(x0, -c01 / (c00 - lambda1), 1);
+    vec2.set(x1, -c01 / (c00 - lambda1), 1);
   } else {
-    vec2.set(x0, -c11 / (c10 - lambda1), 1);
+    vec2.set(x1, -c11 / (c10 - lambda1), 1);
   }
 
   return [x0, x1];
@@ -110,12 +110,15 @@ export const calculateOBB = (mesh: Mesh): OBB => {
     }
   }
 
-  const extent0 = 0.5 * (minDot0 + maxDot0);
-  const extent1 = 0.5 * (minDot1 + maxDot1);
+  const extent0 = 0.5 * Math.abs(maxDot0 - minDot0);
+  const extent1 = 0.5 * Math.abs(maxDot1 - minDot1);
+
+  const a = 0.5 * (minDot0 + maxDot0);
+  const b = 0.5 * (minDot1 + maxDot1);
 
   const center = vec2.create();
-  vec2.scaleAndAdd(center, center, e0, extent0);
-  vec2.scaleAndAdd(center, center, e1, extent1);
+  vec2.scaleAndAdd(center, center, e0, a);
+  vec2.scaleAndAdd(center, center, e1, b);
 
   const transform = mat3.fromValues(
     e0[0],
@@ -131,5 +134,8 @@ export const calculateOBB = (mesh: Mesh): OBB => {
     1
   );
 
-  return { transform, extent: vec2.fromValues(extent0, extent1) };
+  return {
+    transform,
+    extent: vec2.fromValues(extent0, extent1),
+  };
 };

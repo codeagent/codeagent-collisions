@@ -15,6 +15,7 @@ import {
   Body,
   Mesh,
 } from './physics';
+import { OBB } from './physics/collision/mesh';
 
 export const canvas = document.getElementById('canvas') as HTMLCanvasElement;
 const context = canvas.getContext('2d') as CanvasRenderingContext2D;
@@ -328,6 +329,37 @@ export const drawMesh = (
       }
       context.lineTo(p1[0], p1[1]);
     }
+  }
+
+  context.stroke();
+  context.setLineDash([]);
+};
+
+export const drawOBB = (obb: OBB, color: string, dashed = false) => {
+  context.lineWidth = 1;
+  context.strokeStyle = color;
+  context.setLineDash(dashed ? [1, 1] : []);
+
+  const points = [
+    vec2.fromValues(-obb.extent[0], -obb.extent[1]),
+    vec2.fromValues(obb.extent[0], -obb.extent[1]),
+    vec2.fromValues(obb.extent[0], obb.extent[1]),
+    vec2.fromValues(-obb.extent[0], obb.extent[1]),
+  ];
+
+  for (let i = 0; i < points.length; i++) {
+    const p0 = vec2.create();
+    const p1 = vec2.create();
+
+    vec2.transformMat3(p0, points[i], obb.transform);
+    vec2.transformMat3(p0, p0, projMat);
+    vec2.transformMat3(p1, points[(i + 1) % points.length], obb.transform);
+    vec2.transformMat3(p1, p1, projMat);
+
+    if (i === 0) {
+      context.moveTo(p0[0], p0[1]);
+    }
+    context.lineTo(p1[0], p1[1]);
   }
 
   context.stroke();
