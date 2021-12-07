@@ -13,6 +13,7 @@ import {
   MinDistanceConstraint,
   SpringConstraint,
   Body,
+  Mesh,
 } from './physics';
 
 export const canvas = document.getElementById('canvas') as HTMLCanvasElement;
@@ -300,6 +301,37 @@ export const drawBody = (world: World, body: Body, color: string) => {
   } else if (shape instanceof Circle) {
     drawCircleShape(shape.radius, body.transform, color);
   }
+};
+
+export const drawMesh = (
+  mesh: Mesh,
+  transform: mat3,
+  color: string,
+  dashed = false
+) => {
+  context.lineWidth = 1;
+  context.strokeStyle = color;
+  context.setLineDash(dashed ? [1, 1] : []);
+
+  for (const triangle of mesh) {
+    for (let i = 0; i < 3; i++) {
+      const p0 = vec2.create();
+      const p1 = vec2.create();
+
+      vec2.transformMat3(p0, triangle[`p${i}`], transform);
+      vec2.transformMat3(p0, p0, projMat);
+      vec2.transformMat3(p1, triangle[`p${(i + 1) % 3}`], transform);
+      vec2.transformMat3(p1, p1, projMat);
+
+      if (i === 0) {
+        context.moveTo(p0[0], p0[1]);
+      }
+      context.lineTo(p1[0], p1[1]);
+    }
+  }
+
+  context.stroke();
+  context.setLineDash([]);
 };
 
 export const drawWorld = (world: World): void => {

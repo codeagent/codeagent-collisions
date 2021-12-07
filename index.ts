@@ -11,14 +11,13 @@ import {
   world,
   createGaussianScene,
   createChainScene,
-  createSATScene,
   createJointScene,
   createSuspensionScene,
 } from './scene';
 
-import { satTest } from './physics/collision/test';
 import { Profiler } from './physics/profiler';
 import { MouseControl } from './mouse-control';
+import { meshTest } from './physics/collision/mesh-test';
 
 self['world'] = world;
 
@@ -28,7 +27,7 @@ const lookup = {
   stairs: () => createStairsScene(8),
   stack: () => createStackScene(128),
   gauss: () => createGaussianScene(),
-  sat: () => createSATScene(),
+  mesh: () => {},
   joint: () => createJointScene(),
   suspension: () => createSuspensionScene(),
 };
@@ -58,7 +57,7 @@ merge(
   fromEvent(document.getElementById('suspension'), 'click').pipe(
     map((e) => e.srcElement['id'])
   ),
-  fromEvent(document.getElementById('sat'), 'click').pipe(
+  fromEvent(document.getElementById('mesh'), 'click').pipe(
     map((e) => e.srcElement['id'])
   ),
 
@@ -91,8 +90,8 @@ const step = () => {
   Profiler.instance.begin('drawWorld');
   drawWorld(world);
   Profiler.instance.end('drawWorld');
-  if (sceneId === 'sat') {
-    satTest(world);
+  if (sceneId === 'mesh') {
+    meshTest(world);
   }
   requestAnimationFrame(step);
 };

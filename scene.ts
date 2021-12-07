@@ -343,56 +343,6 @@ export const createGaussianScene = () => {
   }
 };
 
-export const createSATScene = () => {
-  world.createBody(
-    createRectShape(5, 2),
-    Number.POSITIVE_INFINITY,
-    Number.POSITIVE_INFINITY,
-    vec2.fromValues(-2.0, -5),
-    0.0
-  );
-
-  world.createBody(
-    createRectShape(2, 3),
-    Number.POSITIVE_INFINITY,
-    Number.POSITIVE_INFINITY,
-    vec2.fromValues(2.0, 0),
-    0.0
-  );
-
-  const w = 3;
-  const h = 5;
-  world.createBody(
-    new Polygon([
-      vec2.fromValues(w * 0.5, -h * 0.5),
-      vec2.fromValues(w * 0.5, h * 0.5),
-      vec2.fromValues(0, h),
-      vec2.fromValues(-w * 0.5, h * 0.75),
-      vec2.fromValues(-w * 1.0, h * 0.25),
-    ]),
-    Number.POSITIVE_INFINITY,
-    Number.POSITIVE_INFINITY,
-    vec2.fromValues(2.0, 0),
-    0.0
-  );
-
-  world.createBody(
-    new Circle(2),
-    Number.POSITIVE_INFINITY,
-    Number.POSITIVE_INFINITY,
-    vec2.fromValues(4, -2),
-    0.0
-  );
-
-  world.createBody(
-    new Circle(3),
-    Number.POSITIVE_INFINITY,
-    Number.POSITIVE_INFINITY,
-    vec2.fromValues(0.0, -5),
-    0.0
-  );
-};
-
 export const createJointScene = () => {
   world.restitution = 0.35;
   world.pushFactor = 0.65;
