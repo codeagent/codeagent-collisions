@@ -55,12 +55,7 @@ export const projMat = createProjectionMatrix(
 );
 
 export const clear = (): void => {
-  context.clearRect(
-    0,
-    0,
-    Math.max(canvas.width, canvas.height),
-    Math.max(canvas.width, canvas.height)
-  );
+  context.clearRect(0, 0, canvas.width, canvas.height);
 };
 
 export const drawPolyShape = (
@@ -314,6 +309,7 @@ export const drawMesh = (
   context.strokeStyle = color;
   context.setLineDash(dashed ? [1, 1] : []);
 
+  context.beginPath();
   for (const triangle of mesh) {
     for (let i = 0; i < 3; i++) {
       const p0 = vec2.create();
@@ -340,6 +336,7 @@ export const drawOBB = (obb: OBB, color: string, dashed = false) => {
   context.strokeStyle = color;
   context.setLineDash(dashed ? [1, 1] : []);
 
+  context.beginPath();
   const points = [
     vec2.fromValues(-obb.extent[0], -obb.extent[1]),
     vec2.fromValues(obb.extent[0], -obb.extent[1]),
