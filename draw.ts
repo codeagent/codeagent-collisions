@@ -15,7 +15,7 @@ import {
   Body,
   Mesh,
 } from './physics';
-import { OBB } from './physics/collision/mesh';
+import { centroid, OBB, OBBNode } from './physics/collision/mesh';
 
 export const canvas = document.getElementById('canvas') as HTMLCanvasElement;
 const context = canvas.getContext('2d') as CanvasRenderingContext2D;
@@ -329,6 +329,10 @@ export const drawMesh = (
 
   context.stroke();
   context.setLineDash([]);
+
+  for (const t of mesh) {
+    drawDot(centroid(t));
+  }
 };
 
 export const drawOBB = (obb: OBB, color: string, dashed = false) => {
@@ -361,6 +365,38 @@ export const drawOBB = (obb: OBB, color: string, dashed = false) => {
 
   context.stroke();
   context.setLineDash([]);
+
+  const origin = vec2.fromValues(obb.transform[6], obb.transform[7]);
+  drawDot(origin, REDISH_COLOR);
+
+  const normal =
+    obb.extent[0] > obb.extent[1]
+      ? vec2.fromValues(obb.transform[0], obb.transform[1])
+      : vec2.fromValues(obb.transform[3], obb.transform[4]);
+
+  const p0 = vec2.clone(origin);
+  const p1 = vec2.add(vec2.create(), p0, normal);
+  drawLineSegment([p0, p1]);
+};
+
+export const drawOBBTree = (node: OBBNode, drawLevel = -1) => {
+  const queue = [{ node, level: 0 }];
+
+  while (queue.length) {
+    const { node, level } = queue.shift();
+    if (drawLevel < 0 || level === drawLevel) {
+      
+      drawOBB(node.obb, COLORS[level]);
+    }
+
+    if(node.triangle) {
+      //  drawOBB(node.obb, COLORS[level]);
+    }
+
+    for (const child of node.children) {
+      queue.push({ node: child, level: level + 1 });
+    }
+  }
 };
 
 export const drawWorld = (world: World): void => {

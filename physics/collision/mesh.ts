@@ -56,7 +56,7 @@ const getEigenVectors = (m: mat2): vec2[] => {
 
   const D = (c00 + c11) * (c00 + c11) - 4.0 * (c00 * c11 - c01 * c10);
   if (D < 0) {
-    throw Error('getEigenVectors: something goes wrong');
+    throw Error('getEigenVectors: something went wrong');
   }
 
   const lambda0 = 0.5 * (c00 + c11 - Math.sqrt(D));
@@ -138,4 +138,92 @@ export const calculateOBB = (mesh: Mesh): OBB => {
     transform,
     extent: vec2.fromValues(extent0, extent1),
   };
+};
+
+export interface OBBNode {
+  obb: OBB;
+  children: OBBNode[];
+  triangle?: MeshTriangle;
+}
+
+export const centroid = (triangle: MeshTriangle) =>
+  vec2.fromValues(
+    (triangle.p0[0] + triangle.p1[0] + triangle.p2[0]) / 3.0,
+    (triangle.p0[1] + triangle.p1[1] + triangle.p2[1]) / 3.0
+  );
+
+export const generateOBBTree = (mesh: Mesh): OBBNode => {
+  let root: OBBNode = {
+    obb: calculateOBB(mesh),
+    children: [],
+  };
+
+  const queue: { node: OBBNode; soup: Mesh }[] = [
+    {
+      node: root,
+      soup: mesh,
+    },
+  ];
+
+  let c = 100;
+
+  while (queue.length && c--) {
+    const { soup, node: parent } = queue.shift();
+
+    if (soup.length > 1) {
+      const origin = vec2.fromValues(
+        parent.obb.transform[6],
+        parent.obb.transform[7]
+      );
+      const normal0 = vec2.create();
+      const normal1 = vec2.create();
+      if (parent.obb.extent[0] > parent.obb.extent[1]) {
+        vec2.set(normal0, parent.obb.transform[0], parent.obb.transform[1]);
+        vec2.set(normal1, parent.obb.transform[3], parent.obb.transform[4]);
+      } else {
+        vec2.set(normal0, parent.obb.transform[3], parent.obb.transform[4]);
+        vec2.set(normal1, parent.obb.transform[0], parent.obb.transform[1]);
+      }
+
+      console.log(soup);
+
+      const normal = [normal0, normal1];
+
+      for (let att = 0; att < 2; att++) {
+        const positive: Mesh = [];
+        const negative: Mesh = [];
+
+        const dot = vec2.dot(origin, normal[att]);
+        for (const triangle of soup) {
+          if (vec2.dot(normal[att], centroid(triangle)) > dot) {
+            positive.push(triangle);
+          } else {
+            negative.push(triangle);
+          }
+        }
+
+        if (!positive.length || !negative.length) {
+          break;
+        }
+
+        const left = { obb: calculateOBB(negative), children: [] };
+        parent.children.push(left);
+        queue.push({
+          node: left,
+          soup: negative,
+        });
+
+        const right = { obb: calculateOBB(positive), children: [] };
+        parent.children.push(right);
+        queue.push({
+          node: right,
+          soup: positive,
+        });
+      }
+    } else {
+      parent.triangle = soup[0];
+    }
+  }
+
+  return root;
 };
