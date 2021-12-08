@@ -165,9 +165,7 @@ export const generateOBBTree = (mesh: Mesh): OBBNode => {
     },
   ];
 
-  let c = 100;
-
-  while (queue.length && c--) {
+  while (queue.length) {
     const { soup, node: parent } = queue.shift();
 
     if (soup.length > 1) {
@@ -185,40 +183,36 @@ export const generateOBBTree = (mesh: Mesh): OBBNode => {
         vec2.set(normal1, parent.obb.transform[0], parent.obb.transform[1]);
       }
 
-      console.log(soup);
-
-      const normal = [normal0, normal1];
-
-      for (let att = 0; att < 2; att++) {
+      for (let normal of [normal0, normal1]) {
         const positive: Mesh = [];
         const negative: Mesh = [];
 
-        const dot = vec2.dot(origin, normal[att]);
+        const dot = vec2.dot(origin, normal);
         for (const triangle of soup) {
-          if (vec2.dot(normal[att], centroid(triangle)) > dot) {
+          if (vec2.dot(normal, centroid(triangle)) > dot) {
             positive.push(triangle);
           } else {
             negative.push(triangle);
           }
         }
 
-        if (!positive.length || !negative.length) {
+        if (positive.length > 0 && negative.length > 0) {
+          const left = { obb: calculateOBB(negative), children: [] };
+          parent.children.push(left);
+          queue.push({
+            node: left,
+            soup: negative,
+          });
+
+          const right = { obb: calculateOBB(positive), children: [] };
+          parent.children.push(right);
+          queue.push({
+            node: right,
+            soup: positive,
+          });
+
           break;
         }
-
-        const left = { obb: calculateOBB(negative), children: [] };
-        parent.children.push(left);
-        queue.push({
-          node: left,
-          soup: negative,
-        });
-
-        const right = { obb: calculateOBB(positive), children: [] };
-        parent.children.push(right);
-        queue.push({
-          node: right,
-          soup: positive,
-        });
       }
     } else {
       parent.triangle = soup[0];

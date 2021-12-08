@@ -384,13 +384,8 @@ export const drawOBBTree = (node: OBBNode, drawLevel = -1) => {
 
   while (queue.length) {
     const { node, level } = queue.shift();
-    if (drawLevel < 0 || level === drawLevel) {
-      
+    if (level >= drawLevel) {
       drawOBB(node.obb, COLORS[level]);
-    }
-
-    if(node.triangle) {
-      //  drawOBB(node.obb, COLORS[level]);
     }
 
     for (const child of node.children) {
