@@ -4,7 +4,7 @@ import { World, Body, Shape, Polygon, Circle } from './physics';
 const lerp = (a: number, b: number, t: number) => a * (1.0 - t) + b * t;
 const rangeRandom = (from: number, to: number) => lerp(from, to, Math.random());
 
-const createQuadShape = (size: number): Shape => {
+const createQuadShape = (size: number): Polygon => {
   return new Polygon([
     vec2.fromValues(size * 0.5, -size * 0.5),
     vec2.fromValues(size * 0.5, size * 0.5),
@@ -13,7 +13,7 @@ const createQuadShape = (size: number): Shape => {
   ]);
 };
 
-const createRectShape = (w: number, h: number): Shape => {
+const createRectShape = (w: number, h: number): Polygon => {
   return new Polygon([
     vec2.fromValues(w * 0.5, -h * 0.5),
     vec2.fromValues(w * 0.5, h * 0.5),

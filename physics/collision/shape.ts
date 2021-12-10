@@ -1,4 +1,5 @@
 import { mat3, vec2, vec3 } from 'gl-matrix';
+import { OBB } from './mesh';
 
 export type AABB = [vec2, vec2];
 
@@ -9,14 +10,9 @@ export interface Shape {
    * @returns support point on local frame of reference
    */
   support(out: vec2, dir: vec2): vec2;
+}
 
-  /**
-   * @param out result will be place here
-   * @param transform transformation to be used for calculating net result
-   * @returns net result
-   */
-  aabb(out: AABB, transform: mat3): AABB;
-
+export interface TestTarget {
   /**
    * @param point 2d local point to test against
    * @return result of examine
@@ -24,7 +20,16 @@ export interface Shape {
   testPoint(point: vec2): boolean;
 }
 
-export class Circle implements Shape {
+export interface AABBBounded {
+  /**
+   * @param out result will be place here
+   * @param transform transformation to be used for calculating net result
+   * @returns net result
+   */
+  aabb(out: AABB, transform: mat3): AABB;
+}
+
+export class Circle implements Shape, AABBBounded, TestTarget {
   constructor(public readonly radius: number) {}
 
   public support(out: vec2, dir: vec2): vec2 {
@@ -44,7 +49,7 @@ export class Circle implements Shape {
   }
 }
 
-export class Polygon implements Shape {
+export class Polygon implements Shape, AABBBounded, TestTarget {
   public readonly normals: vec2[];
 
   /**
@@ -144,7 +149,20 @@ export class Box extends Polygon {
       vec2.fromValues(-width * 0.5, height * 0.5),
       vec2.fromValues(-width * 0.5, -height * 0.5),
       vec2.fromValues(width * 0.5, -height * 0.5),
-      vec2.fromValues(width * 0.5, height * 0.5)
+      vec2.fromValues(width * 0.5, height * 0.5),
     ]);
+  }
+}
+
+export class OBBShape extends Polygon {
+  constructor(public readonly obb: OBB) {
+    super(
+      [
+        vec2.fromValues(-obb.extent[0], -obb.extent[1]),
+        vec2.fromValues(obb.extent[0], -obb.extent[1]),
+        vec2.fromValues(obb.extent[0], obb.extent[1]),
+        vec2.fromValues(-obb.extent[0], obb.extent[1]),
+      ].map((p) => vec2.transformMat3(p, p, obb.transform))
+    );
   }
 }

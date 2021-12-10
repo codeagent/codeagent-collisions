@@ -8,7 +8,7 @@ import {
   MouseYConstraint,
 } from './constraint';
 import { CollisionDetector } from './detector';
-import { Shape } from './collision';
+import { Shape, TestTarget, AABBBounded } from './collision';
 import { releaseId, uniqueId } from './unique-id';
 
 import {
@@ -25,9 +25,11 @@ import { IslandsGenerator } from './islands-generator';
 import { Profiler } from './profiler';
 import { MouseControlInterface } from './mouse-control.interface';
 
+export type BodyShape = Shape & TestTarget & AABBBounded;
+
 export class World {
   public readonly bodies: Body[] = [];
-  public readonly bodyShape = new Map<Body, Shape>();
+  public readonly bodyShape = new Map<Body, BodyShape>();
   public readonly bodyJoints = new Map<Body, Set<JointInterface>>();
   public readonly bodyContacts = new Map<Body, Set<JointInterface>>();
   public readonly bodyConstraints = new Map<Body, Set<ConstraintInterface>>();
@@ -55,7 +57,7 @@ export class World {
   }
 
   createBody(
-    shape: Shape,
+    shape: BodyShape,
     mass: number,
     intertia: number,
     position: vec2,
@@ -240,7 +242,13 @@ export class World {
       stiffness
     );
     this.bodyConstraints.get(body).add(constraintX);
-    const constraintY = new MouseYConstraint(this, body, joint, control, stiffness);
+    const constraintY = new MouseYConstraint(
+      this,
+      body,
+      joint,
+      control,
+      stiffness
+    );
     this.bodyConstraints.get(body).add(constraintY);
     return [constraintX, constraintY];
   }

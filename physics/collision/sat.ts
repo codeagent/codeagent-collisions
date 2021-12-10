@@ -11,9 +11,18 @@ export namespace sat {
     public distance = Number.NEGATIVE_INFINITY;
   }
 
+  interface PolygonLike {
+    readonly normals: vec2[];
+    readonly points: vec2[];
+  }
+
+  interface CircleLike {
+    readonly radius: number;
+  }
+
   const queryBestFace = (
     query: FaceDistanceQuery,
-    poly: Polygon,
+    poly: PolygonLike,
     shape: Shape,
     spaceMapping: SpaceMappingInterface
   ): FaceDistanceQuery => {
@@ -53,8 +62,8 @@ export namespace sat {
 
   export const testPolyPoly = (
     query: MTV,
-    poly0: Polygon,
-    poly1: Polygon,
+    poly0: PolygonLike & Shape,
+    poly1: PolygonLike & Shape,
     spaceMapping: SpaceMappingInterface
   ): boolean => {
     const query0 = new FaceDistanceQuery();
@@ -102,8 +111,8 @@ export namespace sat {
 
   export const testPolyCircle = (
     query: MTV,
-    poly: Polygon,
-    circle: Circle,
+    poly: Shape & PolygonLike,
+    circle: Shape & CircleLike,
     spaceMapping: SpaceMappingInterface
   ): boolean => {
     const query0 = new FaceDistanceQuery();
@@ -154,8 +163,8 @@ export namespace sat {
 
   export const testCircleCircle = (
     query: MTV,
-    circle0: Circle,
-    circle1: Circle,
+    circle0: Shape & CircleLike,
+    circle1: Shape & CircleLike,
     spaceMapping: SpaceMappingInterface
   ): boolean => {
     const center0 = vec2.create();
