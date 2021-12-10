@@ -18,12 +18,12 @@ export interface SpaceMappingInterface {
 }
 
 export class SpaceMapping implements SpaceMappingInterface {
-  private readonly invFirst = mat3.create();
-  private readonly invSecond = mat3.create();
-  private readonly invFirstSecond = mat3.create();
-  private readonly invSecondFirst = mat3.create();
+  public readonly invFirst = mat3.create();
+  public readonly invSecond = mat3.create();
+  public readonly invFirstSecond = mat3.create();
+  public readonly invSecondFirst = mat3.create();
 
-  constructor(private readonly first: mat3, private readonly second: mat3) {
+  constructor(public readonly first: mat3, public readonly second: mat3) {
     affineInverse(this.invFirst, first);
     affineInverse(this.invSecond, second);
     mat3.multiply(this.invFirstSecond, this.invFirst, second);

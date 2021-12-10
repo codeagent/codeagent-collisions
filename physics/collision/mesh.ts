@@ -1,4 +1,6 @@
 import { mat2, mat3, vec2 } from 'gl-matrix';
+import { OBBShape, Polygon, Shape } from './shape';
+import { affineInverse } from './utils';
 
 export interface MeshTriangle {
   p0: vec2;
@@ -10,6 +12,7 @@ export type Mesh = MeshTriangle[];
 
 export interface OBB {
   transform: mat3;
+  invTransform: mat3;
   extent: vec2;
 }
 
@@ -134,16 +137,22 @@ export const calculateOBB = (mesh: Mesh): OBB => {
     1
   );
 
+  const invTransform = mat3.create();
+  affineInverse(invTransform, transform);
+
   return {
     transform,
+    invTransform,
     extent: vec2.fromValues(extent0, extent1),
   };
 };
 
 export interface OBBNode {
   obb: OBB;
-  children: OBBNode[];
+  obbShape: Polygon;
   triangle?: MeshTriangle;
+  triangleShape?: Polygon;
+  children: OBBNode[];
 }
 
 export const centroid = (triangle: MeshTriangle) =>
@@ -153,8 +162,10 @@ export const centroid = (triangle: MeshTriangle) =>
   );
 
 export const generateOBBTree = (mesh: Mesh): OBBNode => {
+  const obb = calculateOBB(mesh);
   let root: OBBNode = {
-    obb: calculateOBB(mesh),
+    obb,
+    obbShape: new OBBShape(obb),
     children: [],
   };
 
@@ -197,14 +208,24 @@ export const generateOBBTree = (mesh: Mesh): OBBNode => {
         }
 
         if (positive.length > 0 && negative.length > 0) {
-          const left = { obb: calculateOBB(negative), children: [] };
+          const leftObb = calculateOBB(negative);
+          const left = {
+            obb: leftObb,
+            obbShape: new OBBShape(leftObb),
+            children: [],
+          };
           parent.children.push(left);
           queue.push({
             node: left,
             soup: negative,
           });
 
-          const right = { obb: calculateOBB(positive), children: [] };
+          const rightObb = calculateOBB(positive);
+          const right = {
+            obb: rightObb,
+            obbShape: new OBBShape(rightObb),
+            children: [],
+          };
           parent.children.push(right);
           queue.push({
             node: right,
@@ -216,6 +237,11 @@ export const generateOBBTree = (mesh: Mesh): OBBNode => {
       }
     } else {
       parent.triangle = soup[0];
+      parent.triangleShape = new Polygon([
+        parent.triangle.p0,
+        parent.triangle.p1,
+        parent.triangle.p2,
+      ]);
     }
   }
 

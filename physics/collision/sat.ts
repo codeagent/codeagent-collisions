@@ -1,7 +1,8 @@
 import { vec2 } from 'gl-matrix';
+import { MeshTriangle, OBBNode } from './mesh';
 
 import { MTV } from './mtv';
-import { Shape, Circle, Polygon } from './shape';
+import { Shape } from './shape';
 import { inverse, SpaceMappingInterface } from './space-mapping';
 import { closestPointToLineSegment } from './utils';
 
@@ -194,5 +195,27 @@ export namespace sat {
     query.vector = null;
 
     return false;
+  };
+
+  export const testAABBOBBTree = (
+    triangles: Set<MeshTriangle>,
+    aabb: PolygonLike & Shape,
+    tree: OBBNode,
+    spaceMapping: SpaceMappingInterface
+  ): boolean => {
+    const queue: OBBNode[] = [tree];
+
+    while (queue.length) {
+      const { obbShape, triangleShape, children } = queue.shift();
+
+      if (triangleShape) {
+        // is leaf
+      } else {
+        // is branch
+        
+      }
+    }
+
+    return true;
   };
 }
