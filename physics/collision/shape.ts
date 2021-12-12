@@ -153,16 +153,3 @@ export class Box extends Polygon {
     ]);
   }
 }
-
-export class OBBShape extends Polygon {
-  constructor(public readonly obb: OBB) {
-    super(
-      [
-        vec2.fromValues(-obb.extent[0], -obb.extent[1]),
-        vec2.fromValues(obb.extent[0], -obb.extent[1]),
-        vec2.fromValues(obb.extent[0], obb.extent[1]),
-        vec2.fromValues(-obb.extent[0], obb.extent[1]),
-      ].map((p) => vec2.transformMat3(p, p, obb.transform))
-    );
-  }
-}

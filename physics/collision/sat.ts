@@ -196,26 +196,4 @@ export namespace sat {
 
     return false;
   };
-
-  export const testAABBOBBTree = (
-    triangles: Set<MeshTriangle>,
-    aabb: PolygonLike & Shape,
-    tree: OBBNode,
-    spaceMapping: SpaceMappingInterface
-  ): boolean => {
-    const queue: OBBNode[] = [tree];
-
-    while (queue.length) {
-      const { obbShape, triangleShape, children } = queue.shift();
-
-      if (triangleShape) {
-        // is leaf
-      } else {
-        // is branch
-        
-      }
-    }
-
-    return true;
-  };
 }

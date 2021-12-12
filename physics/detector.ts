@@ -11,10 +11,10 @@ import {
   getPolyPolyContactManifold,
   getPolyCircleContactManifold,
   getCircleCircleContactManifold,
-  SpaceMapping,
   SpaceMappingInterface,
   inverse as inverseSpaceMapping,
   AABB,
+  betweenPair,
 } from './collision';
 import { Subject } from 'rxjs';
 
@@ -116,7 +116,7 @@ export class CollisionDetector {
 
       let manifold: ContactManifold = [];
       const mtv = new MTV();
-      let spaceMapping: SpaceMappingInterface = new SpaceMapping(
+      let spaceMapping: SpaceMappingInterface = betweenPair(
         leftBody.transform,
         rightBody.transform
       );

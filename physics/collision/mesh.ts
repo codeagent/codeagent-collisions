@@ -1,5 +1,5 @@
 import { mat2, mat3, vec2 } from 'gl-matrix';
-import { OBBShape, Polygon, Shape } from './shape';
+import { AABB } from './shape';
 import { affineInverse } from './utils';
 
 export interface MeshTriangle {
@@ -149,9 +149,7 @@ export const calculateOBB = (mesh: Mesh): OBB => {
 
 export interface OBBNode {
   obb: OBB;
-  obbShape: Polygon;
   triangle?: MeshTriangle;
-  triangleShape?: Polygon;
   children: OBBNode[];
 }
 
@@ -162,10 +160,8 @@ export const centroid = (triangle: MeshTriangle) =>
   );
 
 export const generateOBBTree = (mesh: Mesh): OBBNode => {
-  const obb = calculateOBB(mesh);
   let root: OBBNode = {
-    obb,
-    obbShape: new OBBShape(obb),
+    obb: calculateOBB(mesh),
     children: [],
   };
 
@@ -208,10 +204,8 @@ export const generateOBBTree = (mesh: Mesh): OBBNode => {
         }
 
         if (positive.length > 0 && negative.length > 0) {
-          const leftObb = calculateOBB(negative);
           const left = {
-            obb: leftObb,
-            obbShape: new OBBShape(leftObb),
+            obb: calculateOBB(negative),
             children: [],
           };
           parent.children.push(left);
@@ -220,10 +214,8 @@ export const generateOBBTree = (mesh: Mesh): OBBNode => {
             soup: negative,
           });
 
-          const rightObb = calculateOBB(positive);
           const right = {
-            obb: rightObb,
-            obbShape: new OBBShape(rightObb),
+            obb: calculateOBB(positive),
             children: [],
           };
           parent.children.push(right);
@@ -237,13 +229,80 @@ export const generateOBBTree = (mesh: Mesh): OBBNode => {
       }
     } else {
       parent.triangle = soup[0];
-      parent.triangleShape = new Polygon([
-        parent.triangle.p0,
-        parent.triangle.p1,
-        parent.triangle.p2,
-      ]);
     }
   }
 
   return root;
+};
+
+export const testAABBOBB = (
+  aabb: AABB,
+  obb: OBB,
+  transform: mat3, // obb -> abb
+  invTransform: mat3 // abb -> obb
+) => {
+  let points = [
+    vec2.fromValues(-obb.extent[0], -obb.extent[1]),
+    vec2.fromValues(obb.extent[0], -obb.extent[1]),
+    vec2.fromValues(obb.extent[0], obb.extent[1]),
+    vec2.fromValues(-obb.extent[0], obb.extent[1]),
+  ].map((p) => vec2.transformMat3(p, p, transform));
+
+  if (
+    points.every((p) => p[0] < aabb[0][0]) ||
+    points.every((p) => p[0] > aabb[1][0]) ||
+    points.every((p) => p[1] < aabb[0][1]) ||
+    points.every((p) => p[1] > aabb[1][1])
+  ) {
+    return false;
+  }
+
+  points = [
+    vec2.fromValues(aabb[0][0], aabb[0][1]),
+    vec2.fromValues(aabb[1][0], aabb[0][1]),
+    vec2.fromValues(aabb[1][0], aabb[1][1]),
+    vec2.fromValues(aabb[0][0], aabb[1][1]),
+  ].map((p) => vec2.transformMat3(p, p, invTransform));
+
+  if (
+    points.every((p) => p[0] < -obb.extent[0]) ||
+    points.every((p) => p[0] > obb.extent[0]) ||
+    points.every((p) => p[1] < -obb.extent[1]) ||
+    points.every((p) => p[1] > obb.extent[0])
+  ) {
+    return false;
+  }
+
+  return true;
+};
+
+export const testAABBOBBTree = (
+  triangles: Set<MeshTriangle>,
+  aabb: AABB,
+  tree: OBBNode,
+  transform: mat3
+): boolean => {
+  const queue: OBBNode[] = [tree];
+  const mapping = mat3.create();
+  const invMapping = mat3.create();
+
+  triangles.clear();
+
+  while (queue.length) {
+    const { obb, triangle, children } = queue.shift();
+    mat3.multiply(mapping, transform, obb.transform);
+    affineInverse(invMapping, mapping);
+
+    if (testAABBOBB(aabb, obb, mapping, invMapping)) {
+      if (triangle) {
+        triangles.add(triangle);
+      } else {
+        for (const child of children) {
+          queue.push(child);
+        }
+      }
+    }
+  }
+
+  return triangles.size !== 0;
 };

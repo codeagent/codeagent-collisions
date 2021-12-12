@@ -18,12 +18,12 @@ export interface SpaceMappingInterface {
 }
 
 export class SpaceMapping implements SpaceMappingInterface {
-  public readonly invFirst = mat3.create();
-  public readonly invSecond = mat3.create();
-  public readonly invFirstSecond = mat3.create();
-  public readonly invSecondFirst = mat3.create();
+  private readonly invFirst = mat3.create();
+  private readonly invSecond = mat3.create();
+  private readonly invFirstSecond = mat3.create();
+  private readonly invSecondFirst = mat3.create();
 
-  constructor(public readonly first: mat3, public readonly second: mat3) {
+  constructor(private readonly first: mat3, private readonly second: mat3) {
     affineInverse(this.invFirst, first);
     affineInverse(this.invSecond, second);
     mat3.multiply(this.invFirstSecond, this.invFirst, second);
@@ -108,6 +108,9 @@ export class InverseSpaceMappingDecorator implements SpaceMappingInterface {
     return this.mapping.fromFirstToSecondVector(out, vector);
   }
 }
+
+export const betweenPair = (firstSpace: mat3, secondSpace: mat3) =>
+  new SpaceMapping(firstSpace, secondSpace);
 
 export const inverse = (
   spaceMapping: SpaceMappingInterface
