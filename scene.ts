@@ -1,8 +1,12 @@
 import { vec2 } from 'gl-matrix';
-import { World, Body, Shape, Polygon, Circle } from './physics';
+import { World, Body, Polygon, Circle, generateOBBTree } from './physics';
+
+import MESH from './objects/mesh';
+import { loadObj } from './obj-loader';
 
 const lerp = (a: number, b: number, t: number) => a * (1.0 - t) + b * t;
 const rangeRandom = (from: number, to: number) => lerp(from, to, Math.random());
+import { drawMesh, drawOBBTree } from './draw';
 
 const createQuadShape = (size: number): Polygon => {
   return new Polygon([
@@ -601,4 +605,41 @@ export const createSuspensionScene = () => {
       Math.PI * 0.25
     );
   }
+};
+
+export const createMeshScene = () => {
+  // left wall
+  world.createBody(
+    createRectShape(0.25, 16),
+    Number.POSITIVE_INFINITY,
+    Number.POSITIVE_INFINITY,
+    vec2.fromValues(-14, 0),
+    0.0
+  );
+
+  // right wall
+  world.createBody(
+    createRectShape(0.25, 16),
+    Number.POSITIVE_INFINITY,
+    Number.POSITIVE_INFINITY,
+    vec2.fromValues(14, 0),
+    0.0
+  );
+
+  // floor
+  world.createBody(
+    createRectShape(30, 1),
+    Number.POSITIVE_INFINITY,
+    Number.POSITIVE_INFINITY,
+    vec2.fromValues(0.0, -9),
+    0.0
+  );
+
+  world.createBody(
+    createRectShape(2, 1),
+    1,
+    1,
+    vec2.fromValues(2.0, -0.5),
+    Math.PI * 0.25
+  );
 };

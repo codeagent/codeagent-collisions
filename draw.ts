@@ -16,6 +16,7 @@ import {
   Mesh,
 } from './physics';
 import { centroid, OBB, OBBNode } from './physics/collision/mesh';
+import { AABB } from './physics/collision/shape';
 
 export const canvas = document.getElementById('canvas') as HTMLCanvasElement;
 const context = canvas.getContext('2d') as CanvasRenderingContext2D;
@@ -56,6 +57,37 @@ export const projMat = createProjectionMatrix(
 
 export const clear = (): void => {
   context.clearRect(0, 0, canvas.width, canvas.height);
+};
+
+export const drawAABB = (aabb: AABB, color: string, dashed = false) => {
+  const points = [
+    vec2.fromValues(aabb[0][0], aabb[0][1]),
+    vec2.fromValues(aabb[1][0], aabb[0][1]),
+    vec2.fromValues(aabb[1][0], aabb[1][1]),
+    vec2.fromValues(aabb[0][0], aabb[1][1]),
+  ];
+
+  context.lineWidth = 1;
+  context.strokeStyle = color;
+  context.setLineDash(dashed ? [1, 1] : []);
+
+  context.beginPath();
+
+  for (let i = 0; i < points.length; i++) {
+    const p0 = vec2.create();
+    const p1 = vec2.create();
+
+    vec2.transformMat3(p0, points[i], projMat);
+    vec2.transformMat3(p1, points[(i + 1) % points.length], projMat);
+
+    if (i === 0) {
+      context.moveTo(p0[0], p0[1]);
+    }
+    context.lineTo(p1[0], p1[1]);
+  }
+
+  context.stroke();
+  context.setLineDash([]);
 };
 
 export const drawPolyShape = (
@@ -369,22 +401,23 @@ export const drawOBB = (obb: OBB, color: string, dashed = false) => {
   const origin = vec2.fromValues(obb.transform[6], obb.transform[7]);
   drawDot(origin, REDISH_COLOR);
 
-  const normal =
-    obb.extent[0] > obb.extent[1]
-      ? vec2.fromValues(obb.transform[0], obb.transform[1])
-      : vec2.fromValues(obb.transform[3], obb.transform[4]);
+  const x = vec2.fromValues(obb.transform[0], obb.transform[1]);
+  const y = vec2.fromValues(obb.transform[3], obb.transform[4]);
 
   const p0 = vec2.clone(origin);
-  const p1 = vec2.add(vec2.create(), p0, normal);
-  drawLineSegment([p0, p1]);
+  const p1 = vec2.add(vec2.create(), p0, x);
+  drawLineSegment([p0, p1], REDISH_COLOR);
+
+  vec2.add(p1, p0, y);
+  drawLineSegment([p0, p1], BLUISH_COLOR);
 };
 
-export const drawOBBTree = (node: OBBNode, drawLevel = -1) => {
+export const drawOBBTree = (node: OBBNode, drawLevel = -1, leafs = false) => {
   const queue = [{ node, level: 0 }];
 
   while (queue.length) {
     const { node, level } = queue.shift();
-    if (level >= drawLevel) {
+    if (level == drawLevel || (node.triangle && leafs)) {
       drawOBB(node.obb, COLORS[level]);
     }
 

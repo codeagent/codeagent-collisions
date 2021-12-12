@@ -1,4 +1,4 @@
-import { mat2, mat3, vec2 } from 'gl-matrix';
+import { mat2, mat3, vec2, vec3 } from 'gl-matrix';
 import { AABB } from './shape';
 import { affineInverse } from './utils';
 
@@ -89,6 +89,11 @@ export const calculateOBB = (mesh: Mesh): OBB => {
 
   vec2.normalize(e0, e0);
   vec2.normalize(e1, e1);
+
+  const z = vec3.create();
+  if (vec2.cross(z, e0, e1)[2] < 0) {
+    vec2.negate(e0, e0);
+  }
 
   let minDot0 = Number.POSITIVE_INFINITY;
   let maxDot0 = Number.NEGATIVE_INFINITY;
@@ -268,7 +273,7 @@ export const testAABBOBB = (
     points.every((p) => p[0] < -obb.extent[0]) ||
     points.every((p) => p[0] > obb.extent[0]) ||
     points.every((p) => p[1] < -obb.extent[1]) ||
-    points.every((p) => p[1] > obb.extent[0])
+    points.every((p) => p[1] > obb.extent[1])
   ) {
     return false;
   }
@@ -277,7 +282,7 @@ export const testAABBOBB = (
 };
 
 export const testAABBOBBTree = (
-  triangles: Set<MeshTriangle>,
+  leafs: Set<OBBNode>,
   aabb: AABB,
   tree: OBBNode,
   transform: mat3
@@ -286,23 +291,23 @@ export const testAABBOBBTree = (
   const mapping = mat3.create();
   const invMapping = mat3.create();
 
-  triangles.clear();
+  leafs.clear();
 
   while (queue.length) {
-    const { obb, triangle, children } = queue.shift();
-    mat3.multiply(mapping, transform, obb.transform);
+    const node = queue.shift();
+    mat3.multiply(mapping, transform, node.obb.transform);
     affineInverse(invMapping, mapping);
 
-    if (testAABBOBB(aabb, obb, mapping, invMapping)) {
-      if (triangle) {
-        triangles.add(triangle);
+    if (testAABBOBB(aabb, node.obb, mapping, invMapping)) {
+      if (node.triangle) {
+        leafs.add(node);
       } else {
-        for (const child of children) {
+        for (const child of node.children) {
           queue.push(child);
         }
       }
     }
   }
 
-  return triangles.size !== 0;
+  return leafs.size !== 0;
 };

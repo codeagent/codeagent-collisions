@@ -1,5 +1,4 @@
 import { vec2 } from 'gl-matrix';
-import { MeshTriangle, OBBNode } from './mesh';
 
 import { MTV } from './mtv';
 import { Shape } from './shape';

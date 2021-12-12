@@ -13,6 +13,7 @@ import {
   createChainScene,
   createJointScene,
   createSuspensionScene,
+  createMeshScene,
 } from './scene';
 
 import { Profiler } from './physics/profiler';
@@ -27,7 +28,7 @@ const lookup = {
   stairs: () => createStairsScene(8),
   stack: () => createStackScene(128),
   gauss: () => createGaussianScene(),
-  mesh: () => {},
+  mesh: () => createMeshScene(),
   joint: () => createJointScene(),
   suspension: () => createSuspensionScene(),
 };
