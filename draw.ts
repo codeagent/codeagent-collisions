@@ -15,7 +15,7 @@ import {
   Body,
   Mesh,
 } from './physics';
-import { centroid, OBB, OBBNode } from './physics/collision/mesh';
+import { centroid, MeshShape, OBB, OBBNode } from './physics/collision/mesh';
 import { AABB } from './physics/collision/shape';
 
 export const canvas = document.getElementById('canvas') as HTMLCanvasElement;
@@ -328,6 +328,8 @@ export const drawBody = (world: World, body: Body, color: string) => {
     drawPolyShape(shape, body.transform, color);
   } else if (shape instanceof Circle) {
     drawCircleShape(shape.radius, body.transform, color);
+  } else if (shape instanceof MeshShape) {
+    drawMesh(shape.mesh, body.transform, DEFAULT_COLOR);
   }
 };
 
@@ -361,10 +363,6 @@ export const drawMesh = (
 
   context.stroke();
   context.setLineDash([]);
-
-  for (const t of mesh) {
-    drawDot(centroid(t));
-  }
 };
 
 export const drawOBB = (obb: OBB, color: string, dashed = false) => {

@@ -10,7 +10,6 @@ import {
 import { CollisionDetector } from './detector';
 import { Shape, TestTarget, AABBBounded } from './collision';
 import { releaseId, uniqueId } from './unique-id';
-
 import {
   ContactJoint,
   DistanceJoint,
@@ -24,8 +23,9 @@ import { WheelJoint } from './joint/wheel-joint';
 import { IslandsGenerator } from './islands-generator';
 import { Profiler } from './profiler';
 import { MouseControlInterface } from './mouse-control.interface';
+import { MeshShape } from './collision/mesh';
 
-export type BodyShape = Shape & TestTarget & AABBBounded;
+export type BodyShape = (Shape & TestTarget & AABBBounded) | MeshShape;
 
 export class World {
   public readonly bodies: Body[] = [];

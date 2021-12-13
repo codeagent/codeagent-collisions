@@ -17,6 +17,8 @@ import {
   betweenPair,
 } from './collision';
 import { Subject } from 'rxjs';
+import { MeshShape, OBBNode, testAABBOBBTree } from './collision/mesh';
+import { Shape } from './collision/shape';
 
 export interface BodiesContactPoint {
   bodyAIndex: number;
@@ -29,13 +31,20 @@ export interface BodiesContactPoint {
 export type BodiesPair = [Body, Body];
 export type BodiesPairMap = Map<number, BodiesPair>;
 
+interface Candidate<T extends Shape> {
+  bodyIndex: number;
+  shape: T;
+}
+
+type CandidatePair<T extends Shape = any> = [Candidate<T>, Candidate<T>];
+
 export class CollisionDetector {
   private readonly bodyAABBLookup = new WeakMap<Body, AABB>();
   private readonly collideEnterBroadcast = new Subject<BodiesPair>();
   private readonly collideBroadcast = new Subject<BodiesPair>();
   private readonly collideLeaveBroadcast = new Subject<BodiesPair>();
-  private readonly colliding: BodiesPairMap = new Map<number, [Body, Body]>();
-  private readonly pairs: BodiesPairMap = new Map<number, [Body, Body]>();
+  private readonly colliding: BodiesPairMap = new Map<number, BodiesPair>();
+  private readonly pairs: BodiesPairMap = new Map<number, BodiesPair>();
 
   get collideEnter$() {
     return this.collideEnterBroadcast.asObservable();
@@ -85,34 +94,79 @@ export class CollisionDetector {
   private updateAABBs() {
     for (const body of this.world.bodies) {
       const shape = this.world.bodyShape.get(body);
-      const aabb = this.bodyAABBLookup.get(body);
-      shape.aabb(aabb, body.transform);
+      if (!(shape instanceof MeshShape)) {
+        const aabb = this.bodyAABBLookup.get(body);
+        shape.aabb(aabb, body.transform);
+      }
     }
   }
 
-  private broadPhase(): [number, number][] {
-    const candidates = [];
+  private broadPhase(): CandidatePair[] {
+    const candidates: CandidatePair[] = [];
+    const nodes = new Set<OBBNode>();
     for (let i = 0; i < this.world.bodies.length - 1; i++) {
       for (let j = i + 1; j < this.world.bodies.length; j++) {
-        const leftAABB = this.bodyAABBLookup.get(this.world.bodies[i]);
-        const rightAABB = this.bodyAABBLookup.get(this.world.bodies[j]);
-        if (this.testAABBAABB(leftAABB, rightAABB)) {
-          candidates.push([i, j]);
+        const leftBody = this.world.bodies[i];
+        const rightBody = this.world.bodies[j];
+        const leftShape = this.world.bodyShape.get(leftBody);
+        const rightShape = this.world.bodyShape.get(rightBody);
+        const leftAABB = this.bodyAABBLookup.get(leftBody);
+        const rightAABB = this.bodyAABBLookup.get(rightBody);
+
+        if (leftShape instanceof MeshShape) {
+          if (
+            testAABBOBBTree(
+              nodes,
+              rightAABB,
+              leftShape.obbTree,
+              leftBody.transform
+            )
+          ) {
+            for (const node of nodes) {
+              candidates.push([
+                { bodyIndex: i, shape: node.triangleShape },
+                { bodyIndex: j, shape: rightShape },
+              ]);
+            }
+          }
+        } else if (rightShape instanceof MeshShape) {
+          if (
+            testAABBOBBTree(
+              nodes,
+              leftAABB,
+              rightShape.obbTree,
+              rightBody.transform
+            )
+          ) {
+            for (const node of nodes) {
+              candidates.push([
+                { bodyIndex: j, shape: node.triangleShape },
+                { bodyIndex: i, shape: leftShape },
+              ]);
+            }
+          }
+        } else {
+          if (this.testAABBAABB(leftAABB, rightAABB)) {
+            candidates.push([
+              { bodyIndex: i, shape: leftShape },
+              { bodyIndex: j, shape: rightShape },
+            ]);
+          }
         }
       }
     }
     return candidates;
   }
 
-  private narrowPhase(pairs: [number, number][]): BodiesContactPoint[] {
+  private narrowPhase(pairs: CandidatePair<any>[]): BodiesContactPoint[] {
     const contacts: BodiesContactPoint[] = [];
 
     this.pairs.clear();
     for (let [left, right] of pairs) {
-      const leftBody = this.world.bodies[left];
-      const rightBody = this.world.bodies[right];
-      const leftShape = this.world.bodyShape.get(leftBody);
-      const rightShape = this.world.bodyShape.get(rightBody);
+      const leftBody = this.world.bodies[left.bodyIndex];
+      const rightBody = this.world.bodies[right.bodyIndex];
+      const leftShape = left.shape;
+      const rightShape = right.shape;
 
       let manifold: ContactManifold = [];
       const mtv = new MTV();
@@ -170,8 +224,10 @@ export class CollisionDetector {
       for (const contact of manifold) {
         // @todo: get rid of junk
         contacts.push({
-          bodyAIndex: contact.shape0 === leftShape ? left : right,
-          bodyBIndex: contact.shape1 === rightShape ? right : left,
+          bodyAIndex:
+            contact.shape0 === leftShape ? left.bodyIndex : right.bodyIndex,
+          bodyBIndex:
+            contact.shape1 === rightShape ? right.bodyIndex : left.bodyIndex,
           point: vec2.clone(contact.point1),
           normal: vec2.fromValues(-contact.normal[0], -contact.normal[1]),
           depth: contact.depth,

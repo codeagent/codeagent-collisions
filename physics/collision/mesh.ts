@@ -1,5 +1,5 @@
 import { mat2, mat3, vec2, vec3 } from 'gl-matrix';
-import { AABB } from './shape';
+import { AABB, Polygon as PolygonShape } from './shape';
 import { affineInverse } from './utils';
 
 export interface MeshTriangle {
@@ -155,6 +155,7 @@ export const calculateOBB = (mesh: Mesh): OBB => {
 export interface OBBNode {
   obb: OBB;
   triangle?: MeshTriangle;
+  triangleShape?: PolygonShape;
   children: OBBNode[];
 }
 
@@ -234,6 +235,11 @@ export const generateOBBTree = (mesh: Mesh): OBBNode => {
       }
     } else {
       parent.triangle = soup[0];
+      parent.triangleShape = new PolygonShape([
+        soup[0].p0,
+        soup[0].p1,
+        soup[0].p2,
+      ]);
     }
   }
 
@@ -311,3 +317,11 @@ export const testAABBOBBTree = (
 
   return leafs.size !== 0;
 };
+
+export class MeshShape {
+  readonly obbTree: OBBNode;
+
+  constructor(public readonly mesh: Mesh) {
+    this.obbTree = generateOBBTree(mesh);
+  }
+}

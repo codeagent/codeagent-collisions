@@ -5,9 +5,9 @@ import { MTV } from './mtv';
 import { Shape, Circle, Polygon } from './shape';
 import { closestPointToLineSegment } from './utils';
 
-export interface ContactPoint {
-  shape0: Shape;
-  shape1: Shape;
+export interface ContactPoint<T extends Shape> {
+  shape0: T;
+  shape1: T;
   point0: vec2;
   localPoint0: vec2;
   point1: vec2;
@@ -15,7 +15,7 @@ export interface ContactPoint {
   normal: vec2; // from point0 at point1
   depth: number;
 }
-export type ContactManifold = ContactPoint[];
+export type ContactManifold<T extends Shape = any> = ContactPoint<T>[];
 
 const getIncidentFace = (
   mtv: MTV,
@@ -116,7 +116,7 @@ export const getPolyPolyContactManifold = (
       point1,
       localPoint1,
       normal,
-      depth: -depth
+      depth: -depth,
     });
   }
 
@@ -160,7 +160,7 @@ export const getPolyCircleContactManifold = (
     point1,
     localPoint1,
     normal: mtv.vector,
-    depth: mtv.depth
+    depth: mtv.depth,
   });
 
   return out;
@@ -200,7 +200,7 @@ export const getCircleCircleContactManifold = (
     point1,
     localPoint1,
     normal: mtv.vector,
-    depth: mtv.depth
+    depth: mtv.depth,
   });
 
   return out;

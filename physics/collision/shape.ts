@@ -1,5 +1,4 @@
 import { mat3, vec2, vec3 } from 'gl-matrix';
-import { OBB } from './mesh';
 
 export type AABB = [vec2, vec2];
 
