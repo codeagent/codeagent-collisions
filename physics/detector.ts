@@ -1,4 +1,5 @@
 import { vec2 } from 'gl-matrix';
+import { Subject } from 'rxjs';
 
 import { Body } from './body';
 import { World } from './world';
@@ -15,10 +16,11 @@ import {
   inverse as inverseSpaceMapping,
   AABB,
   betweenPair,
+  Shape,
+  MeshShape,
 } from './collision';
-import { Subject } from 'rxjs';
-import { MeshShape, OBBNode, testAABBOBBTree } from './collision/mesh';
-import { Shape } from './collision/shape';
+
+import { OBBNode, testAABBOBBTree } from './collision/mesh';
 
 export interface BodiesContactPoint {
   bodyAIndex: number;

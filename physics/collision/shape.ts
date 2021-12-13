@@ -1,4 +1,5 @@
 import { mat3, vec2, vec3 } from 'gl-matrix';
+import { generateOBBTree, Mesh, OBBNode } from './mesh';
 
 export type AABB = [vec2, vec2];
 
@@ -150,5 +151,76 @@ export class Box extends Polygon {
       vec2.fromValues(width * 0.5, -height * 0.5),
       vec2.fromValues(width * 0.5, height * 0.5),
     ]);
+  }
+}
+
+export class MeshShape implements TestTarget, AABBBounded {
+  private readonly triangles = new Array<TestTarget>();
+  private readonly points = new Set<vec2>();
+  readonly obbTree: OBBNode;
+
+  constructor(public readonly mesh: Mesh) {
+    this.obbTree = generateOBBTree(mesh);
+    this.getLeafs();
+    this.getVertices();
+  }
+
+  testPoint(point: vec2): boolean {
+    return this.triangles.some((shape) => shape.testPoint(point));
+  }
+
+  aabb(out: AABB, transform: mat3): AABB {
+    const v = vec2.create();
+
+    let minX = Number.POSITIVE_INFINITY;
+    let minY = Number.POSITIVE_INFINITY;
+    let maxX = Number.NEGATIVE_INFINITY;
+    let maxY = Number.NEGATIVE_INFINITY;
+
+    for (const p of this.points) {
+      vec2.transformMat3(v, p, transform);
+
+      if (v[0] < minX) {
+        minX = v[0];
+      }
+      if (v[1] < minY) {
+        minY = v[1];
+      }
+      if (v[0] > maxX) {
+        maxX = v[0];
+      }
+      if (v[1] > maxY) {
+        maxY = v[1];
+      }
+    }
+
+    vec2.set(out[0], minX, minY);
+    vec2.set(out[1], maxX, maxY);
+
+    return out;
+  }
+
+  private getLeafs() {
+    const q = [this.obbTree];
+
+    while (q.length) {
+      const { triangleShape, children } = q.pop();
+
+      if (triangleShape) {
+        this.triangles.push(triangleShape);
+      }
+
+      for (const child of children) {
+        q.push(child);
+      }
+    }
+  }
+
+  private getVertices() {
+    for (const triangle of this.mesh) {
+      this.points.add(triangle.p0);
+      this.points.add(triangle.p1);
+      this.points.add(triangle.p2);
+    }
   }
 }

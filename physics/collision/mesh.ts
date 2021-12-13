@@ -317,11 +317,3 @@ export const testAABBOBBTree = (
 
   return leafs.size !== 0;
 };
-
-export class MeshShape {
-  readonly obbTree: OBBNode;
-
-  constructor(public readonly mesh: Mesh) {
-    this.obbTree = generateOBBTree(mesh);
-  }
-}

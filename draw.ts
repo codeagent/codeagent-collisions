@@ -14,9 +14,11 @@ import {
   SpringConstraint,
   Body,
   Mesh,
+  MeshShape,
+  OBB,
+  OBBNode,
+  AABB,
 } from './physics';
-import { centroid, MeshShape, OBB, OBBNode } from './physics/collision/mesh';
-import { AABB } from './physics/collision/shape';
 
 export const canvas = document.getElementById('canvas') as HTMLCanvasElement;
 const context = canvas.getContext('2d') as CanvasRenderingContext2D;
@@ -434,11 +436,11 @@ export const drawWorld = (world: World): void => {
     )
   );
 
-  // world.bodyContacts.forEach((contacts) =>
-  //   contacts.forEach((concact) =>
-  //     Array.from(concact).forEach((constraint) => drawConstraint(constraint))
-  //   )
-  // );
+  world.bodyContacts.forEach((contacts) =>
+    contacts.forEach((concact) =>
+      Array.from(concact).forEach((constraint) => drawConstraint(constraint))
+    )
+  );
   world.bodyJoints.forEach((joints) =>
     joints.forEach((joint) =>
       Array.from(joint).forEach((constraint) => drawConstraint(constraint))

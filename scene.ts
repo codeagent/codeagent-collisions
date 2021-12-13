@@ -1,13 +1,11 @@
 import { mat3, vec2 } from 'gl-matrix';
-import { World, Body, Polygon, Circle, generateOBBTree } from './physics';
+import { World, Body, Polygon, Circle, MeshShape } from './physics';
 
 import MESH from './objects/mesh';
 import { loadObj } from './obj-loader';
 
 const lerp = (a: number, b: number, t: number) => a * (1.0 - t) + b * t;
 const rangeRandom = (from: number, to: number) => lerp(from, to, Math.random());
-import { drawMesh, drawOBBTree } from './draw';
-import { MeshShape } from './physics/collision/mesh';
 
 const createQuadShape = (size: number): Polygon => {
   return new Polygon([
