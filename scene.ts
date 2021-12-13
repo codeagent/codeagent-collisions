@@ -2,6 +2,7 @@ import { mat3, vec2 } from 'gl-matrix';
 import { World, Body, Polygon, Circle, MeshShape } from './physics';
 
 import MESH from './objects/mesh';
+import PINTBALL from './objects/pintball';
 import { loadObj } from './obj-loader';
 
 const lerp = (a: number, b: number, t: number) => a * (1.0 - t) + b * t;
@@ -607,47 +608,58 @@ export const createSuspensionScene = () => {
 };
 
 export const createMeshScene = () => {
-  // left wall
-  world.createBody(
-    createRectShape(0.25, 16),
-    Number.POSITIVE_INFINITY,
-    Number.POSITIVE_INFINITY,
-    vec2.fromValues(-14, 0),
-    0.0
-  );
+  // // left wall
+  // world.createBody(
+  //   createRectShape(0.25, 16),
+  //   Number.POSITIVE_INFINITY,
+  //   Number.POSITIVE_INFINITY,
+  //   vec2.fromValues(-14, 0),
+  //   0.0
+  // );
 
-  // right wall
-  world.createBody(
-    createRectShape(0.25, 16),
-    Number.POSITIVE_INFINITY,
-    Number.POSITIVE_INFINITY,
-    vec2.fromValues(14, 0),
-    0.0
-  );
+  // // right wall
+  // world.createBody(
+  //   createRectShape(0.25, 16),
+  //   Number.POSITIVE_INFINITY,
+  //   Number.POSITIVE_INFINITY,
+  //   vec2.fromValues(14, 0),
+  //   0.0
+  // );
 
-  // floor
-  world.createBody(
-    createRectShape(30, 1),
-    Number.POSITIVE_INFINITY,
-    Number.POSITIVE_INFINITY,
-    vec2.fromValues(0.0, -9),
-    0.0
-  );
+  // // floor
+  // world.createBody(
+  //   createRectShape(30, 1),
+  //   Number.POSITIVE_INFINITY,
+  //   Number.POSITIVE_INFINITY,
+  //   vec2.fromValues(0.0, -9),
+  //   0.0
+  // );
 
   world.createBody(
-    createRectShape(2, 1),
+    new Circle(0.5),
     1,
     1,
     vec2.fromValues(2.0, -0.5),
     Math.PI * 0.25
   );
 
-  const collection = loadObj(MESH);
-  world.createBody(
-    new MeshShape(collection['Plane001']),
-    1,
-    1,
-    vec2.fromValues(0, 0),
-    0
-  );
+  const collection = loadObj(PINTBALL);
+
+    // world.createBody(
+    //   new MeshShape(collection['wall_left']),
+    //   Number.POSITIVE_INFINITY,
+    //   Number.POSITIVE_INFINITY,
+    //   vec2.fromValues(0, 0),
+    //   0
+    // );
+
+  // for (const object in collection) {
+  //   world.createBody(
+  //     new MeshShape(collection[object]),
+  //     Number.POSITIVE_INFINITY,
+  //     Number.POSITIVE_INFINITY,
+  //     vec2.fromValues(0, 0),
+  //     0
+  //   );
+  // }
 };
