@@ -19,6 +19,7 @@ import {
   OBBNode,
   AABB,
 } from './physics';
+import { centroid } from './physics/collision/mesh';
 
 export const canvas = document.getElementById('canvas') as HTMLCanvasElement;
 const context = canvas.getContext('2d') as CanvasRenderingContext2D;
@@ -365,6 +366,12 @@ export const drawMesh = (
 
   context.stroke();
   context.setLineDash([]);
+
+  for (const tri of mesh) {
+    const c = centroid(tri);
+    vec2.transformMat3(c, c, transform);
+    drawDot(c);
+  }
 };
 
 export const drawOBB = (obb: OBB, color: string, dashed = false) => {

@@ -15,12 +15,13 @@ import {
 import { AABB } from './shape';
 
 const collection = loadObj(PINTBALL);
-const mesh = collection['wall_left'];
+const mesh = collection['piece'];
 const tree = generateOBBTree(mesh);
 const transform = mat3.create();
 
 console.log(tree);
 const aabb: AABB = [vec2.create(), vec2.create()];
+
 
 const nodes = new Set<OBBNode>();
 export const meshTest = (world: World) => {
@@ -30,7 +31,7 @@ export const meshTest = (world: World) => {
 
   drawMesh(mesh, transform, '#666666');
   drawOBBTree(tree, -1, true)
-  drawOBB(tree.children[0].children[0].obb, '#ff0000')
+  drawOBB(tree.obb, '#ff0000')
   // drawAABB(aabb, '#ff0000');
 
   // const node = tree.children[0].children[1].children[1];

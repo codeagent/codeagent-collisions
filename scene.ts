@@ -3,6 +3,7 @@ import { World, Body, Polygon, Circle, MeshShape } from './physics';
 
 import MESH from './objects/mesh';
 import PINTBALL from './objects/pintball';
+import HELIX from './objects/helix';
 import { loadObj } from './obj-loader';
 
 const lerp = (a: number, b: number, t: number) => a * (1.0 - t) + b * t;
@@ -608,58 +609,27 @@ export const createSuspensionScene = () => {
 };
 
 export const createMeshScene = () => {
-  // // left wall
-  // world.createBody(
-  //   createRectShape(0.25, 16),
-  //   Number.POSITIVE_INFINITY,
-  //   Number.POSITIVE_INFINITY,
-  //   vec2.fromValues(-14, 0),
-  //   0.0
-  // );
-
-  // // right wall
-  // world.createBody(
-  //   createRectShape(0.25, 16),
-  //   Number.POSITIVE_INFINITY,
-  //   Number.POSITIVE_INFINITY,
-  //   vec2.fromValues(14, 0),
-  //   0.0
-  // );
-
-  // // floor
-  // world.createBody(
-  //   createRectShape(30, 1),
-  //   Number.POSITIVE_INFINITY,
-  //   Number.POSITIVE_INFINITY,
-  //   vec2.fromValues(0.0, -9),
-  //   0.0
-  // );
+  world.restitution = 0.25;
+  world.pushFactor = 0.65;
+  world.friction = 0.75;
 
   world.createBody(
     new Circle(0.5),
-    1,
-    1,
-    vec2.fromValues(2.0, -0.5),
+    10,
+    1.0,
+    vec2.fromValues(0.0, 0.5),
     Math.PI * 0.25
   );
 
-  const collection = loadObj(PINTBALL);
+  const collection = loadObj(HELIX);
 
-    // world.createBody(
-    //   new MeshShape(collection['wall_left']),
-    //   Number.POSITIVE_INFINITY,
-    //   Number.POSITIVE_INFINITY,
-    //   vec2.fromValues(0, 0),
-    //   0
-    // );
-
-  // for (const object in collection) {
-  //   world.createBody(
-  //     new MeshShape(collection[object]),
-  //     Number.POSITIVE_INFINITY,
-  //     Number.POSITIVE_INFINITY,
-  //     vec2.fromValues(0, 0),
-  //     0
-  //   );
-  // }
+  for (const object in collection) {
+    world.createBody(
+      new MeshShape(collection[object]),
+      Number.POSITIVE_INFINITY,
+      10,
+      vec2.fromValues(0, 0),
+      0
+    );
+  }
 };

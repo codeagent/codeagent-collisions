@@ -93,7 +93,7 @@ const step = () => {
   Profiler.instance.end('drawWorld');
 
   if(sceneId === 'mesh') {
-    meshTest(world);
+    // meshTest(world);
   }
 
   requestAnimationFrame(step);
