@@ -4,6 +4,7 @@ import { World, Body, Polygon, Circle, MeshShape } from './physics';
 import MESH from './objects/mesh';
 import PINTBALL from './objects/pintball';
 import HELIX from './objects/helix';
+import PISTON from './objects/piston';
 import { loadObj } from './obj-loader';
 
 const lerp = (a: number, b: number, t: number) => a * (1.0 - t) + b * t;
@@ -632,4 +633,46 @@ export const createMeshScene = () => {
       0
     );
   }
+};
+
+export const pistonMeshScene = () => {
+  world.restitution = 0.25;
+  world.pushFactor = 0.65;
+  world.friction = 0.75;
+
+  world.createBody(
+    new Circle(0.5),
+    1,
+    0.1,
+    vec2.fromValues(0.0, 20.5),
+    Math.PI * 0.25
+  );
+
+  const collection = loadObj(PISTON);
+
+  world.createBody(
+    new MeshShape(collection['cylinder']),
+    Number.POSITIVE_INFINITY,
+    Number.POSITIVE_INFINITY,
+    vec2.fromValues(0, 0),
+    0
+  );
+
+  world.createBody(
+    new MeshShape(collection['piston']),
+    1,
+    1,
+    vec2.fromValues(0, 0),
+    0
+  );
+
+  // for (const object in collection) {
+  //   world.createBody(
+  //     new MeshShape(collection[object]),
+  //     Number.POSITIVE_INFINITY,
+  //     10,
+  //     vec2.fromValues(0, 0),
+  //     0
+  //   );
+  // }
 };

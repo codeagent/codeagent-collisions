@@ -3,9 +3,11 @@ import { mat3, vec2 } from 'gl-matrix';
 import { World } from '../world';
 import MESH from '../../objects/mesh';
 import PINTBALL from '../../objects/pintball';
+import PISTON from '../../objects/piston';
 import { loadObj } from '../../obj-loader';
 import { drawAABB, drawMesh, drawOBB, drawOBBTree } from '../../draw';
 import {
+  calculateOBB,
   generateOBBTree,
   MeshTriangle,
   OBBNode,
@@ -16,12 +18,12 @@ import { AABB } from './shape';
 
 const collection = loadObj(PINTBALL);
 const mesh = collection['piece'];
-const tree = generateOBBTree(mesh);
+const obb = calculateOBB(mesh);
+// const tree = generateOBBTree(mesh);
 const transform = mat3.create();
 
-console.log(tree);
+// console.log(tree);
 const aabb: AABB = [vec2.create(), vec2.create()];
-
 
 const nodes = new Set<OBBNode>();
 export const meshTest = (world: World) => {
@@ -30,8 +32,8 @@ export const meshTest = (world: World) => {
   // shape.aabb(aabb, body.transform);
 
   drawMesh(mesh, transform, '#666666');
-  drawOBBTree(tree, -1, true)
-  drawOBB(tree.obb, '#ff0000')
+  // drawOBBTree(tree, 0);
+  drawOBB(obb, '#ff0000');
   // drawAABB(aabb, '#ff0000');
 
   // const node = tree.children[0].children[1].children[1];

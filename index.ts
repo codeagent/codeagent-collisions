@@ -14,6 +14,7 @@ import {
   createJointScene,
   createSuspensionScene,
   createMeshScene,
+  pistonMeshScene,
 } from './scene';
 
 import { Profiler } from './physics/profiler';
@@ -28,7 +29,7 @@ const lookup = {
   stairs: () => createStairsScene(8),
   stack: () => createStackScene(128),
   gauss: () => createGaussianScene(),
-  mesh: () => createMeshScene(),
+  mesh: () => pistonMeshScene(),
   joint: () => createJointScene(),
   suspension: () => createSuspensionScene(),
 };
@@ -92,7 +93,7 @@ const step = () => {
   drawWorld(world);
   Profiler.instance.end('drawWorld');
 
-  if(sceneId === 'mesh') {
+  if (sceneId === 'mesh') {
     // meshTest(world);
   }
 

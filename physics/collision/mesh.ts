@@ -52,10 +52,15 @@ const getCovarianceMatrix = (mesh: Mesh) => {
 };
 
 const getEigenVectors = (m: mat2): vec2[] => {
+  const eps = 1.0e-6;
   const c00 = m[0];
   const c10 = m[1];
   const c01 = m[2];
   const c11 = m[3];
+
+  if (Math.abs(c10) < eps) {
+    return [vec2.fromValues(1.0, 0.0), vec2.fromValues(0.0, 1.0)];
+  }
 
   const D = (c00 + c11) * (c00 + c11) - 4.0 * (c00 * c11 - c01 * c10);
   if (D < 0) {
@@ -66,18 +71,10 @@ const getEigenVectors = (m: mat2): vec2[] => {
   const lambda1 = 0.5 * (c00 + c11 + Math.sqrt(D));
 
   const x0 = vec2.create();
-  if (c00 !== lambda0) {
-    vec2.set(x0, -c01 / (c00 - lambda0), 1);
-  } else {
-    vec2.set(x0, -c11 / (c10 - lambda0), 1);
-  }
+  vec2.set(x0, -c01 / (c00 - lambda0), 1);
 
   const x1 = vec2.create();
-  if (c00 !== lambda1) {
-    vec2.set(x1, -c01 / (c00 - lambda1), 1);
-  } else {
-    vec2.set(x1, -c11 / (c10 - lambda1), 1);
-  }
+  vec2.set(x1, -c01 / (c00 - lambda1), 1);
 
   return [x0, x1];
 };
@@ -317,8 +314,49 @@ export const testAABBOBB = (
   return true;
 };
 
+export const testOBBOBB = (
+  obb0: OBB,
+  obb1: OBB,
+  firstToSecondTransform: mat3, // obb0 -> obb1
+  secondToFirstTransform: mat3 // obb1 -> obb0
+) => {
+  let points = [
+    vec2.fromValues(-obb1.extent[0], -obb1.extent[1]),
+    vec2.fromValues(obb1.extent[0], -obb1.extent[1]),
+    vec2.fromValues(obb1.extent[0], obb1.extent[1]),
+    vec2.fromValues(-obb1.extent[0], obb1.extent[1]),
+  ].map((p) => vec2.transformMat3(p, p, secondToFirstTransform));
+
+  if (
+    points.every((p) => p[0] < -obb0.extent[0]) ||
+    points.every((p) => p[0] > obb0.extent[0]) ||
+    points.every((p) => p[1] < -obb0.extent[1]) ||
+    points.every((p) => p[1] > obb0.extent[1])
+  ) {
+    return false;
+  }
+
+  points = [
+    vec2.fromValues(-obb0.extent[0], -obb0.extent[1]),
+    vec2.fromValues(obb0.extent[0], -obb0.extent[1]),
+    vec2.fromValues(obb0.extent[0], obb0.extent[1]),
+    vec2.fromValues(-obb0.extent[0], obb0.extent[1]),
+  ].map((p) => vec2.transformMat3(p, p, firstToSecondTransform));
+
+  if (
+    points.every((p) => p[0] < -obb1.extent[0]) ||
+    points.every((p) => p[0] > obb1.extent[0]) ||
+    points.every((p) => p[1] < -obb1.extent[1]) ||
+    points.every((p) => p[1] > obb1.extent[1])
+  ) {
+    return false;
+  }
+
+  return true;
+};
+
 export const testAABBOBBTree = (
-  leafs: Set<OBBNode>,
+  candidates: Set<OBBNode>,
   aabb: AABB,
   tree: OBBNode,
   transform: mat3
@@ -327,7 +365,7 @@ export const testAABBOBBTree = (
   const mapping = mat3.create();
   const invMapping = mat3.create();
 
-  leafs.clear();
+  candidates.clear();
 
   while (queue.length) {
     const node = queue.shift();
@@ -335,6 +373,104 @@ export const testAABBOBBTree = (
     affineInverse(invMapping, mapping);
 
     if (testAABBOBB(aabb, node.obb, mapping, invMapping)) {
+      if (node.triangle) {
+        candidates.add(node);
+      } else {
+        for (const child of node.children) {
+          queue.push(child);
+        }
+      }
+    }
+  }
+
+  return candidates.size !== 0;
+};
+
+export const area = (obb: OBB) => obb.extent[0] * obb.extent[1] * 4.0;
+
+export const testOBBOBBTrees = (
+  candidates: Set<[OBBNode, OBBNode]>,
+  tree0: OBBNode,
+  transform0: mat3,
+  tree1: OBBNode,
+  transform1: mat3
+): boolean => {
+  const firstToSecondBodyTransform = mat3.create();
+  affineInverse(firstToSecondBodyTransform, transform1);
+  mat3.multiply(
+    firstToSecondBodyTransform,
+    firstToSecondBodyTransform,
+    transform0
+  );
+
+  const secondToFirstBodyTransform = mat3.create();
+  affineInverse(secondToFirstBodyTransform, transform0);
+  mat3.multiply(
+    secondToFirstBodyTransform,
+    secondToFirstBodyTransform,
+    transform1
+  );
+
+  const left: OBBNode[] = [tree0];
+  const right: OBBNode[] = [tree1];
+  const firstToSecondTransform = mat3.create();
+  const secondToFirstTransform = mat3.create();
+
+  let first: OBBNode = null;
+  let second: OBBNode = null;
+
+  candidates.clear();
+
+  while (left.length || right.length) {
+    if (first === null || left.length) {
+      first = left.shift();
+    }
+
+    if (second === null || right.length) {
+      second = right.shift();
+    }
+
+    mat3.multiply(
+      firstToSecondTransform,
+      first.obb.transform,
+      firstToSecondBodyTransform
+    );
+
+    mat3.multiply(
+      firstToSecondTransform,
+      firstToSecondTransform,
+      second.obb.invTransform
+    );
+
+    affineInverse(secondToFirstTransform, firstToSecondTransform);
+
+    if (
+      testOBBOBB(
+        first.obb,
+        second.obb,
+        firstToSecondTransform,
+        secondToFirstTransform
+      )
+    ) {
+      if (!first.triangle && !second.triangle) {
+        if (area(first.obb) > area(second.obb)) {
+          left.push(...first.children);
+        } else {
+right.push(...second.children);
+        }
+        
+        
+      } else if (!first.triangle && second.triangle) {
+        left.push(...first.children);
+      } else if (first.triangle && !second.triangle) {
+        left.push(...second.children);
+      } else {
+      }
+
+      if (area(first.obb) > area(second.obb)) {
+        // if(first.children)
+      }
+
       if (node.triangle) {
         leafs.add(node);
       } else {
