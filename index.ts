@@ -80,7 +80,7 @@ merge(
     }
     while (world.bodies.length) world.destroyBody(world.bodies[0]);
     lookup[(sceneId = id)]();
-    control = new MouseControl(world, 0.25);
+    control = new MouseControl(world, 0.95, 1.0e6);
     control.attach(canvas);
   });
 

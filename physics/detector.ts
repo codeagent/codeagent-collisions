@@ -20,7 +20,7 @@ import {
   MeshShape,
 } from './collision';
 
-import { OBBNode, testAABBOBBTree } from './collision/mesh';
+import { OBBNode, testAABBOBBTree, testOBBOBBTrees } from './collision/mesh';
 
 export interface BodiesContactPoint {
   bodyAIndex: number;
@@ -105,7 +105,7 @@ export class CollisionDetector {
 
   private broadPhase(): CandidatePair[] {
     const candidates: CandidatePair[] = [];
-    const nodes = new Set<OBBNode>();
+
     for (let i = 0; i < this.world.bodies.length - 1; i++) {
       for (let j = i + 1; j < this.world.bodies.length; j++) {
         const leftBody = this.world.bodies[i];
@@ -115,7 +115,26 @@ export class CollisionDetector {
         const leftAABB = this.bodyAABBLookup.get(leftBody);
         const rightAABB = this.bodyAABBLookup.get(rightBody);
 
-        if (leftShape instanceof MeshShape) {
+        if (leftShape instanceof MeshShape && rightShape instanceof MeshShape) {
+          const nodes = new Set<[OBBNode, OBBNode]>();
+          if (
+            testOBBOBBTrees(
+              nodes,
+              leftShape.obbTree,
+              leftBody.transform,
+              rightShape.obbTree,
+              rightBody.transform
+            )
+          ) {
+            for (const [left, right] of nodes) {
+              candidates.push([
+                { bodyIndex: j, shape: right.triangleShape },
+                { bodyIndex: i, shape: left.triangleShape },
+              ]);
+            }
+          }
+        } else if (leftShape instanceof MeshShape) {
+          const nodes = new Set<OBBNode>();
           if (
             testAABBOBBTree(
               nodes,
@@ -132,6 +151,7 @@ export class CollisionDetector {
             }
           }
         } else if (rightShape instanceof MeshShape) {
+          const nodes = new Set<OBBNode>();
           if (
             testAABBOBBTree(
               nodes,

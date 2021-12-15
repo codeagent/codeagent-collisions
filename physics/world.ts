@@ -8,7 +8,7 @@ import {
   MouseYConstraint,
 } from './constraint';
 import { CollisionDetector } from './detector';
-import { Shape, TestTarget, AABBBounded } from './collision';
+import { Shape, TestTarget, AABBBounded, MeshShape } from './collision';
 import { releaseId, uniqueId } from './unique-id';
 import {
   ContactJoint,
@@ -23,7 +23,6 @@ import { WheelJoint } from './joint/wheel-joint';
 import { IslandsGenerator } from './islands-generator';
 import { Profiler } from './profiler';
 import { MouseControlInterface } from './mouse-control.interface';
-import { MeshShape } from './collision/mesh';
 
 export type BodyShape = (Shape & TestTarget & AABBBounded) | MeshShape;
 
@@ -232,14 +231,16 @@ export class World {
     control: MouseControlInterface,
     body: Body,
     joint: vec2,
-    stiffness: number
+    stiffness: number,
+    maxForce: number
   ) {
     const constraintX = new MouseXConstraint(
       this,
       body,
       joint,
       control,
-      stiffness
+      stiffness,
+      maxForce
     );
     this.bodyConstraints.get(body).add(constraintX);
     const constraintY = new MouseYConstraint(
@@ -247,7 +248,8 @@ export class World {
       body,
       joint,
       control,
-      stiffness
+      stiffness,
+      maxForce
     );
     this.bodyConstraints.get(body).add(constraintY);
     return [constraintX, constraintY];

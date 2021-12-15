@@ -11,7 +11,8 @@ export class MouseYConstraint extends ConstraintBase {
     public readonly body: Body,
     public readonly joint: vec2,
     public readonly control: MouseControlInterface,
-    public readonly stiffness: number
+    public readonly stiffness: number,
+    public readonly maxForce: number = Number.POSITIVE_INFINITY
   ) {
     super();
   }
@@ -41,6 +42,6 @@ export class MouseYConstraint extends ConstraintBase {
   }
 
   getClamping() {
-    return { min: Number.NEGATIVE_INFINITY, max: Number.POSITIVE_INFINITY };
+    return { min: -this.maxForce, max: this.maxForce };
   }
 }

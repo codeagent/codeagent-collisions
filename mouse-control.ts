@@ -23,7 +23,8 @@ export class MouseControl implements MouseControlInterface {
 
   constructor(
     private readonly world: World,
-    public readonly stiffness: number
+    public readonly stiffness: number,
+    public readonly maxForce: number
   ) {}
 
   attach(canvas: HTMLElement): void {
@@ -83,7 +84,8 @@ export class MouseControl implements MouseControlInterface {
       this,
       this._body,
       p,
-      this.stiffness
+      this.stiffness,
+      this.maxForce
     );
   }
 

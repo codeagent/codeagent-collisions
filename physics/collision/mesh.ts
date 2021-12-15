@@ -404,42 +404,27 @@ export const testOBBOBBTrees = (
   );
 
   const secondToFirstBodyTransform = mat3.create();
-  affineInverse(secondToFirstBodyTransform, transform0);
-  mat3.multiply(
-    secondToFirstBodyTransform,
-    secondToFirstBodyTransform,
-    transform1
-  );
+  affineInverse(secondToFirstBodyTransform, firstToSecondBodyTransform);
 
-  const left: OBBNode[] = [tree0];
-  const right: OBBNode[] = [tree1];
+  const queue: Array<[OBBNode, OBBNode]> = [[tree0, tree1]];
   const firstToSecondTransform = mat3.create();
   const secondToFirstTransform = mat3.create();
 
-  let first: OBBNode = null;
-  let second: OBBNode = null;
-
   candidates.clear();
 
-  while (left.length || right.length) {
-    if (first === null || left.length) {
-      first = left.shift();
-    }
-
-    if (second === null || right.length) {
-      second = right.shift();
-    }
+  while (queue.length) {
+    let [first, second] = queue.shift();
 
     mat3.multiply(
       firstToSecondTransform,
-      first.obb.transform,
-      firstToSecondBodyTransform
+      firstToSecondBodyTransform,
+      first.obb.transform
     );
 
     mat3.multiply(
       firstToSecondTransform,
-      firstToSecondTransform,
-      second.obb.invTransform
+      second.obb.invTransform,
+      firstToSecondTransform
     );
 
     affineInverse(secondToFirstTransform, firstToSecondTransform);
@@ -454,32 +439,27 @@ export const testOBBOBBTrees = (
     ) {
       if (!first.triangle && !second.triangle) {
         if (area(first.obb) > area(second.obb)) {
-          left.push(...first.children);
+          for (const child of first.children) {
+            queue.push([child, second]);
+          }
         } else {
-right.push(...second.children);
+          for (const child of second.children) {
+            queue.push([first, child]);
+          }
         }
-        
-        
       } else if (!first.triangle && second.triangle) {
-        left.push(...first.children);
-      } else if (first.triangle && !second.triangle) {
-        left.push(...second.children);
-      } else {
-      }
-
-      if (area(first.obb) > area(second.obb)) {
-        // if(first.children)
-      }
-
-      if (node.triangle) {
-        leafs.add(node);
-      } else {
-        for (const child of node.children) {
-          queue.push(child);
+        for (const child of first.children) {
+          queue.push([child, second]);
         }
+      } else if (first.triangle && !second.triangle) {
+        for (const child of second.children) {
+          queue.push([first, child]);
+        }
+      } else {
+        candidates.add([first, second]);
       }
     }
   }
 
-  return leafs.size !== 0;
+  return candidates.size !== 0;
 };

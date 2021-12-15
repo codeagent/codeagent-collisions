@@ -490,7 +490,7 @@ export const createJointScene = () => {
       const body = world.createBody(
         createRectShape(size, size * 0.5),
         m,
-        m * 0.1,
+        m,
         vec2.fromValues(x, y),
         phi
       );
@@ -665,14 +665,4 @@ export const pistonMeshScene = () => {
     vec2.fromValues(0, 0),
     0
   );
-
-  // for (const object in collection) {
-  //   world.createBody(
-  //     new MeshShape(collection[object]),
-  //     Number.POSITIVE_INFINITY,
-  //     10,
-  //     vec2.fromValues(0, 0),
-  //     0
-  //   );
-  // }
 };
