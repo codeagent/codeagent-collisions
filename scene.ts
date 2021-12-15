@@ -609,7 +609,7 @@ export const createSuspensionScene = () => {
   }
 };
 
-export const createMeshScene = () => {
+export const createHelixScene = () => {
   world.restitution = 0.25;
   world.pushFactor = 0.65;
   world.friction = 0.75;
@@ -635,22 +635,22 @@ export const createMeshScene = () => {
   }
 };
 
-export const pistonMeshScene = () => {
+export const pistonScene = () => {
   world.restitution = 0.25;
   world.pushFactor = 0.65;
   world.friction = 0.75;
 
   world.createBody(
-    new Circle(0.5),
+    new Circle(1.5),
     1,
     0.1,
-    vec2.fromValues(0.0, 20.5),
+    vec2.fromValues(0.0, 10.0),
     Math.PI * 0.25
   );
 
   const collection = loadObj(PISTON);
 
-  world.createBody(
+  const cylinder = world.createBody(
     new MeshShape(collection['cylinder']),
     Number.POSITIVE_INFINITY,
     Number.POSITIVE_INFINITY,
@@ -658,11 +658,32 @@ export const pistonMeshScene = () => {
     0
   );
 
-  world.createBody(
+  const piston = world.createBody(
     new MeshShape(collection['piston']),
     1,
     1,
-    vec2.fromValues(0, 0),
+    vec2.fromValues(0, -1),
     0
+  );
+
+  world.addPrismaticJoint(
+    cylinder,
+    vec2.create(),
+    piston,
+    vec2.create(),
+    vec2.fromValues(0.0, 1.0),
+    0,
+    0.05,
+    4
+  );
+
+  world.addSpring(
+    cylinder,
+    vec2.create(),
+    piston,
+    vec2.create(),
+    1.0,
+    1000.0,
+    10.0
   );
 };

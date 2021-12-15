@@ -443,11 +443,11 @@ export const drawWorld = (world: World): void => {
     )
   );
 
-  world.bodyContacts.forEach((contacts) =>
-    contacts.forEach((concact) =>
-      Array.from(concact).forEach((constraint) => drawConstraint(constraint))
-    )
-  );
+  // world.bodyContacts.forEach((contacts) =>
+  //   contacts.forEach((concact) =>
+  //     Array.from(concact).forEach((constraint) => drawConstraint(constraint))
+  //   )
+  // );
   world.bodyJoints.forEach((joints) =>
     joints.forEach((joint) =>
       Array.from(joint).forEach((constraint) => drawConstraint(constraint))

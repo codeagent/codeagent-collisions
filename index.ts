@@ -13,8 +13,8 @@ import {
   createChainScene,
   createJointScene,
   createSuspensionScene,
-  createMeshScene,
-  pistonMeshScene,
+  createHelixScene,
+  pistonScene,
 } from './scene';
 
 import { Profiler } from './physics/profiler';
@@ -29,7 +29,8 @@ const lookup = {
   stairs: () => createStairsScene(8),
   stack: () => createStackScene(128),
   gauss: () => createGaussianScene(),
-  mesh: () => pistonMeshScene(),
+  helix: () => createHelixScene(),
+  piston: () => pistonScene(),
   joint: () => createJointScene(),
   suspension: () => createSuspensionScene(),
 };
@@ -59,11 +60,14 @@ merge(
   fromEvent(document.getElementById('suspension'), 'click').pipe(
     map((e) => e.srcElement['id'])
   ),
-  fromEvent(document.getElementById('mesh'), 'click').pipe(
+  fromEvent(document.getElementById('piston'), 'click').pipe(
+    map((e) => e.srcElement['id'])
+  ),
+  fromEvent(document.getElementById('helix'), 'click').pipe(
     map((e) => e.srcElement['id'])
   ),
 
-  of('mesh').pipe(delay(1000))
+  of('piston').pipe(delay(1000))
 )
   .pipe(
     tap((id) => {
@@ -80,7 +84,7 @@ merge(
     }
     while (world.bodies.length) world.destroyBody(world.bodies[0]);
     lookup[(sceneId = id)]();
-    control = new MouseControl(world, 0.95, 1.0e6);
+    control = new MouseControl(world, 0.95, 1.0e4);
     control.attach(canvas);
   });
 
