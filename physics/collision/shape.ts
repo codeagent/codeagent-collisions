@@ -1,5 +1,6 @@
 import { mat3, vec2, vec3 } from 'gl-matrix';
-import { generateOBBTree, Mesh, OBBNode } from './mesh';
+import { generateOBBTree, getMeshCentroid, Mesh, OBBNode } from './mesh';
+import { getPolygonCentroid } from './utils';
 
 export type AABB = [vec2, vec2];
 
@@ -30,41 +31,45 @@ export interface AABBBounded {
 }
 
 export class Circle implements Shape, AABBBounded, TestTarget {
-  constructor(public readonly radius: number) {}
+  constructor(readonly radius: number) {}
 
-  public support(out: vec2, dir: vec2): vec2 {
+  support(out: vec2, dir: vec2): vec2 {
     vec2.normalize(out, dir);
     return vec2.scale(out, out, this.radius);
   }
 
-  public aabb(out: AABB, transform: mat3): AABB {
+  aabb(out: AABB, transform: mat3): AABB {
     const center = vec2.fromValues(transform[6], transform[7]);
     vec2.set(out[0], center[0] - this.radius, center[1] - this.radius);
     vec2.set(out[1], center[0] + this.radius, center[1] + this.radius);
     return out;
   }
 
-  public testPoint(point: vec2): boolean {
+  testPoint(point: vec2): boolean {
     return vec2.dot(point, point) < this.radius * this.radius;
   }
 }
 
 export class Polygon implements Shape, AABBBounded, TestTarget {
-  public readonly normals: vec2[];
+  readonly normals: vec2[];
 
   /**
-   * @param hull array of couter-clock wise oriented loop of points
+   * @param points array of couter-clock wise oriented loop of points
+   * @param transformOrigin
    */
-  constructor(public readonly points: vec2[]) {
-    this.normals = this.getNormals(points);
+  constructor(readonly points: vec2[], transformOrigin: boolean = true) {
+    if (transformOrigin) {
+      this.points = this.transformOriginToCentroid(this.points);
+    }
+    this.normals = this.getNormals(this.points);
   }
 
-  public support(out: vec2, dir: vec2): vec2 {
+  support(out: vec2, dir: vec2): vec2 {
     const index = this.indexOfFarhestPoint(dir);
     return vec2.copy(out, this.points[index]);
   }
 
-  public aabb(out: AABB, transform: mat3): AABB {
+  aabb(out: AABB, transform: mat3): AABB {
     const v = vec2.create();
 
     let minX = Number.POSITIVE_INFINITY;
@@ -95,7 +100,7 @@ export class Polygon implements Shape, AABBBounded, TestTarget {
     return out;
   }
 
-  public testPoint(point: vec2): boolean {
+  testPoint(point: vec2): boolean {
     const e = vec2.create();
     const r = vec2.create();
     const x = vec3.create();
@@ -114,7 +119,7 @@ export class Polygon implements Shape, AABBBounded, TestTarget {
     return true;
   }
 
-  public indexOfFarhestPoint(dir: vec2): number {
+  indexOfFarhestPoint(dir: vec2): number {
     // @todo: hill climbing
     let bestDot = Number.NEGATIVE_INFINITY;
     let index = -1;
@@ -141,10 +146,15 @@ export class Polygon implements Shape, AABBBounded, TestTarget {
     }
     return normals;
   }
+
+  private transformOriginToCentroid(polygon: vec2[]): vec2[] {
+    const shift = getPolygonCentroid(polygon);
+    return polygon.map((point) => vec2.subtract(vec2.create(), point, shift));
+  }
 }
 
 export class Box extends Polygon {
-  constructor(public readonly width: number, public readonly height: number) {
+  constructor(readonly width: number, readonly height: number) {
     super([
       vec2.fromValues(-width * 0.5, height * 0.5),
       vec2.fromValues(-width * 0.5, -height * 0.5),
@@ -159,8 +169,11 @@ export class MeshShape implements TestTarget, AABBBounded {
   private readonly points = new Set<vec2>();
   readonly obbTree: OBBNode;
 
-  constructor(public readonly mesh: Mesh) {
-    this.obbTree = generateOBBTree(mesh);
+  constructor(readonly mesh: Mesh, transformOrigin: boolean = true) {
+    if (transformOrigin) {
+      this.mesh = this.transformOriginToCentroid(this.mesh);
+    }
+    this.obbTree = generateOBBTree(this.mesh);
     this.getLeafs();
     this.getVertices();
   }
@@ -222,5 +235,14 @@ export class MeshShape implements TestTarget, AABBBounded {
       this.points.add(triangle.p1);
       this.points.add(triangle.p2);
     }
+  }
+
+  private transformOriginToCentroid(mesh: Mesh): Mesh {
+    const shift = getMeshCentroid(mesh);
+    return mesh.map((triangle) => ({
+      p0: vec2.subtract(vec2.create(), triangle.p0, shift),
+      p1: vec2.subtract(vec2.create(), triangle.p1, shift),
+      p2: vec2.subtract(vec2.create(), triangle.p2, shift),
+    }));
   }
 }

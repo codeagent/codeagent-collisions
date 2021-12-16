@@ -42,3 +42,28 @@ export const closestPointToLineSegment = (
 
 export const transformMat3Vec = (out: vec2, v: vec2, m: mat3) =>
   vec2.set(out, m[0] * v[0] + m[3] * v[1], m[1] * v[0] + m[4] * v[1]);
+
+export const getPolygonSignedArea = (polygon: vec2[]): number => {
+  let area: number = 0.0;
+  for (let i = 0; i < polygon.length; i++) {
+    const p0 = polygon[i];
+    const p1 = polygon[(i + 1) % polygon.length];
+    area += p0[0] * p1[1] - p1[0] * p0[1];
+  }
+  return 0.5 * area;
+};
+
+export const getPolygonCentroid = (polygon: vec2[]): vec2 => {
+  let cx = 0.0;
+  let cy = 0.0;
+  for (let i = 0; i < polygon.length; i++) {
+    const p0 = polygon[i];
+    const p1 = polygon[(i + 1) % polygon.length];
+    const cross = p0[0] * p1[1] - p1[0] * p0[1];
+    cx += (p0[0] + p1[0]) * cross;
+    cy += (p0[1] + p1[1]) * cross;
+  }
+
+  const area = 1.0 / 6.0 / getPolygonSignedArea(polygon);
+  return vec2.fromValues(area * cx, area * cy);
+};

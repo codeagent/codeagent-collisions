@@ -363,7 +363,7 @@ export const createJointScene = () => {
   );
 
   setTimeout(() => {
-    world.createBody(new Circle(1), 1, 1.0, vec2.fromValues(-10.0, 0.0), 0.0);
+    world.createBody(new Circle(1), 10, 10.0, vec2.fromValues(-10.0, 0.0), 0.0);
   }, 2000);
 
   const bar = world.createBody(
@@ -633,6 +633,59 @@ export const createHelixScene = () => {
       0
     );
   }
+};
+
+export const createMeshScene = () => {
+  world.restitution = 0.25;
+  world.pushFactor = 0.65;
+  world.friction = 0.75;
+
+  world.createBody(
+    new Circle(0.5),
+    10,
+    1,
+    vec2.fromValues(0.0, 6.5),
+    Math.PI * 0.25
+  );
+
+  const collection = loadObj(MESH);
+
+  for (const object in collection) {
+    world.createBody(
+      new MeshShape(collection[object]),
+      10,
+      100,
+      vec2.fromValues(0, 0),
+      0
+    );
+  }
+
+  // left wall
+  world.createBody(
+    createRectShape(0.25, 16),
+    Number.POSITIVE_INFINITY,
+    Number.POSITIVE_INFINITY,
+    vec2.fromValues(-14, 0),
+    0.0
+  );
+
+  // right wall
+  world.createBody(
+    createRectShape(0.25, 16),
+    Number.POSITIVE_INFINITY,
+    Number.POSITIVE_INFINITY,
+    vec2.fromValues(14, 0),
+    0.0
+  );
+
+  // floor
+  world.createBody(
+    createRectShape(30, 1),
+    Number.POSITIVE_INFINITY,
+    Number.POSITIVE_INFINITY,
+    vec2.fromValues(0.0, -9),
+    0.0
+  );
 };
 
 export const pistonScene = () => {

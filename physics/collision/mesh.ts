@@ -1,6 +1,6 @@
 import { mat2, mat3, vec2, vec3 } from 'gl-matrix';
 import { AABB, Polygon as PolygonShape } from './shape';
-import { affineInverse } from './utils';
+import { affineInverse, getPolygonSignedArea } from './utils';
 
 export interface MeshTriangle {
   p0: vec2;
@@ -262,11 +262,10 @@ export const generateOBBTree = (mesh: Mesh): OBBNode => {
       }
     } else {
       parent.triangle = soup[0];
-      parent.triangleShape = new PolygonShape([
-        soup[0].p0,
-        soup[0].p1,
-        soup[0].p2,
-      ]);
+      parent.triangleShape = new PolygonShape(
+        [soup[0].p0, soup[0].p1, soup[0].p2],
+        false
+      );
     }
   }
 
@@ -462,4 +461,27 @@ export const testOBBOBBTrees = (
   }
 
   return candidates.size !== 0;
+};
+
+export const getMeshCentroid = (mesh: Mesh): vec2 => {
+  const weighted = new Set<vec2>();
+  let totalArea = 0.0;
+
+  for (const triangle of mesh) {
+    const center = centroid(triangle);
+    const area = Math.abs(
+      getPolygonSignedArea([triangle.p0, triangle.p1, triangle.p2])
+    );
+    weighted.add(vec2.scale(center, center, area));
+    totalArea += area;
+  }
+
+  let cx = 0.0;
+  let cy = 0.0;
+  for (const center of weighted) {
+    cx += center[0] / totalArea;
+    cy += center[1] / totalArea;
+  }
+
+  return vec2.fromValues(cx, cy);
 };

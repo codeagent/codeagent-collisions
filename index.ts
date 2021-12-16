@@ -15,6 +15,7 @@ import {
   createSuspensionScene,
   createHelixScene,
   pistonScene,
+  createMeshScene,
 } from './scene';
 
 import { Profiler } from './physics/profiler';
@@ -30,6 +31,7 @@ const lookup = {
   stack: () => createStackScene(128),
   gauss: () => createGaussianScene(),
   helix: () => createHelixScene(),
+  mesh: () => createMeshScene(),
   piston: () => pistonScene(),
   joint: () => createJointScene(),
   suspension: () => createSuspensionScene(),
@@ -66,8 +68,11 @@ merge(
   fromEvent(document.getElementById('helix'), 'click').pipe(
     map((e) => e.srcElement['id'])
   ),
+  fromEvent(document.getElementById('mesh'), 'click').pipe(
+    map((e) => e.srcElement['id'])
+  ),
 
-  of('piston').pipe(delay(1000))
+  of('mesh').pipe(delay(1000))
 )
   .pipe(
     tap((id) => {
