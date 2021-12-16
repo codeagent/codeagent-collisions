@@ -485,3 +485,18 @@ export const getMeshCentroid = (mesh: Mesh): vec2 => {
 
   return vec2.fromValues(cx, cy);
 };
+
+export const getMeshItertia = (mesh: Mesh, mass: number): number => {
+  let totalArea = 0.0;
+  let sum = 0.0;
+  for (const triangle of mesh) {
+    const center = centroid(triangle);
+    const area = Math.abs(
+      getPolygonSignedArea([triangle.p0, triangle.p1, triangle.p2])
+    );
+    sum += vec2.dot(center, center) * area;
+    totalArea += area;
+  }
+
+  return (mass / totalArea) * sum;
+};

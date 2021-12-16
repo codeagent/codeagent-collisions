@@ -53,7 +53,7 @@ export const getPolygonSignedArea = (polygon: vec2[]): number => {
   return 0.5 * area;
 };
 
-export const getPolygonCentroid = (polygon: vec2[]): vec2 => {
+export const getPolygonCentroid = (polygon: vec2[], area: number): vec2 => {
   let cx = 0.0;
   let cy = 0.0;
   for (let i = 0; i < polygon.length; i++) {
@@ -64,6 +64,6 @@ export const getPolygonCentroid = (polygon: vec2[]): vec2 => {
     cy += (p0[1] + p1[1]) * cross;
   }
 
-  const area = 1.0 / 6.0 / getPolygonSignedArea(polygon);
+  area = 1.0 / 6.0 / area;
   return vec2.fromValues(area * cx, area * cy);
 };

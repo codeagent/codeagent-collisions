@@ -332,7 +332,7 @@ export const drawBody = (world: World, body: Body, color: string) => {
   } else if (shape instanceof Circle) {
     drawCircleShape(shape.radius, body.transform, color);
   } else if (shape instanceof MeshShape) {
-    drawMesh(shape.mesh, body.transform, DEFAULT_COLOR);
+    drawMesh(shape.mesh, body.transform, color);
   }
 };
 
@@ -370,7 +370,7 @@ export const drawMesh = (
   for (const tri of mesh) {
     const c = centroid(tri);
     vec2.transformMat3(c, c, transform);
-    drawDot(c);
+    drawDot(c, color);
   }
 };
 

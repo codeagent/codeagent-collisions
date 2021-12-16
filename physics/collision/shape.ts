@@ -1,6 +1,12 @@
 import { mat3, vec2, vec3 } from 'gl-matrix';
-import { generateOBBTree, getMeshCentroid, Mesh, OBBNode } from './mesh';
-import { getPolygonCentroid } from './utils';
+import {
+  generateOBBTree,
+  getMeshCentroid,
+  getMeshItertia,
+  Mesh,
+  OBBNode,
+} from './mesh';
+import { getPolygonCentroid, getPolygonSignedArea } from './utils';
 
 export type AABB = [vec2, vec2];
 
@@ -30,7 +36,17 @@ export interface AABBBounded {
   aabb(out: AABB, transform: mat3): AABB;
 }
 
-export class Circle implements Shape, AABBBounded, TestTarget {
+export interface MassDistribution {
+  /**
+   * @param mass mass of the shape
+   * @returns calculated moment of inertia for given mass of this shape
+   */
+  inetria(mass: number): number;
+}
+
+export class Circle
+  implements Shape, AABBBounded, TestTarget, MassDistribution
+{
   constructor(readonly radius: number) {}
 
   support(out: vec2, dir: vec2): vec2 {
@@ -48,9 +64,15 @@ export class Circle implements Shape, AABBBounded, TestTarget {
   testPoint(point: vec2): boolean {
     return vec2.dot(point, point) < this.radius * this.radius;
   }
+
+  inetria(mass: number): number {
+    return 0.5 * mass * this.radius * this.radius;
+  }
 }
 
-export class Polygon implements Shape, AABBBounded, TestTarget {
+export class Polygon
+  implements Shape, AABBBounded, TestTarget, MassDistribution
+{
   readonly normals: vec2[];
 
   /**
@@ -133,6 +155,21 @@ export class Polygon implements Shape, AABBBounded, TestTarget {
     return index;
   }
 
+  inetria(mass: number): number {
+    let area: number = 0.0;
+    let jx = 0.0;
+    let jy = 0.0;
+    for (let i = 0; i < this.points.length; i++) {
+      const p0 = this.points[i];
+      const p1 = this.points[(i + 1) % this.points.length];
+      const cross = p0[0] * p1[1] - p1[0] * p0[1];
+      jx += cross * (p0[1] * p0[1] + p0[1] * p1[1] + p1[1] * p1[1]);
+      jy += cross * (p0[0] * p0[0] + p0[0] * p1[0] + p1[0] * p1[0]);
+      area += cross;
+    }
+    return (mass / 6.0 / area) * (jx + jy);
+  }
+
   private getNormals(loop: vec2[]): vec2[] {
     const normals: vec2[] = [];
     for (let i = 0; i < loop.length; i++) {
@@ -148,7 +185,8 @@ export class Polygon implements Shape, AABBBounded, TestTarget {
   }
 
   private transformOriginToCentroid(polygon: vec2[]): vec2[] {
-    const shift = getPolygonCentroid(polygon);
+    const area = getPolygonSignedArea(polygon);
+    const shift = getPolygonCentroid(polygon, area);
     return polygon.map((point) => vec2.subtract(vec2.create(), point, shift));
   }
 }
@@ -164,7 +202,7 @@ export class Box extends Polygon {
   }
 }
 
-export class MeshShape implements TestTarget, AABBBounded {
+export class MeshShape implements TestTarget, AABBBounded, MassDistribution {
   private readonly triangles = new Array<TestTarget>();
   private readonly points = new Set<vec2>();
   readonly obbTree: OBBNode;
@@ -211,6 +249,10 @@ export class MeshShape implements TestTarget, AABBBounded {
     vec2.set(out[1], maxX, maxY);
 
     return out;
+  }
+
+  inetria(mass: number): number {
+    return getMeshItertia(this.mesh, mass);
   }
 
   private getLeafs() {

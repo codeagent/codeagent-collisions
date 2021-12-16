@@ -8,7 +8,13 @@ import {
   MouseYConstraint,
 } from './constraint';
 import { CollisionDetector } from './detector';
-import { Shape, TestTarget, AABBBounded, MeshShape } from './collision';
+import {
+  Shape,
+  TestTarget,
+  AABBBounded,
+  MeshShape,
+  MassDistribution,
+} from './collision';
 import { releaseId, uniqueId } from './unique-id';
 import {
   ContactJoint,
@@ -24,7 +30,9 @@ import { IslandsGenerator } from './islands-generator';
 import { Profiler } from './profiler';
 import { MouseControlInterface } from './mouse-control.interface';
 
-export type BodyShape = (Shape & TestTarget & AABBBounded) | MeshShape;
+export type BodyShape =
+  | (Shape & TestTarget & AABBBounded & MassDistribution)
+  | MeshShape;
 
 export class World {
   public readonly bodies: Body[] = [];
@@ -65,7 +73,9 @@ export class World {
     const bodyId = this.bodies.length;
     const body = new Body(uniqueId(), bodyId);
     body.mass = mass;
-    body.inertia = intertia;
+    // body.inertia = 0.01;//shape.inetria(mass);
+    body.inertia = intertia
+     
     body.position = position;
     body.angle = angle;
 

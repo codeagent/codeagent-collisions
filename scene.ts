@@ -59,6 +59,8 @@ export const createChainScene = (links: number, x = 0.0) => {
     chain[i] = body;
     offset += Math.SQRT2 * size + distance * 0.5;
   }
+
+  console.log(world.bodies)
 };
 
 export const createStackScene = (n: number) => {
