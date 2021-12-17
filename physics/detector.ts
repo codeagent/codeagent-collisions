@@ -110,6 +110,11 @@ export class CollisionDetector {
       for (let j = i + 1; j < this.world.bodies.length; j++) {
         const leftBody = this.world.bodies[i];
         const rightBody = this.world.bodies[j];
+
+        if (leftBody.isStatic && rightBody.isStatic) {
+          continue;
+        }
+
         const leftShape = this.world.bodyShape.get(leftBody);
         const rightShape = this.world.bodyShape.get(rightBody);
         const leftAABB = this.bodyAABBLookup.get(leftBody);

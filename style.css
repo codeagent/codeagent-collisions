@@ -8,8 +8,7 @@
 
 canvas {
   position: relative;
-  width: 1200px;
-  height: 800px;
+  
   display: block;
   border: 1px dashed #ddd;
 }

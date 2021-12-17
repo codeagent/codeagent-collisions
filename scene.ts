@@ -60,7 +60,7 @@ export const createChainScene = (links: number, x = 0.0) => {
     offset += Math.SQRT2 * size + distance * 0.5;
   }
 
-  console.log(world.bodies)
+  console.log(world.bodies);
 };
 
 export const createStackScene = (n: number) => {
@@ -631,6 +631,32 @@ export const createHelixScene = () => {
       new MeshShape(collection[object]),
       Number.POSITIVE_INFINITY,
       10,
+      vec2.fromValues(0, 0),
+      0
+    );
+  }
+};
+
+export const createPinballScene = () => {
+  world.restitution = 0.75;
+  world.pushFactor = 0.65;
+  world.friction = 0.75;
+
+    world.createBody(
+    new Circle(0.25),
+    10,
+    1,
+    vec2.fromValues(0.0, 6.5),
+    Math.PI * 0.25
+  );
+
+  const collection = loadObj(PINTBALL);
+
+  for (const object in collection) {
+    world.createBody(
+      new MeshShape(collection[object]),
+      Number.POSITIVE_INFINITY,
+      Number.POSITIVE_INFINITY,
       vec2.fromValues(0, 0),
       0
     );
