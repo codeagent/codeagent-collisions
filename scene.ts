@@ -2,6 +2,7 @@ import { mat3, vec2 } from 'gl-matrix';
 import { World, Body, Polygon, Circle, MeshShape } from './physics';
 
 import MESH from './objects/mesh';
+import GEARS from './objects/gears';
 import PINTBALL from './objects/pintball';
 import HELIX from './objects/helix';
 import PISTON from './objects/piston';
@@ -642,7 +643,7 @@ export const createPinballScene = () => {
   world.pushFactor = 0.65;
   world.friction = 0.75;
 
-    world.createBody(
+  world.createBody(
     new Circle(0.25),
     10,
     1,
@@ -767,4 +768,91 @@ export const pistonScene = () => {
     1000.0,
     10.0
   );
+};
+
+export const createGearScene = () => {
+  world.restitution = 0.25;
+  world.pushFactor = 0.65;
+  world.friction = 0.75;
+
+  const collection = loadObj(GEARS);
+
+  // for (const object in collection) {
+  const motor = world.createBody(
+    new MeshShape(collection['gear_o_049']),
+    Number.POSITIVE_INFINITY,
+    10,
+    vec2.fromValues(0, 0),
+    0
+  );
+  world.addMotor(motor, 10.0, 1.0);
+
+  world.createBody(
+    new MeshShape(collection['gear_051']),
+    Number.POSITIVE_INFINITY,
+    10,
+    vec2.fromValues(-6.4191, 0),
+    0
+  );
+
+  world.createBody(
+    new MeshShape(collection['gear_052']),
+    Number.POSITIVE_INFINITY,
+    10,
+    vec2.fromValues(-0.8335, 9.7032),
+    0
+  );
+
+  world.createBody(
+    new MeshShape(collection['gear_049']),
+    Number.POSITIVE_INFINITY,
+    10,
+    vec2.fromValues(6.3478, 6.1935),
+    0
+  );
+
+  world.createBody(
+    new MeshShape(collection['gear_o_052']),
+    Number.POSITIVE_INFINITY,
+    10,
+    vec2.fromValues(9.0431, -1.3321),
+    0
+  );
+
+  world.createBody(
+    new MeshShape(collection['gear_o_050']),
+    Number.POSITIVE_INFINITY,
+    10,
+    vec2.fromValues(1.7793, -7.6031),
+    0
+  );
+
+  // }
+
+  // // left wall
+  // world.createBody(
+  //   createRectShape(0.25, 16),
+  //   Number.POSITIVE_INFINITY,
+  //   Number.POSITIVE_INFINITY,
+  //   vec2.fromValues(-14, 0),
+  //   0.0
+  // );
+
+  // // right wall
+  // world.createBody(
+  //   createRectShape(0.25, 16),
+  //   Number.POSITIVE_INFINITY,
+  //   Number.POSITIVE_INFINITY,
+  //   vec2.fromValues(14, 0),
+  //   0.0
+  // );
+
+  // // floor
+  // world.createBody(
+  //   createRectShape(30, 1),
+  //   Number.POSITIVE_INFINITY,
+  //   Number.POSITIVE_INFINITY,
+  //   vec2.fromValues(0.0, -9),
+  //   0.0
+  // );
 };

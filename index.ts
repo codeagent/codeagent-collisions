@@ -17,6 +17,7 @@ import {
   pistonScene,
   createMeshScene,
   createPinballScene,
+  createGearScene,
 } from './scene';
 
 import { Profiler } from './physics/profiler';
@@ -37,6 +38,7 @@ const lookup = {
   joint: () => createJointScene(),
   suspension: () => createSuspensionScene(),
   pinball: () => createPinballScene(),
+  gears: () => createGearScene(),
 };
 
 let control: MouseControl;
@@ -73,7 +75,10 @@ merge(
   fromEvent(document.getElementById('mesh'), 'click').pipe(
     map((e) => e.srcElement['id'])
   ),
-    fromEvent(document.getElementById('pinball'), 'click').pipe(
+  fromEvent(document.getElementById('pinball'), 'click').pipe(
+    map((e) => e.srcElement['id'])
+  ),
+  fromEvent(document.getElementById('gears'), 'click').pipe(
     map((e) => e.srcElement['id'])
   ),
 
