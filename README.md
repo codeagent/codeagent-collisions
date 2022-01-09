@@ -1,4 +1,4 @@
-# 2D physics fan
+# 2D physics fun
 
 - simple 2d rigid body physics demos
 - i developed it for learning purposes
