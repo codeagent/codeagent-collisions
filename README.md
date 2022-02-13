@@ -11,11 +11,11 @@
 ## @todo:
 - [ ] gjk-epa contacts
 - [ ] capsule shape
-- [ ] eradicate double calculation of jacobians for velocity and position constraint resolving
-- [ ] involve joints
-- [ ] joint islands
+- [x] eradicate double calculation of jacobians for velocity and position constraint resolving
+- [x] involve joints
+- [x] joint islands
 - [ ] sleeping
-- [ ] mouse joint
+- [x] mouse joint
 - [ ] physics materials
 - [ ] collision masks (layers)
 - [ ] basic shape tests, like ray casting, test box, etc.
