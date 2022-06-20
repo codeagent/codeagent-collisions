@@ -10,20 +10,30 @@ import { World } from './world';
 export class WorldIsland {
   public readonly bodies = new Array<Body>();
   public readonly constraints = Array<ConstraintInterface>();
-  private readonly positions = new Float32Array(this.bodiesCapacity * 3);
-  private readonly velocities = new Float32Array(this.bodiesCapacity * 3);
-  private readonly forces = new Float32Array(this.bodiesCapacity * 3);
-  private readonly invMasses = new Float32Array(this.bodiesCapacity * 3);
-  private readonly accelerations = new Float32Array(this.bodiesCapacity * 3);
-  private readonly c0Forces = new Float32Array(this.bodiesCapacity * 3);
-  private readonly cvForces = new Float32Array(this.bodiesCapacity * 3);
-  private readonly tmpForces = new Float32Array(this.bodiesCapacity * 3);
-  private readonly tmpVelocities = new Float32Array(this.bodiesCapacity * 3);
+  private readonly positions: Float32Array;
+  private readonly velocities: Float32Array;
+  private readonly forces: Float32Array;
+  private readonly invMasses: Float32Array;
+  private readonly accelerations: Float32Array;
+  private readonly c0Forces: Float32Array;
+  private readonly cvForces: Float32Array;
+  private readonly tmpForces: Float32Array;
+  private readonly tmpVelocities: Float32Array;
 
   constructor(
     private readonly world: World,
     private readonly bodiesCapacity: number
-  ) {}
+  ) {
+    this.positions = new Float32Array(this.bodiesCapacity * 3);
+    this.velocities = new Float32Array(this.bodiesCapacity * 3);
+    this.forces = new Float32Array(this.bodiesCapacity * 3);
+    this.invMasses = new Float32Array(this.bodiesCapacity * 3);
+    this.accelerations = new Float32Array(this.bodiesCapacity * 3);
+    this.c0Forces = new Float32Array(this.bodiesCapacity * 3);
+    this.cvForces = new Float32Array(this.bodiesCapacity * 3);
+    this.tmpForces = new Float32Array(this.bodiesCapacity * 3);
+    this.tmpVelocities = new Float32Array(this.bodiesCapacity * 3);
+  }
 
   addBody(body: Body) {
     this.bodies.push(body);

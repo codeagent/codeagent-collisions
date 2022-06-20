@@ -82,7 +82,7 @@ merge(
     map((e) => e.srcElement['id'])
   ),
 
-  of('mesh').pipe(delay(1000))
+  of('joint').pipe(delay(1000))
 )
   .pipe(
     tap((id) => {
