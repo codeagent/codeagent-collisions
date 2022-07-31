@@ -67,4 +67,8 @@ export class FrictionConstraint extends ConstraintBase {
 
     return { min: -c1, max: c1 };
   }
+
+  getBodies() {
+    return [this.bodyA, this.bodyB];
+  }
 }

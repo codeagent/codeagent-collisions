@@ -108,6 +108,9 @@ export class WorldIsland {
 
     const bhat = new Float32Array(n);
     const J = new Float32Array(n * c);
+    const bodies = new Array<[number, number]>(c);
+    const hintA = new Uint32Array(c);
+    const hintB = new Uint32Array(c);
 
     let j = 0;
     let i = 0;
@@ -121,6 +124,21 @@ export class WorldIsland {
       v1[j] = constraint.getPushFactor(dt, 0);
       lambdas0[j] = constraint.getCache(0);
       lambdas1[j] = constraint.getCache(1);
+      const [bodyA, bodyB] = constraint.getBodies();
+      let indexA = this.world.bodyIndex.get(bodyA) ?? -1;
+      let indexB = this.world.bodyIndex.get(bodyB) ?? -1;
+
+      if (indexA > indexB) {
+        const tmp = indexA;
+        indexA = indexB;
+        indexB = tmp;
+      }
+
+      hintA[j] = indexA;
+      hintB[j] = indexB;
+
+      bodies[j] = [indexA, indexB];
+
       i += n;
       j++;
     }
@@ -129,7 +147,10 @@ export class WorldIsland {
     // b = 1.0 / ∆t * v − J * (1 / ∆t * v1 + Minv * fext)
 
     const csrJ = csr.compress(J, c);
-    const csrA = csr.MxDxMtCsr(csrJ, this.invMasses);
+
+    Profiler.instance.begin('WorldInsland.MxDxMtCsr');
+    const csrA = csr.MxDxMtCsr(csrJ, this.invMasses, hintA, hintB);
+    Profiler.instance.end('WorldInsland.MxDxMtCsr');
 
     VmV(bhat, this.invMasses, this.forces, n);
     VpVxS(bhat, bhat, this.velocities, 1.0 / dt, n);

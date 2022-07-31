@@ -1,6 +1,8 @@
 // Compressed Sparse Row Matrix
 // https://en.wikipedia.org/wiki/Sparse_matrix
 
+import { Body } from '.';
+
 export namespace csr {
   export interface Matrix {
     m: number; // rows
@@ -102,7 +104,12 @@ export namespace csr {
     }
   };
 
-  export const MxDxMtCsr = (mat: Matrix, diag: Float32Array): Matrix => {
+  export const MxDxMtCsr = (
+    mat: Matrix,
+    diag: Float32Array,
+    hintA: Uint32Array,
+    hintB: Uint32Array
+  ): Matrix => {
     type MatrixEntry = { row: number; col: number; val: number };
 
     const diagonal = new Array<LinkedNode<MatrixEntry>>(mat.m);
@@ -110,7 +117,7 @@ export namespace csr {
     for (let i = 0; i < mat.m; i++) {
       let val = 0.0;
       for (let k0 = mat.rows[i], k1 = mat.rows[i + 1]; k0 < k1; k0++) {
-        val += diag[mat.columns[k0]] * mat.values[k0] ** 2;
+        val += diag[mat.columns[k0]] * mat.values[k0] * mat.values[k0];
       }
       const node = new LinkedNode({ row: i, col: i, val });
       node.insertAfter(last);
@@ -118,31 +125,42 @@ export namespace csr {
       last = node;
     }
 
+    const m1 = mat.m - 1;
     for (let i = 0; i < mat.m; i++) {
       let k0 = mat.rows[i];
       let k1 = mat.rows[i + 1];
 
-      for (let j = mat.m - 1; j > i; j--) {
-        let val = 0.0;
-        let k = k0;
-        let kt = mat.rows[j];
-        let kt1 = mat.rows[j + 1];
+      const indexA = hintA[i];
+      const indexB = hintB[i];
 
-        while (k < k1 && kt < kt1) {
-          if (mat.columns[kt] < mat.columns[k]) {
-            kt++;
-          } else if (mat.columns[kt] > mat.columns[k]) {
-            k++;
-          } else {
-            val += diag[mat.columns[k]] * mat.values[k] * mat.values[kt];
-            kt++;
-            k++;
+      for (let j = m1; j > i; j--) {
+        if (
+          indexA === hintA[j] ||
+          indexB === hintB[j] ||
+          indexA === hintB[j] ||
+          indexB === hintA[j]
+        ) {
+          let val = 0.0;
+          let k = k0;
+          let kt = mat.rows[j];
+          let kt1 = mat.rows[j + 1];
+
+          while (k < k1 && kt < kt1) {
+            if (mat.columns[kt] < mat.columns[k]) {
+              kt++;
+            } else if (mat.columns[kt] > mat.columns[k]) {
+              k++;
+            } else {
+              val += diag[mat.columns[k]] * mat.values[k] * mat.values[kt];
+              kt++;
+              k++;
+            }
           }
-        }
 
-        if (val) {
-          new LinkedNode({ row: i, col: j, val }).insertAfter(diagonal[i]);
-          new LinkedNode({ row: j, col: i, val }).insertBefore(diagonal[j]);
+          if (val) {
+            new LinkedNode({ row: i, col: j, val }).insertAfter(diagonal[i]);
+            new LinkedNode({ row: j, col: i, val }).insertBefore(diagonal[j]);
+          }
         }
       }
     }

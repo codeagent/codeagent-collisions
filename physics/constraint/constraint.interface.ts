@@ -1,3 +1,5 @@
+import { Body } from '../body';
+
 export interface ConstraintClamping {
   min: number;
   max: number;
@@ -9,4 +11,5 @@ export interface ConstraintInterface {
   getClamping(): ConstraintClamping;
   getCache(id: 0 | 1): number;
   setCache(id: 0 | 1, value: number): void;
+  getBodies(): [Body, Body];
 }

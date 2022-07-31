@@ -59,4 +59,8 @@ export class RevoluteXConstraint extends ConstraintBase {
   getClamping() {
     return { min: Number.NEGATIVE_INFINITY, max: Number.POSITIVE_INFINITY };
   }
+
+  getBodies() {
+    return [this.bodyA, this.bodyB];
+  }
 }

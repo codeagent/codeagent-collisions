@@ -44,4 +44,8 @@ export class MouseXConstraint extends ConstraintBase {
   getClamping() {
     return { min: -this.maxForce, max: this.maxForce };
   }
+
+  getBodies() {
+    return [this.body, null];
+  }
 }

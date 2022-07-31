@@ -131,3 +131,7 @@ step();
 // Profiler.instance
 //   .listen('drawWorld')
 //   .subscribe((e) => console.log('drawWorld', e));
+
+Profiler.instance
+  .listen('WorldInsland.MxDxMtCsr')
+  .subscribe((e) => console.log('WorldInsland.MxDxMtCsr', e));

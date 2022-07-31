@@ -31,4 +31,8 @@ export class AngularMotorConstraint extends ConstraintBase {
   getClamping() {
     return { min: -this.torque, max: this.torque };
   }
+
+  getBodies() {
+    return [this.body, null];
+  }
 }

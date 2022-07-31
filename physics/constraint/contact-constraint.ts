@@ -87,4 +87,8 @@ export class ContactConstraint extends ConstraintBase {
   getClamping() {
     return { min: 0.0, max: Number.POSITIVE_INFINITY };
   }
+
+  getBodies() {
+    return [this.bodyA, this.bodyB];
+  }
 }
