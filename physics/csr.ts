@@ -136,9 +136,9 @@ export namespace csr {
       for (let j = m1; j > i; j--) {
         if (
           indexA === hintA[j] ||
+          indexB === hintA[j] ||
           indexB === hintB[j] ||
-          indexA === hintB[j] ||
-          indexB === hintA[j]
+          indexA === hintB[j]
         ) {
           let val = 0.0;
           let k = k0;
@@ -172,11 +172,9 @@ export namespace csr {
     let counter = 0;
     for (let p = diagonal[0]; p !== null; p = p.next) {
       const { row, col, val } = p.value;
-      if (lastRow !== row) {
-        while (lastRow < row) {
-          rows.push(counter);
-          lastRow++;
-        }
+      while (lastRow < row) {
+        rows.push(counter);
+        lastRow++;
       }
       values.push(val);
       columns.push(col);

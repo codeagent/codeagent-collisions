@@ -105,13 +105,14 @@ export const projectedGaussSeidel = (
       out1[j] = b1[j];
 
       let denom = 1.0;
-      for (let k = A.rows[j]; k < A.rows[j + 1]; k++) {
-        if (A.columns[k] === j) {
-          denom = A.values[k];
-          continue;
-        }
+      for (let k = A.rows[j], k1 = A.rows[j + 1]; k < k1; k++) {
         const c = A.columns[k];
         const v = A.values[k];
+
+        if (c === j) {
+          denom = v;
+          continue;
+        }
 
         out0[j] -= v * out0[c];
         out1[j] -= v * out1[c];
