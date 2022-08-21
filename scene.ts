@@ -97,7 +97,7 @@ export const createStackScene = (n: number) => {
   );
 
   for (let x = -8.0; x <= 8.0; x += 1) {
-    for (let y = -8.0; y <= 2.0; y += 1) {
+    for (let y = -8.0; y <= 8.0; y += 1) {
       world.createBody(
         createRectShape(1, 1),
         1.0,

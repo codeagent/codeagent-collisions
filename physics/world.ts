@@ -55,7 +55,7 @@ export class World {
   constructor(
     public gravity = vec2.fromValues(0.0, -9.8),
     public pushFactor = 0.6,
-    public iterations = 50,
+    public iterations = 10,
     public friction = 0.5,
     public restitution = 0.5
   ) {

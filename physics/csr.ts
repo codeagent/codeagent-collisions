@@ -135,10 +135,10 @@ export namespace csr {
 
       for (let j = m1; j > i; j--) {
         if (
-          indexA === hintA[j] ||
-          indexB === hintA[j] ||
-          indexB === hintB[j] ||
-          indexA === hintB[j]
+          indexA == hintA[j] ||
+          indexB == hintA[j] ||
+          indexB == hintB[j] ||
+          indexA == hintB[j]
         ) {
           let val = 0.0;
           let k = k0;
@@ -183,6 +183,57 @@ export namespace csr {
     }
 
     rows.push(counter);
+
+    return {
+      m: mat.m,
+      n: mat.m,
+      values,
+      columns,
+      rows,
+    };
+  };
+
+  export const MxDxMtCsr2 = (
+    mat: Matrix,
+    diag: Float32Array,
+    lookup: number[][]
+  ): Matrix => {
+    const values = [];
+    const columns = [];
+    const rows = [0];
+
+    for (let i = 0; i < mat.m; i++) {
+      let k0 = mat.rows[i];
+      let k1 = mat.rows[i + 1];
+      let adjacent = lookup[i];
+
+      for (let j of adjacent) {
+        let val = 0.0;
+        let k = k0;
+        let kt = mat.rows[j];
+        
+        let kt1 = mat.rows[j + 1];
+
+        while (k < k1 && kt < kt1) {
+          if (mat.columns[kt] < mat.columns[k]) {
+            kt++;
+          } else if (mat.columns[kt] > mat.columns[k]) {
+            k++;
+          } else {
+            val += diag[mat.columns[k]] * mat.values[k] * mat.values[kt];
+            kt++;
+            k++;
+          }
+        }
+
+        if (val) {
+          values.push(val);
+          columns.push(j);
+        }
+      }
+
+      rows.push(values.length);
+    }
 
     return {
       m: mat.m,

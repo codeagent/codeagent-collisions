@@ -1,7 +1,7 @@
 // Import stylesheets
 import './style.css';
 
-import { fromEvent, merge, of } from 'rxjs';
+import { combineLatest, fromEvent, merge, of } from 'rxjs';
 import { delay, map, tap } from 'rxjs/operators';
 import { canvas, clear, drawWorld } from './draw';
 import {
@@ -82,7 +82,7 @@ merge(
     map((e) => e.srcElement['id'])
   ),
 
-  of('joint').pipe(delay(1000))
+  of('stack').pipe(delay(1000))
 )
   .pipe(
     tap((id) => {
@@ -132,6 +132,11 @@ step();
 //   .listen('drawWorld')
 //   .subscribe((e) => console.log('drawWorld', e));
 
-Profiler.instance
-  .listen('WorldInsland.MxDxMtCsr')
-  .subscribe((e) => console.log('WorldInsland.MxDxMtCsr', e));
+combineLatest([
+  Profiler.instance.listen('WorldInsland.MxDxMtCsr'),
+  Profiler.instance.listen('WorldInsland.projectedGaussSeidel'),
+]).subscribe((e) => console.log(e));
+
+// Profiler.instance
+//   .listen('WorldInsland.cLookup')
+//   .subscribe((e) => console.log(e));

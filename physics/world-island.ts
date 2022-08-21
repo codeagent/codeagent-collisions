@@ -114,6 +114,8 @@ export class WorldIsland {
     let j = 0;
     let i = 0;
 
+    // init body => constrains lookup
+    const lookup = new Map<Body, number[]>();
     for (const constraint of this.constraints) {
       constraint.getJacobian(J, i, n);
       const { min, max } = constraint.getClamping();
@@ -124,6 +126,17 @@ export class WorldIsland {
       lambdas0[j] = constraint.getCache(0);
       lambdas1[j] = constraint.getCache(1);
       const [bodyA, bodyB] = constraint.getBodies();
+
+      if (!lookup.has(bodyA)) {
+        lookup.set(bodyA, []);
+      }
+
+      if (!lookup.has(bodyB)) {
+        lookup.set(bodyB, []);
+      }
+      lookup.get(bodyA).push(j);
+      lookup.get(bodyB).push(j);
+
       hintA[j] = this.world.bodyIndex.get(bodyA) ?? -1;
       hintB[j] = this.world.bodyIndex.get(bodyB) ?? -1;
 
@@ -131,13 +144,18 @@ export class WorldIsland {
       j++;
     }
 
+    Profiler.instance.begin('WorldInsland.cLookup');
+    const cLookup = this.makeLookup(lookup, c);
+    Profiler.instance.end('WorldInsland.cLookup');
+
     // A = J * Minv * Jt
     // b = 1.0 / ∆t * v − J * (1 / ∆t * v1 + Minv * fext)
 
     const csrJ = csr.compress(J, c);
 
     Profiler.instance.begin('WorldInsland.MxDxMtCsr');
-    const csrA = csr.MxDxMtCsr(csrJ, this.invMasses, hintA, hintB);
+    // const csrA = csr.MxDxMtCsr(csrJ, this.invMasses, hintA, hintB);
+    const csrA = csr.MxDxMtCsr2(csrJ, this.invMasses, cLookup);
     Profiler.instance.end('WorldInsland.MxDxMtCsr');
 
     VmV(bhat, this.invMasses, this.forces, n);
@@ -147,6 +165,7 @@ export class WorldIsland {
     VxSpVxS(bt0, v0, 1.0 / dt, b, -1.0, c);
     VxSpVxS(bt1, v1, 1.0 / dt, b, -1.0, c);
 
+    Profiler.instance.begin('WorldInsland.projectedGaussSeidel');
     projectedGaussSeidel(
       lambdas0,
       lambdas1,
@@ -157,6 +176,8 @@ export class WorldIsland {
       cMax,
       this.world.iterations
     );
+    Profiler.instance.end('WorldInsland.projectedGaussSeidel');
+
     csr.MtxV(outForces0, csrJ, lambdas0);
     csr.MtxV(outForces1, csrJ, lambdas1);
 
@@ -164,6 +185,35 @@ export class WorldIsland {
       this.constraints[j].setCache(0 as 0 | 1, lambdas0[j]);
       this.constraints[j].setCache(1 as 0 | 1, lambdas1[j]);
     }
+  }
+
+  public makeLookup(bodies: Map<Body, number[]>, c: number) {
+    const cLookup = new Array<number[]>(c);
+    let k = 0;
+    for (const constraint of this.constraints) {
+      const [bodyA, bodyB] = constraint.getBodies();
+      const ca = bodies.get(bodyA);
+      const cb = bodies.get(bodyB);
+      let i = 0;
+      let j = 0;
+      const queue = new Set<number>();
+      while (i < ca.length || j < cb.length) {
+        if (i === ca.length) {
+          queue.add(cb[j++]);
+        } else if (j === cb.length) {
+          queue.add(ca[i++]);
+        } else {
+          if (ca[i] < cb[j]) {
+            queue.add(ca[i++]);
+          } else {
+            queue.add(cb[j++]);
+          }
+        }
+      }
+      cLookup[k++] = Array.from(queue);
+    }
+
+    return cLookup;
   }
 
   private bodiesToArrays() {
