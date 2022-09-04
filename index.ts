@@ -1,7 +1,7 @@
 // Import stylesheets
 import './style.css';
 
-import { combineLatest, fromEvent, merge, of } from 'rxjs';
+import { animationFrames, fromEvent, merge, of } from 'rxjs';
 import { delay, map, tap } from 'rxjs/operators';
 import { canvas, clear, drawWorld } from './draw';
 import {
@@ -18,11 +18,11 @@ import {
   createMeshScene,
   createPinballScene,
   createGearScene,
+  createWarmScene,
 } from './scene';
 
-import { Profiler } from './physics/profiler';
+import { Profiler } from './physics';
 import { MouseControl } from './mouse-control';
-import { meshTest } from './physics/collision/mesh-test';
 
 self['world'] = world;
 
@@ -39,6 +39,7 @@ const lookup = {
   suspension: () => createSuspensionScene(),
   pinball: () => createPinballScene(),
   gears: () => createGearScene(),
+  warm: () => createWarmScene(),
 };
 
 let control: MouseControl;
@@ -81,8 +82,10 @@ merge(
   fromEvent(document.getElementById('gears'), 'click').pipe(
     map((e) => e.srcElement['id'])
   ),
-
-  of('stack').pipe(delay(1000))
+  fromEvent(document.getElementById('warm'), 'click').pipe(
+    map((e) => e.srcElement['id'])
+  ),
+  of('joint').pipe(delay(1000))
 )
   .pipe(
     tap((id) => {
@@ -104,39 +107,36 @@ merge(
   });
 
 const dt = 1.0 / 60.0;
-const step = () => {
-  world.simulate(dt);
+animationFrames().subscribe(() => {
+  world.simulate(dt );
   clear();
 
   Profiler.instance.begin('drawWorld');
   drawWorld(world);
   Profiler.instance.end('drawWorld');
+});
 
-  if (sceneId === 'mesh') {
-    // meshTest(world);
-  }
+Profiler.instance
+  .listen(
+    'World.integrate',
+    'World.detectCollisions',
+    'World.updateBodiesTransforms',
 
-  requestAnimationFrame(step);
-};
+    'CollisionDetector.updateAABBs',
+    'CollisionDetector.broadPhase',
+    'CollisionDetector.narrowPhase',
+    'CollisionDetector.narrowPhase',
 
-step();
+    'WorldInsland.solve',
+    'WorldInsland.getJacobian',
+    'WorldInsland.lookup',
+    'WorldInsland.MxDxMtCsr',
+    'WorldInsland.projectedGaussSeidel',
+    'WorldInsland.compress',
 
-// Profiler.instance
-//   .listen('World.integrate')
-//   .subscribe((e) => console.log('World.integrate', e));
-
-// Profiler.instance
-//   .listen('WorldIsland.projectedGaussSeidel')
-//   .subscribe((e) => console.log('WorldIsland.projectedGaussSeidel', e));
-// Profiler.instance
-//   .listen('drawWorld')
-//   .subscribe((e) => console.log('drawWorld', e));
-
-combineLatest([
-  Profiler.instance.listen('WorldInsland.MxDxMtCsr'),
-  Profiler.instance.listen('WorldInsland.projectedGaussSeidel'),
-]).subscribe((e) => console.log(e));
-
-// Profiler.instance
-//   .listen('WorldInsland.cLookup')
-//   .subscribe((e) => console.log(e));
+    'drawWorld'
+  )
+  .subscribe((e) => {
+    console.clear();
+    console.table(e);
+  });

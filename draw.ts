@@ -18,8 +18,9 @@ import {
   OBB,
   OBBNode,
   AABB,
+  ContactInfo,
 } from './physics';
-import { centroid } from './physics/collision/mesh';
+import { centroid } from './physics';
 
 export const canvas = document.getElementById('canvas') as HTMLCanvasElement;
 const context = canvas.getContext('2d') as CanvasRenderingContext2D;
@@ -227,26 +228,23 @@ export const drawGrid = (lines: number, step: number) => {
   }
 };
 
-export const drawManifold = (manifold: ContactManifold) => {
+export const drawContact = (contact: ContactInfo) => {
   context.lineWidth = 0.5;
   const t = vec2.create();
-  manifold.forEach(
-    ({
-      shape0,
-      shape1,
-      point0,
-      localPoint0,
-      point1,
-      localPoint1,
-      normal,
-      depth,
-    }) => {
-      drawDot(point0, '#FF0000');
-      vec2.add(t, point0, normal);
-      drawLineSegment([point0, t], LINE_COLOR);
-      drawDot(point1, '#0000FF');
-    }
-  );
+  const point0 = vec2.create();
+  const point1 = vec2.create();
+
+  vec2.transformMat3(point0, contact.localPoint0, contact.collider0.transform);
+  vec2.transformMat3(point1, contact.localPoint1, contact.collider1.transform);
+
+  // drawDot(contact.point0, '#FF0000');
+  drawDot(point0, '#BB00FF');
+
+  drawDot(contact.point1, '#0000FF');
+  drawDot(point1, '#00BB00');
+
+  vec2.add(t, contact.point0, contact.normal);
+  drawLineSegment([contact.point0, t], LINE_COLOR);
 };
 
 export const drawConstraint = (constraint: ConstraintInterface) => {
@@ -324,8 +322,12 @@ export const drawGround = (origin: vec2, normal: vec2) => {
   }
 };
 
-export const drawBody = (world: World, body: Body, color: string) => {
-  const shape = world.bodyShape.get(body);
+export const drawBody = (body: Body, color: string) => {
+  if (!body.collider) {
+    return;
+  }
+
+  let shape = body.collider.shape;
   drawCross(body.transform, color);
   if (shape instanceof Polygon) {
     drawPolyShape(shape, body.transform, color);
@@ -435,24 +437,17 @@ export const drawOBBTree = (node: OBBNode, drawLevel = -1, leafs = false) => {
 };
 
 export const drawWorld = (world: World): void => {
-  world.bodies.forEach((body) =>
-    drawBody(
-      world,
-      body,
-      body.isStatic ? DEFAULT_COLOR : COLORS[world.bodyIsland.get(body)]
-    )
-  );
+  world.bodies.forEach((body) => {
+    drawBody(body, body.isStatic ? DEFAULT_COLOR : COLORS[body.islandId]);
 
-  // world.bodyContacts.forEach((contacts) =>
-  //   contacts.forEach((concact) =>
-  //     Array.from(concact).forEach((constraint) => drawConstraint(constraint))
-  //   )
-  // );
-  world.bodyJoints.forEach((joints) =>
-    joints.forEach((joint) =>
-      Array.from(joint).forEach((constraint) => drawConstraint(constraint))
-    )
-  );
+    for (const contact of body.contacts) {
+      // drawContact(contact.contactInfo);
+    }
+
+    for (const joint of body.joints) {
+      Array.from(joint).forEach((constraint) => drawConstraint(constraint));
+    }
+  });
 
   drawGrid(20, 1.0);
 };

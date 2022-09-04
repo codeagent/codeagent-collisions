@@ -21,5 +21,8 @@
 - [ ] basic shape tests, like ray casting, test box, etc.
 - [ ] fix interpenetration
 - [ ] more demos
+- [x] contact cache
+- [ ] more le solvers
+- [ ] ...
 
 [Edit on StackBlitz ⚡️](https://stackblitz.com/edit/codeagent-collisions)

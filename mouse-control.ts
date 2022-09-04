@@ -1,21 +1,16 @@
 import { mat3, vec2, vec3 } from 'gl-matrix';
 import { Subject, fromEvent } from 'rxjs';
 import { takeUntil, map, filter, tap } from 'rxjs/operators';
-import {
-  World,
-  Body,
-  MouseControlInterface,
-  ConstraintInterface,
-} from './physics';
+import { World, Body, MouseControlInterface, MouseJoint } from './physics';
 
 import { projMat } from './draw';
 
 export class MouseControl implements MouseControlInterface {
   private canvas: HTMLElement;
   private _body: Body | null;
-  private constraints: ConstraintInterface[];
-  private readonly release$ = new Subject();
-  private readonly stop$ = new Subject();
+  private joint: MouseJoint = null;
+  private readonly release$ = new Subject<void>();
+  private readonly stop$ = new Subject<void>();
   private readonly _cursor = vec2.create();
   private readonly origin = vec2.create();
   private readonly locked = vec2.create();
@@ -80,7 +75,7 @@ export class MouseControl implements MouseControlInterface {
     mat3.invert(invTransform, this._body.transform);
     vec2.transformMat3(p, p, invTransform);
 
-    this.constraints = this.world.addMouseConstraints(
+    this.joint = this.world.addMouseJoint(
       this,
       this._body,
       p,
@@ -90,9 +85,8 @@ export class MouseControl implements MouseControlInterface {
   }
 
   private onMouseUp() {
-    this.world.removeConstraint(this.constraints[0]);
-    this.world.removeConstraint(this.constraints[1]);
-    this.constraints = this._body = null;
+    this.world.removeJoint(this.joint);
+    this.joint = this._body = null;
     this.stop$.next();
   }
 
@@ -110,8 +104,8 @@ export class MouseControl implements MouseControlInterface {
       mat3.invert(invTransform, body.transform);
       vec2.transformMat3(p, point, invTransform);
 
-      const shape = this.world.bodyShape.get(body);
-      if (shape.testPoint(p)) {
+      // @todo:
+      if (body.collider && body.collider.shape.testPoint(p)) {
         return body;
       }
     }
