@@ -106,11 +106,11 @@ export const createStackScene = (n: number) => {
     )
   );
 
-  for (let x = -8.0; x <= 8.0; x += 1) {
-    for (let y = -8.0; y <= 8.0; y += 1) {
+  for (let x = -0.0; x <= 0.0; x += 1) {
+    for (let y = -8.0; y <= -1.0; y += 1) {
       world.addCollider(
         new BodyCollider(
-          world.createBody(1.0, 1.0, vec2.fromValues(x, y * 0.999), 0.0),
+          world.createBody(1.0, 1.0, vec2.fromValues(x, y), 0.0),
           createRectShape(1, 1)
         )
       );
@@ -915,10 +915,9 @@ export const createGearScene = () => {
 };
 
 export const createWarmScene = () => {
-  world.restitution = 0.50;
+  world.restitution = 0.5;
   world.pushFactor = 0.95;
-  world.friction = 0.0;
-
+  world.friction = 0.7;
 
   // floor
   let body = world.createBody(
@@ -950,6 +949,6 @@ export const createWarmScene = () => {
   body = world.createBody(1.0, 1.0, vec2.fromValues(0, -8), 0.0);
   world.addCollider(new BodyCollider(body, createRectShape(3, 1)));
 
-  body = world.createBody(1.0, 1.0, vec2.fromValues(0, -7.0), 0.0);
+  body = world.createBody(1.0, 0.1, vec2.fromValues(0, -7.0), 0.0);
   world.addCollider(new BodyCollider(body, createRectShape(1, 1)));
 };

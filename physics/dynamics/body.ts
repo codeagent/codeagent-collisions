@@ -1,11 +1,15 @@
 import { mat3, vec2, vec3 } from 'gl-matrix';
-import { JointInterface } from '.';
+import { JointInterface } from '../';
 import { BodyCollider } from '../cd';
 import { affineInverse } from '../math';
 import { Contact } from './joint';
 import { World } from './world';
 
 export class Body {
+  public static readonly velocityThreshold = 1.0e-1;
+  public static readonly angularVelocityThreshold = 1.0e-1;
+  public static readonly sleepTimerDuration = 1;
+
   get transform(): mat3 {
     return mat3.clone(this._transform);
   }
@@ -104,7 +108,11 @@ export class Body {
     return this._contacts;
   }
 
-  public collider: BodyCollider = null;
+  get isSleeping(): boolean {
+    return this._isSleeping;
+  }
+
+  public collider: BodyCollider;
   public bodyIndex: number = -1; // index in host island
   public islandId: number = -1; // id of host island
   public readonly islandJacobians: number[] = []; // the list of constraints in island with witch given body will be interacted
@@ -120,6 +128,8 @@ export class Body {
   private _invInertia = 0.0;
   private _inertia = 0.0;
   private _isStatic = false;
+  private _isSleeping = false;
+  private _sleepTimer = 0;
 
   private readonly _transform = mat3.create();
   private readonly _joints = new Set<JointInterface>();
@@ -129,18 +139,22 @@ export class Body {
 
   addJoint(joint: JointInterface) {
     this._joints.add(joint);
+    this.awake();
   }
 
   removeJoint(joint: JointInterface) {
     this._joints.delete(joint);
+    this.awake();
   }
 
   addContact(contact: Contact) {
     this._contacts.add(contact);
+    this.awake();
   }
 
   removeContact(contact: Contact) {
     this._contacts.delete(contact);
+    this.awake();
   }
 
   updateTransform() {
@@ -158,6 +172,8 @@ export class Body {
       vec2.sub(r, r, this._position);
       this._torque = vec2.cross(x, r, force)[2];
     }
+
+    // this.awake();
   }
 
   clearForces() {
@@ -171,5 +187,26 @@ export class Body {
 
   toGlobalPoint(out: vec2, local: vec2): vec2 {
     return vec2.transformMat3(out, local, this._transform);
+  }
+
+  tick(dt: number): void {
+    if (!this.isStatic) {
+      if (
+        vec2.length(this.velocity) <= Body.velocityThreshold &&
+        this.omega <= Body.angularVelocityThreshold
+      ) {
+        this._sleepTimer -= dt;
+
+        if (this._sleepTimer <= 0) {
+          this._isSleeping = true;
+          
+        }
+      }
+    }
+  }
+
+  awake(): void {
+    this._isSleeping = false;
+    this._sleepTimer = Body.sleepTimerDuration;
   }
 }

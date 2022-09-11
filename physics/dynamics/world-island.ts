@@ -19,11 +19,18 @@ import { World } from './world';
 import { JointInterface } from './joint';
 
 export class WorldIsland {
-  public readonly bodies = new Array<Body>();
+  get sleeping() {
+    return this._sleeping;
+  }
+
+  get empty() {
+    return this.bodies.length === 0;
+  }
+
+  private readonly bodies = new Array<Body>();
   private readonly joints = new Set<JointInterface>();
 
   private id: number = -1;
-
   private positions: Float32Array;
   private velocities: Float32Array;
   private forces: Float32Array;
@@ -48,6 +55,7 @@ export class WorldIsland {
   private J: Float32Array;
   private constraintsCapacity = 0;
   private constraintsNumber = 0;
+  private _sleeping = true;
 
   constructor(private readonly world: World) {
     this.resize(0);
@@ -77,6 +85,7 @@ export class WorldIsland {
     body.bodyIndex = this.bodies.length;
     body.islandId = this.id;
     body.islandJacobians.length = 0;
+    this._sleeping = this._sleeping && body.isSleeping;
     this.bodies.push(body);
   }
 
@@ -88,6 +97,7 @@ export class WorldIsland {
   clear() {
     this.bodies.length = 0;
     this.constraintsNumber = 0;
+    this._sleeping = true;
     this.joints.clear();
   }
 

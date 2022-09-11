@@ -18,12 +18,8 @@ export class Contact implements JointInterface {
     return this._length;
   }
 
-  get timestamp() {
-    return this._timestamp;
-  }
-
   private _length = 1;
-  private _timestamp = 0;
+
   private readonly contactConstraint: ContactConstraint;
   private readonly frictionConstraint: FrictionConstraint;
 
@@ -66,9 +62,5 @@ export class Contact implements JointInterface {
 
   updatePenetration(penetration: number): void {
     this.contactConstraint.setPenetration(penetration);
-  }
-
-  setTimestamp(timestamp: number): void {
-    this._timestamp = timestamp;
   }
 }

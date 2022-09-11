@@ -14,7 +14,7 @@
 - [x] eradicate double calculation of jacobians for velocity and position constraint resolving
 - [x] involve joints
 - [x] joint islands
-- [ ] sleeping
+- [x] sleeping
 - [x] mouse joint
 - [ ] physics materials
 - [ ] collision masks (layers)

@@ -16,7 +16,7 @@ export class ContactConstraint extends ConstraintBase {
     public readonly joint: vec2,
     public readonly normal: vec2, // normal at bodyA
     public penetration: number,
-    public readonly slope: number = 5.0e-3
+    public readonly slop: number = 5.0e-3
   ) {
     super();
   }
@@ -50,7 +50,7 @@ export class ContactConstraint extends ConstraintBase {
 
   getPushFactor(dt: number, strength: number): number {
     if (strength) {
-      return (Math.max(this.penetration - this.slope, 0) / dt) * strength;
+      return (Math.max(this.penetration - this.slop, 0) / dt) * strength;
     } else {
       const x = vec3.create();
       this.jacobian.fill(0);

@@ -102,7 +102,7 @@ export const drawPolyShape = (
 ) => {
   context.lineWidth = 1;
   context.strokeStyle = color;
-  context.setLineDash(dashed ? [1, 1] : []);
+  context.setLineDash(dashed ? [3, 3] : []);
 
   context.beginPath();
   for (let i = 0; i < poly.points.length; i++) {
@@ -130,7 +130,8 @@ export const drawPolyShape = (
 export const drawCircleShape = (
   radius: number,
   transform: mat3,
-  color: string
+  color: string,
+  dashed = true
 ) => {
   const c = vec2.transformMat3(
     vec2.create(),
@@ -158,7 +159,7 @@ export const drawCircleShape = (
 
   context.lineWidth = 1.0;
 
-  context.setLineDash([]);
+  context.setLineDash(dashed ? [3, 3] : []);
   context.beginPath();
   context.arc(c[0], c[1], radius * 40, 0, 2 * Math.PI, false);
   context.fillStyle = color;
@@ -327,14 +328,16 @@ export const drawBody = (body: Body, color: string) => {
     return;
   }
 
+  color = body.isSleeping ? '#AAAAAA' : color;
+
   let shape = body.collider.shape;
   drawCross(body.transform, color);
   if (shape instanceof Polygon) {
-    drawPolyShape(shape, body.transform, color);
+    drawPolyShape(shape, body.transform, color, body.isSleeping);
   } else if (shape instanceof Circle) {
-    drawCircleShape(shape.radius, body.transform, color);
+    drawCircleShape(shape.radius, body.transform, color, body.isSleeping);
   } else if (shape instanceof MeshShape) {
-    drawMesh(shape.mesh, body.transform, color);
+    drawMesh(shape.mesh, body.transform, color, body.isSleeping);
   }
 };
 
@@ -346,7 +349,7 @@ export const drawMesh = (
 ) => {
   context.lineWidth = 1;
   context.strokeStyle = color;
-  context.setLineDash(dashed ? [1, 1] : []);
+  context.setLineDash(dashed ? [3, 3] : []);
 
   context.beginPath();
   for (const triangle of mesh) {

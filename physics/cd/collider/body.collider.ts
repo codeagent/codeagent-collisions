@@ -1,6 +1,6 @@
 import { mat3 } from 'gl-matrix';
 
-import { Body, Contact } from '../../dynamics';
+import { Body } from '../../dynamics';
 import { AABBBounded, Shape } from '../shape';
 import { Collider } from './collider';
 

@@ -85,6 +85,10 @@ export class World {
     this.detectCollisions();
     this.integrate(dt);
     this.updateBodiesTransforms();
+
+    for (const body of this.bodies) {
+      body.tick(dt);
+    }
   }
 
   addDistanceJoint(
@@ -263,7 +267,9 @@ export class World {
     this.applyGlobalForces();
 
     for (const island of this.getIslands()) {
-      island.integrate(dt);
+      if (!island.sleeping) {
+        island.integrate(dt);
+      }
     }
 
     this.clearForces();
@@ -290,6 +296,8 @@ export class World {
   private detectCollisions() {
     this.profiler.begin('World.detectCollisions');
 
+    this.contactManager.validate();
+
     for (const contactInfo of this.collisionDetector.detectCollisions()) {
       if (
         contactInfo.collider0 instanceof BodyCollider &&
@@ -300,8 +308,6 @@ export class World {
         );
       }
     }
-
-    this.contactManager.validate();
 
     this.profiler.end('World.detectCollisions');
   }
@@ -377,7 +383,7 @@ export class World {
         bodies.add(body);
       }
 
-      if (this.island.bodies.length) {
+      if (!this.island.empty) {
         this.island.setId(islandId++);
 
         yield this.island;

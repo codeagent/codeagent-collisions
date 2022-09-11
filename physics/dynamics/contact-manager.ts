@@ -6,7 +6,6 @@ import { Contact } from './joint';
 export class ContactManager {
   private readonly registry = new Map<number, ContactManifold>();
   private readonly colliders = new Set<BodyCollider>();
-  private readonly clock = Clock.instance;
 
   constructor(public readonly threshold = 5e-3) {}
 
@@ -25,12 +24,9 @@ export class ContactManager {
   }
 
   validate() {
-    const timestamp = this.clock.frame;
-    for (const collider of this.colliders) {
-      for (const contact of collider.body.contacts) {
-        if (contact.timestamp !== timestamp) {
-          collider.body.removeContact(contact);
-        }
+    for (const [key, manifold] of this.registry) {
+      if (!manifold.validate()) {
+        this.registry.delete(key);
       }
     }
   }
@@ -48,13 +44,7 @@ export class ContactManager {
       this.registry.set(id, manifold);
     }
 
-    const contact = manifold.addContact(contactInfo);
-
-    if (contact) {
-      contact.setTimestamp(this.clock.frame);
-      contactInfo.collider0.body.addContact(contact);
-      contactInfo.collider1.body.addContact(contact);
-    }
+    manifold.addContact(contactInfo);
   }
 
   *getContactManifold(
@@ -73,15 +63,21 @@ const db = vec2.create();
 
 export class ContactManifold implements Iterable<Contact> {
   public static readonly MAX_CONTACTS = 2;
+  public static readonly LIFE_TIME = 1.0; // seconds
+
   private readonly contacts = new Set<Contact>();
+  private readonly clock = Clock.instance;
+  private expirationTime: number;
 
   constructor(
     public readonly collider0: BodyCollider,
     public readonly collider1: BodyCollider,
     public readonly threshold: number
-  ) {}
+  ) {
+    this.expirationTime = this.clock.time + ContactManifold.LIFE_TIME;
+  }
 
-  addContact(contactInfo: ContactInfo<BodyCollider, BodyCollider>): Contact {
+  validate(): boolean {
     // validate existing contacts
     for (const contact of this.contacts) {
       vec2.transformMat3(
@@ -99,6 +95,8 @@ export class ContactManifold implements Iterable<Contact> {
       // not penetrating
       if (vec2.dot(ab, contact.contactInfo.normal) < 0) {
         this.contacts.delete(contact);
+        contact.bodyA.removeContact(contact);
+        contact.bodyB.removeContact(contact);
         continue;
       }
 
@@ -110,10 +108,24 @@ export class ContactManifold implements Iterable<Contact> {
         vec2.sqrLen(db) >= this.threshold
       ) {
         this.contacts.delete(contact);
+        contact.bodyA.removeContact(contact);
+        contact.bodyB.removeContact(contact);
         continue;
       }
     }
 
+    if (this.contacts.size !== 0) {
+      this.expirationTime = this.clock.time + ContactManifold.LIFE_TIME;
+    } else {
+      if (this.clock.time > this.expirationTime) {
+        return false;
+      }
+    }
+
+    return true;
+  }
+
+  addContact(contactInfo: ContactInfo<BodyCollider, BodyCollider>) {
     // check if manifold already includes contact with the same proximity
     for (const contact of this.contacts) {
       vec2.sub(da, contactInfo.point0, contact.contactInfo.point0);
@@ -123,9 +135,9 @@ export class ContactManifold implements Iterable<Contact> {
         vec2.sqrLen(da) <= this.threshold &&
         vec2.sqrLen(db) <= this.threshold
       ) {
-        // if so, update penetration depth
+        // if so, update penetration depth and do nothing
         contact.updatePenetration(contactInfo.depth);
-        return contact;
+        return;
       }
     }
 
@@ -163,15 +175,22 @@ export class ContactManifold implements Iterable<Contact> {
         }
       }
 
-      this.contacts.clear();
+      this.contacts.delete(farthest);
+
+      // remove all that are not either deepest or most distant
+      for (const contact of this.contacts) {
+        this.contacts.delete(contact);
+        newContact.bodyA.removeContact(contact);
+        newContact.bodyB.removeContact(contact);
+      }
+
       this.contacts.add(deepest);
       this.contacts.add(farthest);
     }
 
     if (this.contacts.has(newContact)) {
-      return newContact;
-    } else {
-      return null;
+      newContact.bodyA.addContact(newContact);
+      newContact.bodyB.addContact(newContact);
     }
   }
 
