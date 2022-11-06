@@ -1,9 +1,9 @@
 import { vec2 } from 'gl-matrix';
 
 import { Body } from '../body';
+import { MouseControlInterface } from '../joint';
 import { World } from '../world';
 import { ConstraintBase } from './constraint.base';
-import { MouseControlInterface } from '../../utils';
 
 export class MouseYConstraint extends ConstraintBase {
   constructor(

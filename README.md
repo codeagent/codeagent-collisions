@@ -23,6 +23,8 @@
 - [ ] more demos
 - [x] contact cache
 - [ ] more le solvers
+- [ ] more joints: curve, pulley
+- [ ] events
 - [ ] ...
 
 [Edit on StackBlitz ⚡️](https://stackblitz.com/edit/codeagent-collisions)

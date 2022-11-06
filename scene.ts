@@ -1,15 +1,22 @@
 import { vec2 } from 'gl-matrix';
-import { World, Body, Polygon, Circle, MeshShape, loadObj } from './physics';
-import { BodyCollider } from './physics/cd/collider/body.collider';
+import {
+  World,
+  Body,
+  Polygon,
+  Circle,
+  MeshShape,
+  loadObj,
+  Capsule,
+  Collider,
+  Ellipse,
+  Box,
+} from './physics';
 
 import MESH from './objects/mesh';
 import GEARS from './objects/gears';
 import PINTBALL from './objects/pintball';
 import HELIX from './objects/helix';
 import PISTON from './objects/piston';
-
-const lerp = (a: number, b: number, t: number) => a * (1.0 - t) + b * t;
-const rangeRandom = (from: number, to: number) => lerp(from, to, Math.random());
 
 const createQuadShape = (size: number): Polygon => {
   return new Polygon([
@@ -26,6 +33,14 @@ const createRectShape = (w: number, h: number): Polygon => {
     vec2.fromValues(w * 0.5, h * 0.5),
     vec2.fromValues(-w * 0.5, h * 0.5),
     vec2.fromValues(-w * 0.5, -h * 0.5),
+  ]);
+};
+
+const createTriangleShape = (r: number = 1): Polygon => {
+  return new Polygon([
+    vec2.fromValues(-0.5 * r, -0.5 * r),
+    vec2.fromValues(0.5 * r, -0.5 * r),
+    vec2.fromValues(0.0, 0.5 * r),
   ]);
 };
 
@@ -48,7 +63,7 @@ export const createChainScene = (links: number, x = 0.0) => {
       vec2.fromValues(offset - Math.SQRT2 * size + x - 11, 10),
       -Math.PI * 0.25
     );
-    world.addCollider(new BodyCollider(body, createQuadShape(size)));
+    world.addCollider(new Collider(body, createQuadShape(size)));
 
     if (i > 0) {
       const bodyA = chain[i - 1];
@@ -63,30 +78,30 @@ export const createChainScene = (links: number, x = 0.0) => {
 };
 
 export const createStackScene = (n: number) => {
-  world.restitution = 0.5;
-  world.pushFactor = 0.5;
-  world.friction = 0.72;
+  world.restitution = 0.15;
+  world.pushFactor = 0.15;
+  world.friction = 0.25;
 
   // floor
   world.addCollider(
-    new BodyCollider(
+    new Collider(
       world.createBody(
         Number.POSITIVE_INFINITY,
         Number.POSITIVE_INFINITY,
         vec2.fromValues(0.0, -9),
         0.0
       ),
-      createRectShape(20, 1)
+      createRectShape(26, 1)
     )
   );
 
   // left wall
   world.addCollider(
-    new BodyCollider(
+    new Collider(
       world.createBody(
         Number.POSITIVE_INFINITY,
         Number.POSITIVE_INFINITY,
-        vec2.fromValues(-10, 0),
+        vec2.fromValues(-14, 0),
         0.0
       ),
       createRectShape(1, 16)
@@ -95,26 +110,189 @@ export const createStackScene = (n: number) => {
 
   // right wall
   world.addCollider(
-    new BodyCollider(
+    new Collider(
       world.createBody(
         Number.POSITIVE_INFINITY,
         Number.POSITIVE_INFINITY,
-        vec2.fromValues(10, 0),
+        vec2.fromValues(14, 0),
         0.0
       ),
       createRectShape(1, 16)
     )
   );
 
-  for (let x = -0.0; x <= 0.0; x += 1) {
-    for (let y = -8.0; y <= -1.0; y += 1) {
+  let box = createRectShape(1, 1);
+  let girder = createRectShape(3, 1);
+  let capsule = new Capsule(0.5, 3);
+  let circle = new Circle(0.5);
+  let mass = 1.0;
+  let i = 0;
+
+  // boxes
+  for (let y = -8.0; y <= 8; y += 1.0) {
+    world.addCollider(
+      new Collider(
+        world.createBody(mass, box.inetria(mass), vec2.fromValues(-12, y), 0.0),
+        box
+      )
+    );
+  }
+
+  // box/girder
+  for (let y = -8.0; y <= 9; y += 1.0) {
+    if (i % 2 === 0) {
       world.addCollider(
-        new BodyCollider(
-          world.createBody(1.0, 1.0, vec2.fromValues(x, y), 0.0),
-          createRectShape(1, 1)
+        new Collider(
+          world.createBody(
+            mass,
+            box.inetria(mass),
+            vec2.fromValues(-9.5, y),
+            0
+          ),
+          box
+        )
+      );
+
+      world.addCollider(
+        new Collider(
+          world.createBody(
+            mass,
+            box.inetria(mass),
+            vec2.fromValues(-6.5, y),
+            0
+          ),
+          box
+        )
+      );
+    } else {
+      world.addCollider(
+        new Collider(
+          world.createBody(
+            mass,
+            girder.inetria(mass),
+            vec2.fromValues(-8, y),
+            0
+          ),
+          girder
         )
       );
     }
+
+    i++;
+  }
+
+  // circle/girder
+  for (let y = -8.0; y <= 9; y += 1.0) {
+    if (i % 2 === 0) {
+      world.addCollider(
+        new Collider(
+          world.createBody(mass, mass * 20, vec2.fromValues(-5, y), 0),
+          circle
+        )
+      );
+
+      world.addCollider(
+        new Collider(
+          world.createBody(mass, mass * 20, vec2.fromValues(-3, y), 0),
+          circle
+        )
+      );
+    } else {
+      world.addCollider(
+        new Collider(
+          world.createBody(mass, mass * 20, vec2.fromValues(-4, y), 0),
+          girder
+        )
+      );
+    }
+
+    i++;
+  }
+
+  // box/capsule
+  for (let y = -8.0; y <= 8; y += 1.0) {
+    if (i % 2 === 0) {
+      world.addCollider(
+        new Collider(
+          world.createBody(1.0, 2.0, vec2.fromValues(-1.0, y), 0),
+          box
+        )
+      );
+
+      world.addCollider(
+        new Collider(
+          world.createBody(1.0, 2.0, vec2.fromValues(1.0, y), 0),
+          box
+        )
+      );
+    } else {
+      world.addCollider(
+        new Collider(
+          world.createBody(1.0, 2.0, vec2.fromValues(0, y), Math.PI * 0.5),
+          capsule
+        )
+      );
+    }
+
+    i++;
+  }
+
+  // circles
+  for (let y = -8.0; y <= 8; y += 1.0) {
+    world.addCollider(
+      new Collider(
+        world.createBody(
+          mass,
+          circle.inetria(mass) * 4,
+          vec2.fromValues(3, y),
+          0.0
+        ),
+        circle
+      )
+    );
+  }
+
+  // capsules
+  for (let y = -8.0; y <= 8; y += 1.0) {
+    world.addCollider(
+      new Collider(
+        world.createBody(mass, mass * 2, vec2.fromValues(6, y), Math.PI * 0.5),
+        capsule
+      )
+    );
+  }
+
+  //capsule/circle
+  for (let y = -8.0; y <= 2; y += 1.0) {
+    if (i % 2 === 0) {
+      world.addCollider(
+        new Collider(
+          world.createBody(mass, mass * 20, vec2.fromValues(10.0, y), 0),
+          circle
+        )
+      );
+
+      world.addCollider(
+        new Collider(
+          world.createBody(mass, mass * 20, vec2.fromValues(12.0, y), 0),
+          circle
+        )
+      );
+    } else {
+      world.addCollider(
+        new Collider(
+          world.createBody(
+            mass,
+            mass * 1,
+            vec2.fromValues(11, y),
+            Math.PI * 0.5
+          ),
+          capsule
+        )
+      );
+    }
+
+    i++;
   }
 };
 
@@ -134,7 +312,7 @@ export const createPendulumScene = (n: number) => {
     vec2.fromValues(0.0, 10),
     0.0
   );
-  world.addCollider(new BodyCollider(ceil, createRectShape(20, 1)));
+  world.addCollider(new Collider(ceil, createRectShape(20, 1)));
 
   let offset = 0;
 
@@ -150,7 +328,7 @@ export const createPendulumScene = (n: number) => {
         ),
         0.0
       );
-      world.addCollider(new BodyCollider(pendulum, new Circle(step * 0.5)));
+      world.addCollider(new Collider(pendulum, new Circle(step * 0.5)));
     } else {
       pendulum = world.createBody(
         m,
@@ -158,7 +336,7 @@ export const createPendulumScene = (n: number) => {
         vec2.fromValues(n % 2 ? offset : -offset, 0),
         0.0
       );
-      world.addCollider(new BodyCollider(pendulum, new Circle(step * 0.5)));
+      world.addCollider(new Collider(pendulum, new Circle(step * 0.5)));
     }
 
     world.addDistanceJoint(
@@ -187,11 +365,11 @@ export const createStairsScene = (n: number) => {
   const m = 10.0;
   const interval = 1000;
 
-  let k = 32;
+  let k = 1;
 
   const spawn = () => {
     world.addCollider(
-      new BodyCollider(
+      new Collider(
         world.createBody(m, m * 0.015, vec2.fromValues(w * 0.5, 12), 0.0),
         new Circle(0.5)
       )
@@ -206,7 +384,7 @@ export const createStairsScene = (n: number) => {
     const x = n % 2 ? xDist * 0.5 : -(xDist * 0.5);
 
     world.addCollider(
-      new BodyCollider(
+      new Collider(
         world.createBody(
           Number.POSITIVE_INFINITY,
           Number.POSITIVE_INFINITY,
@@ -221,7 +399,7 @@ export const createStairsScene = (n: number) => {
   }
 
   world.addCollider(
-    new BodyCollider(
+    new Collider(
       world.createBody(
         Number.POSITIVE_INFINITY,
         Number.POSITIVE_INFINITY,
@@ -233,7 +411,7 @@ export const createStairsScene = (n: number) => {
   );
 
   world.addCollider(
-    new BodyCollider(
+    new Collider(
       world.createBody(
         Number.POSITIVE_INFINITY,
         Number.POSITIVE_INFINITY,
@@ -245,7 +423,7 @@ export const createStairsScene = (n: number) => {
   );
 
   world.addCollider(
-    new BodyCollider(
+    new Collider(
       world.createBody(
         Number.POSITIVE_INFINITY,
         Number.POSITIVE_INFINITY,
@@ -277,7 +455,7 @@ export const createGaussianScene = () => {
 
   // floor
   world.addCollider(
-    new BodyCollider(
+    new Collider(
       world.createBody(
         Number.POSITIVE_INFINITY,
         Number.POSITIVE_INFINITY,
@@ -290,7 +468,7 @@ export const createGaussianScene = () => {
 
   // left wall
   world.addCollider(
-    new BodyCollider(
+    new Collider(
       world.createBody(
         Number.POSITIVE_INFINITY,
         Number.POSITIVE_INFINITY,
@@ -303,7 +481,7 @@ export const createGaussianScene = () => {
 
   // right wall
   world.addCollider(
-    new BodyCollider(
+    new Collider(
       world.createBody(
         Number.POSITIVE_INFINITY,
         Number.POSITIVE_INFINITY,
@@ -321,7 +499,7 @@ export const createGaussianScene = () => {
       x += band + 0.0;
     }
     world.addCollider(
-      new BodyCollider(
+      new Collider(
         world.createBody(
           Number.POSITIVE_INFINITY,
           Number.POSITIVE_INFINITY,
@@ -335,7 +513,7 @@ export const createGaussianScene = () => {
 
   // sink
   world.addCollider(
-    new BodyCollider(
+    new Collider(
       world.createBody(
         Number.POSITIVE_INFINITY,
         Number.POSITIVE_INFINITY,
@@ -347,7 +525,7 @@ export const createGaussianScene = () => {
   );
 
   world.addCollider(
-    new BodyCollider(
+    new Collider(
       world.createBody(
         Number.POSITIVE_INFINITY,
         Number.POSITIVE_INFINITY,
@@ -367,7 +545,7 @@ export const createGaussianScene = () => {
 
     for (let j = 0; j <= i; j++) {
       world.addCollider(
-        new BodyCollider(
+        new Collider(
           world.createBody(
             Number.POSITIVE_INFINITY,
             Number.POSITIVE_INFINITY,
@@ -395,7 +573,7 @@ export const createGaussianScene = () => {
 
     for (let j = i; j >= 0; j--) {
       world.addCollider(
-        new BodyCollider(
+        new Collider(
           world.createBody(1.0, 1.0, vec2.fromValues(u, v), 0.0),
           new Circle(ballR)
         )
@@ -419,12 +597,12 @@ export const createJointScene = () => {
     vec2.fromValues(-10.0, 0.0),
     0.0
   );
-  world.addCollider(new BodyCollider(wheel, new Circle(2)));
+  world.addCollider(new Collider(wheel, new Circle(2)));
 
   setTimeout(() => {
     world.addCollider(
-      new BodyCollider(
-        world.createBody(10, 10.0, vec2.fromValues(-10.0, 0.0), 0.0),
+      new Collider(
+        world.createBody(10, 10.0, vec2.fromValues(-10.0, -5.0), 0.0),
         new Circle(1)
       )
     );
@@ -436,10 +614,10 @@ export const createJointScene = () => {
     vec2.fromValues(0.0, -1.5),
     0.0
   );
-  world.addCollider(new BodyCollider(bar, createRectShape(10, 0.1)));
+  world.addCollider(new Collider(bar, createRectShape(10, 0.1)));
 
   const slider = world.createBody(1, 1, vec2.fromValues(0.0, -1), 0.0);
-  world.addCollider(new BodyCollider(slider, createRectShape(3, 0.5)));
+  world.addCollider(new Collider(slider, createRectShape(3, 0.5)));
 
   world.addPrismaticJoint(
     bar,
@@ -461,7 +639,7 @@ export const createJointScene = () => {
 
   // stack
   world.addCollider(
-    new BodyCollider(
+    new Collider(
       world.createBody(
         Number.POSITIVE_INFINITY,
         Number.POSITIVE_INFINITY,
@@ -473,7 +651,7 @@ export const createJointScene = () => {
   );
 
   world.addCollider(
-    new BodyCollider(
+    new Collider(
       world.createBody(
         Number.POSITIVE_INFINITY,
         Number.POSITIVE_INFINITY,
@@ -487,7 +665,7 @@ export const createJointScene = () => {
   let n = 10;
   while (n--) {
     world.addCollider(
-      new BodyCollider(
+      new Collider(
         world.createBody(1, 1, vec2.fromValues(-3.5, n), 0.0),
         createRectShape(0.85, 0.85)
       )
@@ -501,13 +679,13 @@ export const createJointScene = () => {
     vec2.fromValues(5.0, -5.5),
     0.0
   );
-  world.addCollider(new BodyCollider(swing, createRectShape(5.5, 0.1)));
+  world.addCollider(new Collider(swing, createRectShape(5.5, 0.1)));
 
   const ball = world.createBody(1.1, 0.1, vec2.fromValues(5.0, -8.0), 0.0);
-  world.addCollider(new BodyCollider(ball, new Circle(0.5)));
+  world.addCollider(new Collider(ball, new Circle(0.5)));
 
   const cube = world.createBody(1.1, 0.1, vec2.fromValues(3.0, -8.0), 0.0);
-  world.addCollider(new BodyCollider(cube, createRectShape(1.0, 1.0)));
+  world.addCollider(new Collider(cube, createRectShape(1.0, 1.0)));
 
   world.addSpring(
     ball,
@@ -521,7 +699,7 @@ export const createJointScene = () => {
 
   // floor
   world.addCollider(
-    new BodyCollider(
+    new Collider(
       world.createBody(
         Number.POSITIVE_INFINITY,
         Number.POSITIVE_INFINITY,
@@ -548,9 +726,7 @@ export const createJointScene = () => {
       const y = o[1] + r * Math.sin(phi);
 
       const body = world.createBody(m, m, vec2.fromValues(x, y), phi);
-      world.addCollider(
-        new BodyCollider(body, createRectShape(size, size * 0.5))
-      );
+      world.addCollider(new Collider(body, createRectShape(size, size * 0.5)));
 
       if (i > 0) {
         const bodyA = chain[i - 1];
@@ -584,12 +760,12 @@ export const createSuspensionScene = () => {
 
   let length = 6;
   const hull = world.createBody(1.0, 1.0, vec2.fromValues(10.0, -4.0), 0.0);
-  world.addCollider(new BodyCollider(hull, createRectShape(length, 1.0)));
+  world.addCollider(new Collider(hull, createRectShape(length, 1.0)));
 
   let wheels = 4;
   for (let i = 0; i < wheels; i++) {
     const wheel = world.createBody(1.1, 1.1, vec2.fromValues(8.5, -6.0), 0.0);
-    world.addCollider(new BodyCollider(wheel, new Circle(0.5)));
+    world.addCollider(new Collider(wheel, new Circle(0.5)));
 
     world.addWheelJonit(
       hull,
@@ -616,7 +792,7 @@ export const createSuspensionScene = () => {
 
   // left wall
   world.addCollider(
-    new BodyCollider(
+    new Collider(
       world.createBody(
         Number.POSITIVE_INFINITY,
         Number.POSITIVE_INFINITY,
@@ -629,7 +805,7 @@ export const createSuspensionScene = () => {
 
   // right wall
   world.addCollider(
-    new BodyCollider(
+    new Collider(
       world.createBody(
         Number.POSITIVE_INFINITY,
         Number.POSITIVE_INFINITY,
@@ -642,7 +818,7 @@ export const createSuspensionScene = () => {
 
   // floor
   world.addCollider(
-    new BodyCollider(
+    new Collider(
       world.createBody(
         Number.POSITIVE_INFINITY,
         Number.POSITIVE_INFINITY,
@@ -657,7 +833,7 @@ export const createSuspensionScene = () => {
   let n = 8;
   while (n--) {
     world.addCollider(
-      new BodyCollider(
+      new Collider(
         world.createBody(
           Number.POSITIVE_INFINITY,
           Number.POSITIVE_INFINITY,
@@ -676,7 +852,7 @@ export const createHelixScene = () => {
   world.friction = 0.75;
 
   world.addCollider(
-    new BodyCollider(
+    new Collider(
       world.createBody(10, 1.0, vec2.fromValues(0.0, 0.5), Math.PI * 0.25),
       new Circle(0.5)
     )
@@ -686,7 +862,7 @@ export const createHelixScene = () => {
 
   for (const object in collection) {
     world.addCollider(
-      new BodyCollider(
+      new Collider(
         world.createBody(
           Number.POSITIVE_INFINITY,
           10,
@@ -705,7 +881,7 @@ export const createPinballScene = () => {
   world.friction = 0.75;
 
   world.addCollider(
-    new BodyCollider(
+    new Collider(
       world.createBody(10, 1, vec2.fromValues(0.0, 6.5), Math.PI * 0.25),
       new Circle(0.25)
     )
@@ -715,7 +891,7 @@ export const createPinballScene = () => {
 
   for (const object in collection) {
     world.addCollider(
-      new BodyCollider(
+      new Collider(
         world.createBody(
           Number.POSITIVE_INFINITY,
           Number.POSITIVE_INFINITY,
@@ -734,7 +910,7 @@ export const createMeshScene = () => {
   world.friction = 0.75;
 
   world.addCollider(
-    new BodyCollider(
+    new Collider(
       world.createBody(10, 1, vec2.fromValues(0.0, 6.5), Math.PI * 0.25),
       new Circle(0.5)
     )
@@ -744,7 +920,7 @@ export const createMeshScene = () => {
 
   for (const object in collection) {
     world.addCollider(
-      new BodyCollider(
+      new Collider(
         world.createBody(10, 100, vec2.fromValues(0, 0), 0),
         new MeshShape(collection[object])
       )
@@ -753,7 +929,7 @@ export const createMeshScene = () => {
 
   // left wall
   world.addCollider(
-    new BodyCollider(
+    new Collider(
       world.createBody(
         Number.POSITIVE_INFINITY,
         Number.POSITIVE_INFINITY,
@@ -766,7 +942,7 @@ export const createMeshScene = () => {
 
   // right wall
   world.addCollider(
-    new BodyCollider(
+    new Collider(
       world.createBody(
         Number.POSITIVE_INFINITY,
         Number.POSITIVE_INFINITY,
@@ -779,7 +955,7 @@ export const createMeshScene = () => {
 
   // floor
   world.addCollider(
-    new BodyCollider(
+    new Collider(
       world.createBody(
         Number.POSITIVE_INFINITY,
         Number.POSITIVE_INFINITY,
@@ -797,7 +973,7 @@ export const pistonScene = () => {
   world.friction = 0.75;
 
   world.addCollider(
-    new BodyCollider(
+    new Collider(
       world.createBody(1, 0.1, vec2.fromValues(0.0, 10.0), Math.PI * 0.25),
       new Circle(1.5)
     )
@@ -812,13 +988,11 @@ export const pistonScene = () => {
     0
   );
   world.addCollider(
-    new BodyCollider(cylinder, new MeshShape(collection['cylinder']))
+    new Collider(cylinder, new MeshShape(collection['cylinder']))
   );
 
   const piston = world.createBody(1, 1, vec2.fromValues(0, -1), 0);
-  world.addCollider(
-    new BodyCollider(piston, new MeshShape(collection['piston']))
-  );
+  world.addCollider(new Collider(piston, new MeshShape(collection['piston'])));
 
   world.addPrismaticJoint(
     cylinder,
@@ -858,7 +1032,7 @@ export const createGearScene = () => {
   );
   world.addMotor(motor, 10.0, 1.0);
   world.addCollider(
-    new BodyCollider(motor, new MeshShape(collection['gear_o_049']))
+    new Collider(motor, new MeshShape(collection['gear_o_049']))
   );
 
   const gear0 = world.createBody(
@@ -867,9 +1041,7 @@ export const createGearScene = () => {
     vec2.fromValues(-6.4191, 0),
     0
   );
-  world.addCollider(
-    new BodyCollider(gear0, new MeshShape(collection['gear_051']))
-  );
+  world.addCollider(new Collider(gear0, new MeshShape(collection['gear_051'])));
 
   const gear1 = world.createBody(
     Number.POSITIVE_INFINITY,
@@ -877,9 +1049,7 @@ export const createGearScene = () => {
     vec2.fromValues(-0.8335, 9.7032),
     0
   );
-  world.addCollider(
-    new BodyCollider(gear1, new MeshShape(collection['gear_052']))
-  );
+  world.addCollider(new Collider(gear1, new MeshShape(collection['gear_052'])));
 
   const gear2 = world.createBody(
     Number.POSITIVE_INFINITY,
@@ -887,9 +1057,7 @@ export const createGearScene = () => {
     vec2.fromValues(6.3478, 6.1935),
     0
   );
-  world.addCollider(
-    new BodyCollider(gear2, new MeshShape(collection['gear_049']))
-  );
+  world.addCollider(new Collider(gear2, new MeshShape(collection['gear_049'])));
 
   const gear3 = world.createBody(
     Number.POSITIVE_INFINITY,
@@ -899,7 +1067,7 @@ export const createGearScene = () => {
   );
 
   world.addCollider(
-    new BodyCollider(gear3, new MeshShape(collection['gear_o_052']))
+    new Collider(gear3, new MeshShape(collection['gear_o_052']))
   );
 
   const gear4 = world.createBody(
@@ -910,14 +1078,114 @@ export const createGearScene = () => {
   );
 
   world.addCollider(
-    new BodyCollider(gear4, new MeshShape(collection['gear_o_050']))
+    new Collider(gear4, new MeshShape(collection['gear_o_050']))
+  );
+};
+
+export const createGjkScene = () => {
+  // Scene
+  let body = world.createBody(1.0, 1.0, vec2.fromValues(-4, -6), 0.0);
+  world.addCollider(new Collider(body, createRectShape(1, 1), 0x01));
+
+  body = world.createBody(1.0, 1.0, vec2.fromValues(4, -6), 0.0);
+  world.addCollider(new Collider(body, createTriangleShape(3), 0x02));
+
+  body = world.createBody(1.0, 1.0, vec2.fromValues(4, 6), 0.0);
+  world.addCollider(new Collider(body, new Capsule(1, 4), 0x04));
+
+  body = world.createBody(1.0, 1.0, vec2.fromValues(-4, 6), 0.0);
+  world.addCollider(new Collider(body, new Ellipse(3, 2), 0x08));
+};
+
+export const createToiScene = () => {
+  const objects = loadObj(GEARS);
+
+  // "continued - moving" objects
+  let body = world.createBody(1.0, 1.0, vec2.fromValues(6, 8), Math.PI * 0.75);
+  world.addCollider(new Collider(body, new Box(2, 1), 0));
+
+  body = world.createBody(1.0, 1.0, vec2.fromValues(6, 4), Math.PI * 0.75);
+  world.addCollider(new Collider(body, new Capsule(0.5, 1.5), 0));
+
+  body = world.createBody(1.0, 1.0, vec2.fromValues(6, -0), Math.PI * 0.75);
+  world.addCollider(new Collider(body, new Circle(1), 0));
+
+  body = world.createBody(1.0, 1.0, vec2.fromValues(6, -4), Math.PI * 0.75);
+  world.addCollider(new Collider(body, new Ellipse(1.0, 0.5), 0));
+
+  body = world.createBody(1, 1, vec2.fromValues(6, -8), Math.PI * 0.75);
+  world.addCollider(
+    new Collider(body, new MeshShape(objects['gear_o_049']), 0)
+  );
+
+  // "descrete" objects
+  body = world.createBody(1.0, 1.0, vec2.fromValues(-6, 8), 0);
+  world.addCollider(new Collider(body, new Box(2, 1), 0));
+
+  body = world.createBody(1.0, 1.0, vec2.fromValues(-6, 4), 0);
+  world.addCollider(new Collider(body, new Capsule(0.5, 1.5), 0));
+
+  body = world.createBody(1.0, 1.0, vec2.fromValues(-6, -0), 0);
+  world.addCollider(new Collider(body, new Circle(1), 0));
+
+  body = world.createBody(1.0, 1.0, vec2.fromValues(-6, -4), 0);
+  world.addCollider(new Collider(body, new Ellipse(1.0, 0.5), 0));
+
+  body = world.createBody(1, 1, vec2.fromValues(-6, -8), 0);
+  world.addCollider(
+    new Collider(body, new MeshShape(objects['gear_o_049']), 0)
+  );
+};
+
+export const createEpaScene = () => {
+  const objects = loadObj(GEARS);
+
+  let body: Body = null;
+
+  body = world.createBody(
+    1.0,
+    1.0,
+    vec2.fromValues(-2.1968839168548584, 6.876863956451416),
+    Math.PI * 0.75
+  );
+  world.addCollider(new Collider(body, new Box(2, 1), 0));
+
+  body = world.createBody(1.0, 1.0, vec2.fromValues(4, 4), Math.PI * 0.0);
+  world.addCollider(new Collider(body, new Capsule(0.5, 1.5), 0));
+
+  body = world.createBody(1.0, 1.0, vec2.fromValues(4, 0), Math.PI * 0.0);
+  world.addCollider(new Collider(body, new Circle(1), 0));
+
+  body = world.createBody(1.0, 1.0, vec2.fromValues(4, -4), Math.PI * 0.75);
+  world.addCollider(new Collider(body, new Ellipse(1.0, 0.5), 0));
+
+  body = world.createBody(1, 1, vec2.fromValues(4, -8), Math.PI * 0.75);
+  world.addCollider(
+    new Collider(body, new MeshShape(objects['gear_o_049']), 0)
+  );
+
+  body = world.createBody(1.0, 1.0, vec2.fromValues(-4, 7.983665943145752), 0);
+  world.addCollider(new Collider(body, new Box(2, 1), 0x01));
+
+  body = world.createBody(1.0, 1.0, vec2.fromValues(-4, 4), 0);
+  world.addCollider(new Collider(body, new Capsule(0.5, 1.5), 0));
+
+  body = world.createBody(1.0, 1.0, vec2.fromValues(-4, -0), 0);
+  world.addCollider(new Collider(body, new Circle(1), 0x04));
+
+  body = world.createBody(1.0, 1.0, vec2.fromValues(-4, -4), 0);
+  world.addCollider(new Collider(body, new Ellipse(1.0, 0.5), 0));
+
+  body = world.createBody(1, 1, vec2.fromValues(-4, -8), 0);
+  world.addCollider(
+    new Collider(body, new MeshShape(objects['gear_o_049']), 0)
   );
 };
 
 export const createWarmScene = () => {
-  world.restitution = 0.5;
-  world.pushFactor = 0.95;
-  world.friction = 0.7;
+  world.restitution = 0.0;
+  world.pushFactor = 0.7;
+  world.friction = 0.27;
 
   // floor
   let body = world.createBody(
@@ -926,29 +1194,79 @@ export const createWarmScene = () => {
     vec2.fromValues(0.0, -9),
     0.0
   );
-  world.addCollider(new BodyCollider(body, createRectShape(20, 1)));
+  world.addCollider(new Collider(body, createRectShape(20, 1.1)));
 
-  // left wall
-  body = world.createBody(
-    Number.POSITIVE_INFINITY,
-    Number.POSITIVE_INFINITY,
-    vec2.fromValues(-10, 0),
-    0.0
+  const omega = Math.PI * 1.0;
+  const velocity = vec2.fromValues(0.0, -1000.0);
+
+  let box1 = world.createBody(1.0, 1.0, vec2.fromValues(-2, 0), Math.PI, true);
+  box1.omega = omega;
+  box1.velocity = velocity;
+  world.addCollider(
+    new Collider(
+      box1,
+      new Polygon([
+        vec2.fromValues(0.5, -0.5),
+        vec2.fromValues(0.5, 0.5),
+        vec2.fromValues(-0.5, 0.5),
+        vec2.fromValues(-1.5, 0.0),
+      ])
+    )
   );
-  world.addCollider(new BodyCollider(body, createRectShape(1, 16)));
 
-  // right wall
-  body = world.createBody(
-    Number.POSITIVE_INFINITY,
-    Number.POSITIVE_INFINITY,
-    vec2.fromValues(10, 0),
-    0.0
+  let box2 = world.createBody(
+    1.0,
+    1.0,
+    vec2.fromValues(2, 0),
+    Math.PI * 0.25,
+    false
   );
-  world.addCollider(new BodyCollider(body, createRectShape(1, 16)));
+  box2.omega = omega;
+  box2.velocity = velocity;
+  world.addCollider(new Collider(box2, createRectShape(1, 1)));
+};
 
-  body = world.createBody(1.0, 1.0, vec2.fromValues(0, -8), 0.0);
-  world.addCollider(new BodyCollider(body, createRectShape(3, 1)));
+export const createManifoldScene = () => {
+  world.restitution = 0.5;
+  world.pushFactor = 0.95;
+  world.friction = 0.7;
 
-  body = world.createBody(1.0, 0.1, vec2.fromValues(0, -7.0), 0.0);
-  world.addCollider(new BodyCollider(body, createRectShape(1, 1)));
+  const objects = loadObj(GEARS);
+
+  let body: Body;
+
+  body = world.createBody(1.0, 1.0, vec2.fromValues(4, 8), Math.PI * 0.75);
+  world.addCollider(new Collider(body, new Box(4, 2), 0));
+
+  body = world.createBody(1.0, 1.0, vec2.fromValues(4, 4), Math.PI * 0.5);
+  world.addCollider(new Collider(body, new Capsule(1.0, 3.5), 0));
+
+  body = world.createBody(1.0, 1.0, vec2.fromValues(4, 0), Math.PI * 0.0);
+  world.addCollider(new Collider(body, new Circle(1.5), 0));
+
+  body = world.createBody(1.0, 1.0, vec2.fromValues(4, -4), Math.PI * 0.75);
+  world.addCollider(new Collider(body, new Ellipse(2.0, 1.5), 0));
+
+  body = world.createBody(1, 1, vec2.fromValues(4, -8), Math.PI * 0.75);
+  world.addCollider(
+    new Collider(body, new MeshShape(objects['gear_o_049']), 0)
+  );
+
+  //
+  body = world.createBody(1.0, 1.0, vec2.fromValues(-4, 8), 0);
+  world.addCollider(new Collider(body, new Box(4, 2), 0));
+
+  body = world.createBody(1.0, 1.0, vec2.fromValues(4.5, 5.5), Math.PI * 0.55);
+  world.addCollider(new Collider(body, new Capsule(1.0, 3.5), 0));
+
+  body = world.createBody(1.0, 1.0, vec2.fromValues(-4, -0), 0);
+  world.addCollider(new Collider(body, new Circle(2.0), 0));
+
+  body = world.createBody(1.0, 1.0, vec2.fromValues(-4, -4), 0);
+  world.addCollider(new Collider(body, new Ellipse(2.0, 1.0), 0));
+
+  body = world.createBody(1, 1, vec2.fromValues(-4, -8), 0);
+  world.addCollider(
+    new Collider(body, new MeshShape(objects['gear_o_049']), 0)
+  );
 };

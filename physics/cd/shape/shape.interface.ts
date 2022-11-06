@@ -1,13 +1,13 @@
 import { mat3, vec2 } from 'gl-matrix';
-import { AABB } from './aabb';
+import { AABB } from '../aabb';
 
-export interface Shape {
+export interface Convex {
   /**
    * @param out result will be placed here
    * @param dir normalized direction to search support point along
    * @returns support point on local frame of reference
    */
-  support(out: vec2, dir: vec2): vec2;
+  support(out: vec2, dir: Readonly<vec2>, margin?: number): vec2;
 }
 
 export interface TestTarget {
@@ -24,7 +24,14 @@ export interface AABBBounded {
    * @param transform transformation to be used for calculating net result
    * @returns net result
    */
-  aabb(out: AABB, transform: mat3): AABB;
+  aabb(out: AABB, transform: Readonly<mat3>): AABB;
+}
+
+export interface CircleBounded {
+  /**
+   * @field radius of shpere
+   */
+  readonly radius: number;
 }
 
 export interface MassDistribution {
@@ -34,3 +41,5 @@ export interface MassDistribution {
    */
   inetria(mass: number): number;
 }
+
+export interface Shape extends Convex, TestTarget, AABBBounded, CircleBounded {}

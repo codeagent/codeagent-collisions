@@ -1,13 +1,15 @@
-import { Collider } from '../collider';
-import { Shape } from '../shape';
+import { vec2 } from 'gl-matrix';
 
-export interface CollisionCandidate {
-  collider: Collider;
-  shape: Shape;
-}
+import { Collider } from '../collider';
+import { ContactCandidatePair } from '../contact';
 
 export interface BroadPhaseInterface {
   registerCollider(collider: Collider): void;
   unregisterCollider(collider: Collider): void;
-  detectCandidates(): [CollisionCandidate, CollisionCandidate][];
+  detectCandidates(): Iterable<ContactCandidatePair>;
+  queryCapsule(
+    p0: Readonly<vec2>,
+    p1: Readonly<vec2>,
+    radius: number
+  ): Iterable<Collider>;
 }

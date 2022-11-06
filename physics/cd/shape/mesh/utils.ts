@@ -1,8 +1,9 @@
 import { mat2, mat3, vec2, vec3 } from 'gl-matrix';
-import { OBB } from '../obb';
+
+import { OBB } from '../../obb';
 import { Polygon as PolygonShape } from '../polygon';
 import { affineInverse, getPolygonSignedArea } from '../../../math';
-import { OBBNode } from '../../broad-phase';
+import { OBBNode } from '../../mid-phase';
 
 export interface MeshTriangle {
   p0: vec2;
@@ -214,7 +215,7 @@ export const generateOBBTree = (mesh: Mesh): MeshOBBNode => {
             continue;
           }
 
-          const left = {
+          const left: MeshOBBNode = {
             obb: calculateOBB(negative),
             children: [],
             leaf: false,
@@ -225,7 +226,7 @@ export const generateOBBTree = (mesh: Mesh): MeshOBBNode => {
             soup: negative,
           });
 
-          const right = {
+          const right: MeshOBBNode = {
             obb: calculateOBB(positive),
             children: [],
             leaf: false,
@@ -246,7 +247,7 @@ export const generateOBBTree = (mesh: Mesh): MeshOBBNode => {
       // still nothing: drop each triangle in its own node
       if (!done) {
         for (const triangle of soup) {
-          const node = {
+          const node: MeshOBBNode = {
             obb: calculateOBB([triangle]),
             children: [],
             leaf: false,

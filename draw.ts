@@ -1,7 +1,6 @@
 import { vec2, mat3 } from 'gl-matrix';
 
 import {
-  ContactManifold,
   World,
   ConstraintInterface,
   ContactConstraint,
@@ -19,16 +18,20 @@ import {
   OBBNode,
   AABB,
   ContactInfo,
+  Capsule,
+  Ellipse,
+  transformMat3Vec,
 } from './physics';
 import { centroid } from './physics';
+import { Edge } from './physics/cd/shape/polygon';
 
 export const canvas = document.getElementById('canvas') as HTMLCanvasElement;
 const context = canvas.getContext('2d') as CanvasRenderingContext2D;
 
-const DEFAULT_COLOR = '#666666';
-const REDISH_COLOR = '#ff0000';
-const BLUISH_COLOR = '#0356fc';
-const LINE_COLOR = '#f5ad42';
+export const DEFAULT_COLOR = '#666666';
+export const REDISH_COLOR = '#ff0000';
+export const BLUISH_COLOR = '#0356fc';
+export const LINE_COLOR = '#f5ad42';
 
 const createProjectionMatrix = (
   xmin: number,
@@ -63,6 +66,15 @@ export const clear = (): void => {
   context.clearRect(0, 0, canvas.width, canvas.height);
 };
 
+export const drawText = (text: string, pos: vec2) => {
+  context.font = '14px Calibri';
+  context.fillStyle = DEFAULT_COLOR;
+  context.textAlign = 'center';
+  const center = vec2.create();
+  vec2.transformMat3(center, pos, projMat);
+  context.fillText(text, center[0], center[1]);
+};
+
 export const drawAABB = (aabb: AABB, color: string, dashed = false) => {
   const points = [
     vec2.fromValues(aabb[0][0], aabb[0][1]),
@@ -71,9 +83,9 @@ export const drawAABB = (aabb: AABB, color: string, dashed = false) => {
     vec2.fromValues(aabb[0][0], aabb[1][1]),
   ];
 
-  context.lineWidth = 1;
+  context.lineWidth = 0.75;
   context.strokeStyle = color;
-  context.setLineDash(dashed ? [1, 1] : []);
+  context.setLineDash(dashed ? [6, 3] : []);
 
   context.beginPath();
 
@@ -94,9 +106,9 @@ export const drawAABB = (aabb: AABB, color: string, dashed = false) => {
   context.setLineDash([]);
 };
 
-export const drawPolyShape = (
-  poly: Polygon,
-  transform: mat3,
+export const drawPoly = (
+  edges: Readonly<Edge>[],
+  transform: Readonly<mat3>,
   color: string,
   dashed = false
 ) => {
@@ -105,23 +117,28 @@ export const drawPolyShape = (
   context.setLineDash(dashed ? [3, 3] : []);
 
   context.beginPath();
-  for (let i = 0; i < poly.points.length; i++) {
+  let i = 0;
+  for (const edge of edges) {
     const p0 = vec2.create();
     const p1 = vec2.create();
+    const n = vec2.create();
 
-    vec2.transformMat3(p0, poly.points[i], transform);
+    vec2.transformMat3(p0, edge.v0.point, transform);
     vec2.transformMat3(p0, p0, projMat);
-    vec2.transformMat3(
-      p1,
-      poly.points[(i + 1) % poly.points.length],
-      transform
-    );
+
+    vec2.transformMat3(p1, edge.v1.point, transform);
     vec2.transformMat3(p1, p1, projMat);
 
-    if (i === 0) {
-      context.moveTo(p0[0], p0[1]);
-    }
+    transformMat3Vec(n, edge.v0.normal, transform);
+    transformMat3Vec(n, n, projMat);
+
+    context.moveTo(p0[0], p0[1]);
     context.lineTo(p1[0], p1[1]);
+
+    // context.moveTo(p0[0], p0[1]);
+    // context.lineTo(p0[0] + n[0], p0[1] + n[1]);
+
+    i++;
   }
   context.stroke();
   context.setLineDash([]);
@@ -129,7 +146,7 @@ export const drawPolyShape = (
 
 export const drawCircleShape = (
   radius: number,
-  transform: mat3,
+  transform: Readonly<mat3>,
   color: string,
   dashed = true
 ) => {
@@ -166,18 +183,148 @@ export const drawCircleShape = (
   context.stroke();
 };
 
+export const drawCapsuleShape = (
+  radius: number,
+  extend: number,
+  transform: Readonly<mat3>,
+  color: string,
+  dashed = true
+) => {
+  const c0 = vec2.fromValues(0.0, extend);
+  vec2.transformMat3(c0, c0, transform);
+  vec2.transformMat3(c0, c0, projMat);
+
+  const c1 = vec2.fromValues(0.0, -extend);
+  vec2.transformMat3(c1, c1, transform);
+  vec2.transformMat3(c1, c1, projMat);
+
+  const p0 = vec2.fromValues(radius, -extend);
+  vec2.transformMat3(p0, p0, transform);
+  vec2.transformMat3(p0, p0, projMat);
+
+  const p1 = vec2.fromValues(radius, extend);
+  vec2.transformMat3(p1, p1, transform);
+  vec2.transformMat3(p1, p1, projMat);
+
+  const p2 = vec2.fromValues(-radius, extend);
+  vec2.transformMat3(p2, p2, transform);
+  vec2.transformMat3(p2, p2, projMat);
+
+  const p3 = vec2.fromValues(-radius, -extend);
+  vec2.transformMat3(p3, p3, transform);
+  vec2.transformMat3(p3, p3, projMat);
+
+  const angle = -Math.atan2(transform[1], transform[0]);
+
+  context.lineWidth = 1.0;
+
+  // perimeter
+  context.setLineDash(dashed ? [3, 3] : []);
+  context.beginPath();
+  context.arc(c0[0], c0[1], radius * 40, angle, angle + Math.PI, true);
+  context.strokeStyle = color;
+  context.stroke();
+
+  context.beginPath();
+  context.arc(c1[0], c1[1], radius * 40, angle, angle + Math.PI, false);
+  context.strokeStyle = color;
+  context.stroke();
+
+  context.beginPath();
+  context.moveTo(p0[0], p0[1]);
+  context.lineTo(p1[0], p1[1]);
+
+  context.moveTo(p2[0], p2[1]);
+  context.lineTo(p3[0], p3[1]);
+  context.stroke();
+
+  // context.moveTo(c0[0], c0[1]);
+  // context.lineTo(c1[0], c1[1]);
+  // context.stroke();
+
+  // context.moveTo(p0[0], p0[1]);
+  // context.lineTo(p3[0], p3[1]);
+  // context.stroke();
+
+  // context.moveTo(p1[0], p1[1]);
+  // context.lineTo(p2[0], p2[1]);
+  // context.stroke();
+
+  // auxiliary
+  context.lineWidth = 0.5;
+
+  context.setLineDash([6, 3]);
+  context.beginPath();
+  context.arc(c0[0], c0[1], radius * 40, angle, angle + Math.PI, false);
+  context.strokeStyle = color;
+  context.stroke();
+
+  context.beginPath();
+  context.arc(c1[0], c1[1], radius * 40, angle, angle + Math.PI, true);
+  context.strokeStyle = color;
+  context.stroke();
+};
+
+export const drawEllipseShape = (
+  shape: Ellipse,
+  transform: Readonly<mat3>,
+  color: string,
+  dashed = true
+) => {
+  const c = vec2.fromValues(transform[6], transform[7]);
+  vec2.transformMat3(c, c, projMat);
+
+  const r = vec2.transformMat3(
+    vec2.create(),
+    vec2.fromValues(shape.a, 0.0),
+    transform
+  );
+  vec2.transformMat3(r, r, projMat);
+
+  const angle = -Math.atan2(transform[1], transform[0]);
+  context.lineWidth = 1.0;
+
+  // perimeter
+  context.setLineDash(dashed ? [3, 3] : []);
+  context.beginPath();
+  context.ellipse(
+    c[0],
+    c[1],
+    shape.a * 40,
+    shape.b * 40,
+    angle,
+    0,
+    2 * Math.PI,
+    true
+  );
+
+  context.stroke();
+
+  // auxiliary
+  context.setLineDash([6, 2]);
+  context.beginPath();
+  context.strokeStyle = color;
+  context.moveTo(c[0], c[1]);
+  context.lineTo(r[0], r[1]);
+  context.stroke();
+};
+
 export const drawDot = (position: vec2, color = '#666666') => {
   const INNER_RADIUS = 2;
   context.beginPath();
   const p = vec2.transformMat3(vec2.create(), position, projMat);
-  context.arc(p[0], p[1], INNER_RADIUS, 0, 2 * Math.PI, false);
+  context.arc(p[0], p[1], INNER_RADIUS + 1, 0, 2 * Math.PI, false);
   context.fillStyle = color;
   context.fill();
 };
 
-export const drawLineSegment = (ed: [vec2, vec2], color = '#666666') => {
+export const drawLineSegment = (
+  ed: [vec2, vec2],
+  color = '#666666',
+  width = 1
+) => {
   context.setLineDash([]);
-
+  context.lineWidth = width;
   context.beginPath();
   context.strokeStyle = color;
   const p0 = vec2.transformMat3(vec2.create(), ed[0], projMat);
@@ -229,7 +376,7 @@ export const drawGrid = (lines: number, step: number) => {
   }
 };
 
-export const drawContact = (contact: ContactInfo) => {
+export const drawContact = (contact: ContactInfo, lineColor = LINE_COLOR) => {
   context.lineWidth = 0.5;
   const t = vec2.create();
   const point0 = vec2.create();
@@ -238,14 +385,14 @@ export const drawContact = (contact: ContactInfo) => {
   vec2.transformMat3(point0, contact.localPoint0, contact.collider0.transform);
   vec2.transformMat3(point1, contact.localPoint1, contact.collider1.transform);
 
-  // drawDot(contact.point0, '#FF0000');
+  drawDot(contact.point0, BLUISH_COLOR);
   drawDot(point0, '#BB00FF');
 
-  drawDot(contact.point1, '#0000FF');
+  drawDot(contact.point1, REDISH_COLOR);
   drawDot(point1, '#00BB00');
 
   vec2.add(t, contact.point0, contact.normal);
-  drawLineSegment([contact.point0, t], LINE_COLOR);
+  drawLineSegment([contact.point0, t], lineColor);
 };
 
 export const drawConstraint = (constraint: ConstraintInterface) => {
@@ -276,7 +423,7 @@ export const drawConstraint = (constraint: ConstraintInterface) => {
   }
 };
 
-export const drawCross = (transform: mat3, color = '#666666') => {
+export const drawCross = (transform: Readonly<mat3>, color = '#666666') => {
   context.lineWidth = 0.5;
   const a: [vec2, vec2] = [
     vec2.fromValues(-0.1, 0.0),
@@ -323,27 +470,47 @@ export const drawGround = (origin: vec2, normal: vec2) => {
   }
 };
 
-export const drawBody = (body: Body, color: string) => {
+export const drawBody = (
+  body: Body,
+  color: string,
+  transform?: Readonly<mat3>
+) => {
   if (!body.collider) {
     return;
   }
 
+  transform = transform ?? body.transform;
   color = body.isSleeping ? '#AAAAAA' : color;
 
   let shape = body.collider.shape;
-  drawCross(body.transform, color);
-  if (shape instanceof Polygon) {
-    drawPolyShape(shape, body.transform, color, body.isSleeping);
-  } else if (shape instanceof Circle) {
-    drawCircleShape(shape.radius, body.transform, color, body.isSleeping);
+  drawCross(transform, color);
+  if (shape instanceof Circle) {
+    drawCircleShape(shape.radius, transform, color, body.isSleeping);
+  } else if (shape instanceof Capsule) {
+    drawCapsuleShape(
+      shape.r,
+      shape.height * 0.5,
+      transform,
+      color,
+      body.isSleeping
+    );
+  } else if (shape instanceof Ellipse) {
+    drawEllipseShape(shape, transform, color, body.isSleeping);
+  } else if (shape instanceof Polygon) {
+    drawPoly(Array.from(shape.edges()), transform, color, body.isSleeping);
   } else if (shape instanceof MeshShape) {
-    drawMesh(shape.mesh, body.transform, color, body.isSleeping);
+    drawMesh(shape.mesh, transform, color, body.isSleeping);
+    // drawPoly(shape['hull'] as any, body.transform, LINE_COLOR);
   }
+
+  // const aabb: AABB = [vec2.create(), vec2.create()];
+  // shape.aabb(aabb, transform as any);
+  // drawAABB(aabb, REDISH_COLOR);
 };
 
 export const drawMesh = (
   mesh: Mesh,
-  transform: mat3,
+  transform: Readonly<mat3>,
   color: string,
   dashed = false
 ) => {
@@ -365,6 +532,7 @@ export const drawMesh = (
       if (i === 0) {
         context.moveTo(p0[0], p0[1]);
       }
+
       context.lineTo(p1[0], p1[1]);
     }
   }
@@ -429,7 +597,7 @@ export const drawOBBTree = (node: OBBNode, drawLevel = -1, leafs = false) => {
 
   while (queue.length) {
     const { node, level } = queue.shift();
-    if (level == drawLevel || (node.triangle && leafs)) {
+    if (level == drawLevel || (node.payload && leafs)) {
       drawOBB(node.obb, COLORS[level]);
     }
 

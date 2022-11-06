@@ -7,16 +7,9 @@ export interface ProfilerStream {
 }
 
 export class Profiler {
-  private static _instance: Profiler;
+  public static readonly instance = new Profiler();
   private readonly records = new Map<string, number>();
   private readonly broadcast$ = new Subject<ProfilerStream>();
-
-  static get instance(): Profiler {
-    if (!this._instance) {
-      this._instance = new Profiler();
-    }
-    return this._instance;
-  }
 
   constructor(public bufferTime = 1000) {}
 

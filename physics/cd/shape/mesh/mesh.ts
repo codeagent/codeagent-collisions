@@ -1,6 +1,6 @@
 import { mat3, vec2 } from 'gl-matrix';
 
-import { AABB } from '../aabb';
+import { AABB } from '../../aabb';
 import {
   generateOBBTree,
   getMeshCentroid,
@@ -9,24 +9,35 @@ import {
   MeshOBBNode,
 } from './utils';
 
-import { AABBBounded, TestTarget, MassDistribution } from '../shape.interface';
+import { TestTarget, MassDistribution, Shape } from '../shape.interface';
+import { getConvexHull } from '../../utils';
+import { getUnique } from '../..';
 
-export class MeshShape implements TestTarget, AABBBounded, MassDistribution {
-  private readonly triangles = new Array<TestTarget>();
-  private readonly points = new Set<vec2>();
+export class MeshShape implements Shape, MassDistribution {
+  readonly radius: number = 0;
   readonly obbTree: MeshOBBNode;
+
+  private readonly triangles = new Array<TestTarget>();
+  private readonly hull = new Array<vec2>();
 
   constructor(readonly mesh: Mesh, transformOrigin: boolean = true) {
     if (transformOrigin) {
       this.mesh = this.transformOriginToCentroid(this.mesh);
     }
     this.obbTree = generateOBBTree(this.mesh);
+
     this.getLeafs();
-    this.getVertices();
+    this.getConvexHull();
+    this.radius = this.getRadius();
   }
 
   testPoint(point: vec2): boolean {
     return this.triangles.some((shape) => shape.testPoint(point));
+  }
+
+  support(out: vec2, dir: vec2): vec2 {
+    const index = this.indexOfFarhestPoint(dir);
+    return vec2.copy(out, this.hull[index]);
   }
 
   aabb(out: AABB, transform: mat3): AABB {
@@ -37,7 +48,7 @@ export class MeshShape implements TestTarget, AABBBounded, MassDistribution {
     let maxX = Number.NEGATIVE_INFINITY;
     let maxY = Number.NEGATIVE_INFINITY;
 
-    for (const p of this.points) {
+    for (const p of this.hull) {
       vec2.transformMat3(v, p, transform);
 
       if (v[0] < minX) {
@@ -80,12 +91,18 @@ export class MeshShape implements TestTarget, AABBBounded, MassDistribution {
     }
   }
 
-  private getVertices() {
+  private getConvexHull() {
+    const points = new Set<vec2>();
     for (const triangle of this.mesh) {
-      this.points.add(triangle.p0);
-      this.points.add(triangle.p1);
-      this.points.add(triangle.p2);
+      points.add(triangle.p0);
+      points.add(triangle.p1);
+      points.add(triangle.p2);
     }
+
+    const unique = new Set<vec2>();
+    getUnique(unique, points);
+
+    getConvexHull(this.hull, unique);
   }
 
   private transformOriginToCentroid(mesh: Mesh): Mesh {
@@ -95,5 +112,26 @@ export class MeshShape implements TestTarget, AABBBounded, MassDistribution {
       p1: vec2.subtract(vec2.create(), triangle.p1, shift),
       p2: vec2.subtract(vec2.create(), triangle.p2, shift),
     }));
+  }
+
+  private indexOfFarhestPoint(dir: vec2): number {
+    // @todo: hill climbing
+    let bestDot = Number.NEGATIVE_INFINITY;
+    let index = -1;
+    for (let i = 0; i < this.hull.length; i++) {
+      const dot = vec2.dot(this.hull[i], dir);
+      if (dot > bestDot) {
+        bestDot = dot;
+        index = i;
+      }
+    }
+
+    return index;
+  }
+
+  private getRadius(): number {
+    return this.hull
+      .map((p) => vec2.length(p))
+      .reduce((max, length) => (length > max ? length : max), 0);
   }
 }

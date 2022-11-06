@@ -2,24 +2,8 @@ import { vec2 } from 'gl-matrix';
 
 import { Body } from './body';
 
-import {
-  CollisionDetector,
-  Shape,
-  TestTarget,
-  AABBBounded,
-  MassDistribution,
-  Collider,
-  BodyCollider,
-  ContactInfo,
-} from '../cd';
-
-import {
-  releaseId,
-  uniqueId,
-  Profiler,
-  MouseControlInterface,
-  Clock,
-} from '../utils';
+import { CollisionDetector, Collider } from '../cd';
+import { releaseId, uniqueId, Profiler, Clock, pairId } from '../utils';
 import {
   DistanceJoint,
   JointInterface,
@@ -30,19 +14,16 @@ import {
   WeldJoint,
   WheelJoint,
   MotorJoint,
+  MouseControlInterface,
 } from './joint';
-import { ContactManager } from './contact-manager';
-import { WorldIsland } from './world-island';
-
-export type BodyShape = Shape & TestTarget & AABBBounded & MassDistribution;
+import { Pair, PairsRegistry } from './pairs-registry';
+import { IslandsGeneratorInterface, LocalIslandsGenerator, SoleIslandGenerator } from './island';
 
 export class World {
-  public readonly bodies: Body[] = [];
-  public readonly collisionDetector = new CollisionDetector();
-  public readonly contactManager = new ContactManager();
-  public readonly clock = Clock.instance;
-  private readonly profiler = Profiler.instance;
-  private island = new WorldIsland(this);
+  public readonly bodies: Body[];
+  public readonly registry: PairsRegistry;
+  public readonly detector: CollisionDetector;
+  public readonly islandGenerator: IslandsGeneratorInterface;
 
   constructor(
     public gravity = vec2.fromValues(0.0, -9.8),
@@ -50,10 +31,22 @@ export class World {
     public iterations = 10,
     public friction = 0.5,
     public restitution = 0.5
-  ) {}
+  ) {
+    this.bodies = [];
+    this.registry = new PairsRegistry();
+    this.detector = new CollisionDetector(this.registry);
+    // this.islandGenerator = new LocalIslandsGenerator(this);
+    this.islandGenerator = new SoleIslandGenerator(this);
+  }
 
-  createBody(mass: number, intertia: number, position: vec2, angle: number) {
-    const body = new Body(uniqueId(), this);
+  createBody(
+    mass: number,
+    intertia: number,
+    position: vec2,
+    angle: number,
+    continuous = false
+  ) {
+    const body = new Body(uniqueId(), this, continuous);
     body.mass = mass;
     body.inertia = intertia;
     body.position = position;
@@ -61,7 +54,6 @@ export class World {
 
     this.bodies.push(body);
     body.updateTransform();
-    this.island.resize(this.bodies.length);
 
     return body;
   }
@@ -76,18 +68,6 @@ export class World {
 
     if (body.collider) {
       this.removeCollider(body.collider);
-    }
-
-    this.island.resize(this.bodies.length);
-  }
-
-  simulate(dt: number) {
-    this.detectCollisions();
-    this.integrate(dt);
-    this.updateBodiesTransforms();
-
-    for (const body of this.bodies) {
-      body.tick(dt);
     }
   }
 
@@ -232,20 +212,23 @@ export class World {
   }
 
   addCollider(collider: Collider) {
-    if (collider instanceof BodyCollider) {
-      collider.body.collider = collider;
-      this.contactManager.registerCollider(collider);
-    }
+    collider.body.collider = collider;
+    this.detector.registerCollider(collider);
 
-    this.collisionDetector.registerCollider(collider);
+    for (const body of this.bodies) {
+      if (body.collider !== collider) {
+        this.registry.registerPair(new Pair(body.collider, collider));
+      }
+    }
   }
 
   removeCollider(collider: Collider) {
-    this.collisionDetector.unregisterCollider(collider);
+    this.detector.unregisterCollider(collider);
+    collider.body.collider = null;
 
-    if (collider instanceof BodyCollider) {
-      this.contactManager.unregisterCollider(collider);
-      collider.body.collider = null;
+    for (const body of this.bodies) {
+      const id = pairId(body.collider.id, collider.id);
+      this.registry.unregisterPair(id);
     }
   }
 
@@ -259,30 +242,16 @@ export class World {
     }
   }
 
-  private integrate(dt: number) {
-    this.clock.tick(dt);
-
-    this.profiler.begin('World.integrate');
-
-    this.applyGlobalForces();
-
-    for (const island of this.getIslands()) {
-      if (!island.sleeping) {
-        island.integrate(dt);
-      }
-    }
-
-    this.clearForces();
-
-    this.profiler.end('World.integrate');
-  }
-
   private applyGlobalForces() {
     const weight = vec2.create();
     for (const body of this.bodies) {
       if (body.invMass) {
-        vec2.scale(weight, this.gravity, body.mass);
-        body.applyForce(weight);
+        body.force = vec2.scaleAndAdd(
+          weight,
+          body.force,
+          this.gravity,
+          body.mass
+        );
       }
     }
   }
@@ -293,101 +262,69 @@ export class World {
     }
   }
 
+  // #region ccd
+
+  public step(dt: number) {
+    Clock.instance.tick(dt);
+
+    const MAX_ITERATIONS = 8;
+
+    let iterations = MAX_ITERATIONS;
+    let span = dt;
+    let toi = 0;
+    let t = 0;
+
+    this.applyGlobalForces();
+
+    do {
+      toi = this.detector.getTimeOfFirstImpact(span); // between [0-1]
+
+      if (toi < 1.0e-6) {
+        toi = 1;
+      }
+
+      t = span * toi;
+
+      if (iterations === 1) {
+        console.log(toi);
+      }
+
+      // if (toi < 1) {
+      //   debugger;
+      // }
+
+      this.detectCollisions();
+      this.advance(t);
+
+      span -= t;
+    } while (iterations-- && toi < 1);
+
+    this.clearForces();
+
+    for (const body of this.bodies) {
+      body.tick(dt);
+    }
+  }
+
+  private advance(dt: number) {
+    for (const island of this.islandGenerator.generate(this.bodies)) {
+      if (!island.sleeping) {
+        island.step(dt);
+      }
+    }
+  }
+
+  // #endregion
+
   private detectCollisions() {
-    this.profiler.begin('World.detectCollisions');
+    Profiler.instance.begin('World.detectCollisions');
 
-    this.contactManager.validate();
+    this.registry.validatePairs();
 
-    for (const contactInfo of this.collisionDetector.detectCollisions()) {
-      if (
-        contactInfo.collider0 instanceof BodyCollider &&
-        contactInfo.collider1 instanceof BodyCollider
-      ) {
-        this.contactManager.addContact(
-          contactInfo as ContactInfo<BodyCollider, BodyCollider>
-        );
-      }
+    for (const contactInfo of this.detector.detectCollisions()) {
+      this.registry.addContact(contactInfo);
     }
 
-    this.profiler.end('World.detectCollisions');
-  }
-
-  private updateBodiesTransforms() {
-    this.profiler.begin('World.updateBodiesTransforms');
-    this.bodies.forEach((b) => b.updateTransform());
-    this.profiler.end('World.updateBodiesTransforms');
-  }
-
-  private *getIslands(): Iterable<WorldIsland> {
-    const bodies = new Set<Body>();
-    const joints = new Set<JointInterface>();
-    const contacts = new Set<JointInterface>();
-    const stack = new Array<Body>();
-    let islandId = 0;
-
-    for (let body of this.bodies) {
-      // Skip processed
-      if (bodies.has(body)) {
-        continue;
-      }
-
-      this.island.clear();
-
-      // Depth first dependency traverse
-      stack.length = 0;
-      stack.push(body);
-      while (stack.length) {
-        const body = stack.pop();
-
-        if (bodies.has(body)) {
-          continue;
-        }
-
-        // Skip static bodies
-        if (body.isStatic) {
-          bodies.add(body);
-          continue;
-        }
-
-        // joints
-        for (const joint of body.joints) {
-          if (joints.has(joint)) {
-            continue;
-          }
-
-          this.island.addJoint(joint);
-          joints.add(joint);
-
-          const second = joint.bodyA === body ? joint.bodyB : joint.bodyA;
-          if (second && !bodies.has(second)) {
-            stack.push(second);
-          }
-        }
-
-        // concacts
-        for (const contact of body.contacts) {
-          if (contacts.has(contact)) {
-            continue;
-          }
-
-          this.island.addJoint(contact);
-          contacts.add(contact);
-
-          const second = contact.bodyA === body ? contact.bodyB : contact.bodyA;
-          if (second && !bodies.has(second)) {
-            stack.push(second);
-          }
-        }
-
-        this.island.addBody(body);
-        bodies.add(body);
-      }
-
-      if (!this.island.empty) {
-        this.island.setId(islandId++);
-
-        yield this.island;
-      }
-    }
+    Profiler.instance.end('World.detectCollisions');
   }
 }

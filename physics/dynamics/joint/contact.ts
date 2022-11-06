@@ -3,7 +3,7 @@ import { vec2 } from 'gl-matrix';
 import { JointInterface } from './joint.interface';
 import { ContactConstraint, FrictionConstraint } from '../constraint';
 import { Body } from '../body';
-import { BodyCollider, ContactInfo } from '../../cd';
+import { ContactInfo } from '../../cd';
 
 export class Contact implements JointInterface {
   get bodyA(): Body {
@@ -23,16 +23,14 @@ export class Contact implements JointInterface {
   private readonly contactConstraint: ContactConstraint;
   private readonly frictionConstraint: FrictionConstraint;
 
-  constructor(
-    public readonly contactInfo: ContactInfo<BodyCollider, BodyCollider>
-  ) {
+  constructor(public readonly contactInfo: ContactInfo) {
     const world = contactInfo.collider0.body.world;
 
     this.contactConstraint = new ContactConstraint(
       world,
       contactInfo.collider0.body,
       contactInfo.collider1.body,
-      vec2.clone(contactInfo.point1),
+      vec2.clone(contactInfo.point0),
       vec2.fromValues(-contactInfo.normal[0], -contactInfo.normal[1]),
       contactInfo.depth
     );
@@ -43,7 +41,7 @@ export class Contact implements JointInterface {
         world,
         contactInfo.collider0.body,
         contactInfo.collider1.body,
-        vec2.clone(contactInfo.point1),
+        vec2.clone(contactInfo.point0),
         vec2.fromValues(-contactInfo.normal[0], -contactInfo.normal[1]),
         world.friction
       );

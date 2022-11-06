@@ -1,6 +1,3 @@
-// Import stylesheets
-import './style.css';
-
 import { animationFrames, fromEvent, merge, of } from 'rxjs';
 import { delay, map, tap } from 'rxjs/operators';
 import { canvas, clear, drawWorld } from './draw';
@@ -18,11 +15,20 @@ import {
   createMeshScene,
   createPinballScene,
   createGearScene,
+  createGjkScene,
+  createToiScene,
+  createEpaScene,
   createWarmScene,
+  createManifoldScene,
 } from './scene';
 
 import { Profiler } from './physics';
-import { MouseControl } from './mouse-control';
+import { MouseControl } from './physics/utils/mouse-control';
+
+import { gjkTest } from './physics/cd/narrow-phase/gjk-epa/gjk-test';
+import { toiTest } from './physics/cd/utils/toi-test';
+import { epaTest } from './physics/cd/narrow-phase/gjk-epa/epa-test';
+import { manifoldTest } from './physics/cd/narrow-phase/manifold-test';
 
 self['world'] = world;
 
@@ -39,7 +45,11 @@ const lookup = {
   suspension: () => createSuspensionScene(),
   pinball: () => createPinballScene(),
   gears: () => createGearScene(),
+  gjk: () => createGjkScene(),
+  toi: () => createToiScene(),
+  epa: () => createEpaScene(),
   warm: () => createWarmScene(),
+  manifold: () => createManifoldScene(),
 };
 
 let control: MouseControl;
@@ -82,10 +92,22 @@ merge(
   fromEvent(document.getElementById('gears'), 'click').pipe(
     map((e) => e.srcElement['id'])
   ),
+  fromEvent(document.getElementById('gjk'), 'click').pipe(
+    map((e) => e.srcElement['id'])
+  ),
+  fromEvent(document.getElementById('toi'), 'click').pipe(
+    map((e) => e.srcElement['id'])
+  ),
+  fromEvent(document.getElementById('epa'), 'click').pipe(
+    map((e) => e.srcElement['id'])
+  ),
   fromEvent(document.getElementById('warm'), 'click').pipe(
     map((e) => e.srcElement['id'])
   ),
-  of('stack').pipe(delay(1000))
+  fromEvent(document.getElementById('manifold'), 'click').pipe(
+    map((e) => e.srcElement['id'])
+  ),
+  of('gauss').pipe(delay(1000))
 )
   .pipe(
     tap((id) => {
@@ -108,8 +130,18 @@ merge(
 
 const dt = 1.0 / 60.0;
 animationFrames().subscribe(() => {
-  world.simulate(dt );
+  world.step(dt);
   clear();
+
+  if (sceneId === 'gjk') {
+    gjkTest(world);
+  } else if (sceneId === 'toi') {
+    toiTest(world, dt);
+  } else if (sceneId === 'epa') {
+    epaTest(world);
+  } else if (sceneId === 'manifold') {
+    manifoldTest(world, control);
+  }
 
   Profiler.instance.begin('drawWorld');
   drawWorld(world);
@@ -136,7 +168,7 @@ Profiler.instance
 
     'drawWorld'
   )
-  .subscribe((e) => {
-    console.clear();
-    console.table(e);
+  .subscribe(() => {
+    // console.clear();
+    // console.table(e);
   });

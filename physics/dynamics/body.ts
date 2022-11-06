@@ -1,6 +1,6 @@
 import { mat3, vec2, vec3 } from 'gl-matrix';
 import { JointInterface } from '../';
-import { BodyCollider } from '../cd';
+import { Collider } from '../cd';
 import { affineInverse } from '../math';
 import { Contact } from './joint';
 import { World } from './world';
@@ -10,23 +10,23 @@ export class Body {
   public static readonly angularVelocityThreshold = 1.0e-1;
   public static readonly sleepTimerDuration = 1;
 
-  get transform(): mat3 {
-    return mat3.clone(this._transform);
+  get transform(): Readonly<mat3> {
+    return this._transform;
   }
 
-  get invTransform(): mat3 {
-    return affineInverse(mat3.create(), this._transform);
+  get invTransform(): Readonly<mat3> {
+    return this._transform;
   }
 
-  get position() {
-    return vec2.clone(this._position);
+  get position(): Readonly<vec2> {
+    return this._position;
   }
 
-  set position(position: vec2) {
+  set position(position: Readonly<vec2>) {
     vec2.copy(this._position, position);
   }
 
-  get angle() {
+  get angle(): number {
     return this._angle;
   }
 
@@ -34,15 +34,15 @@ export class Body {
     this._angle = angle;
   }
 
-  get velocity() {
-    return vec2.clone(this._velocity);
+  get velocity(): Readonly<vec2> {
+    return this._velocity;
   }
 
-  set velocity(velocity: vec2) {
+  set velocity(velocity: Readonly<vec2>) {
     vec2.copy(this._velocity, velocity);
   }
 
-  get omega() {
+  get omega(): number {
     return this._omega;
   }
 
@@ -50,15 +50,15 @@ export class Body {
     this._omega = omega;
   }
 
-  get force(): vec2 {
-    return vec2.clone(this._force);
+  get force(): Readonly<vec2> {
+    return this._force;
   }
 
-  set force(force: vec2) {
+  set force(force: Readonly<vec2>) {
     vec2.copy(this._force, force);
   }
 
-  get torque() {
+  get torque(): number {
     return this._torque;
   }
 
@@ -66,11 +66,11 @@ export class Body {
     this._torque = torque;
   }
 
-  get mass() {
+  get mass(): number {
     return this._mass;
   }
 
-  get invMass() {
+  get invMass(): number {
     return this._invMass;
   }
 
@@ -81,11 +81,11 @@ export class Body {
       !Number.isFinite(this._mass) && !Number.isFinite(this._inertia);
   }
 
-  get inertia() {
+  get inertia(): number {
     return this._inertia;
   }
 
-  get invInertia() {
+  get invInertia(): number {
     return this._invInertia;
   }
 
@@ -96,15 +96,15 @@ export class Body {
       !Number.isFinite(this._mass) && !Number.isFinite(this._inertia);
   }
 
-  get isStatic() {
+  get isStatic(): boolean {
     return this._isStatic;
   }
 
-  get joints(): Iterable<JointInterface> {
+  get joints(): Set<JointInterface> {
     return this._joints;
   }
 
-  get contacts(): Iterable<Contact> {
+  get contacts(): Set<Contact> {
     return this._contacts;
   }
 
@@ -112,7 +112,7 @@ export class Body {
     return this._isSleeping;
   }
 
-  public collider: BodyCollider;
+  public collider: Collider;
   public bodyIndex: number = -1; // index in host island
   public islandId: number = -1; // id of host island
   public readonly islandJacobians: number[] = []; // the list of constraints in island with witch given body will be interacted
@@ -132,10 +132,15 @@ export class Body {
   private _sleepTimer = 0;
 
   private readonly _transform = mat3.create();
+  private readonly _invTransform = mat3.create();
   private readonly _joints = new Set<JointInterface>();
   private readonly _contacts = new Set<Contact>();
 
-  constructor(public readonly id: number, public readonly world: World) {}
+  constructor(
+    public readonly id: number,
+    public readonly world: World,
+    public readonly continuous: boolean
+  ) {}
 
   addJoint(joint: JointInterface) {
     this._joints.add(joint);
@@ -159,7 +164,8 @@ export class Body {
 
   updateTransform() {
     mat3.fromTranslation(this._transform, this._position);
-    mat3.rotate(this._transform, this._transform, this.angle);
+    mat3.rotate(this._transform, this._transform, this._angle);
+    affineInverse(this._invTransform, this._transform);
   }
 
   applyForce(force: vec2, point?: vec2) {
@@ -173,7 +179,7 @@ export class Body {
       this._torque = vec2.cross(x, r, force)[2];
     }
 
-    // this.awake();
+    this.awake();
   }
 
   clearForces() {
@@ -182,7 +188,7 @@ export class Body {
   }
 
   toLocalPoint(out: vec2, global: vec2): vec2 {
-    return vec2.transformMat3(out, global, this.invTransform);
+    return vec2.transformMat3(out, global, this._invTransform);
   }
 
   toGlobalPoint(out: vec2, local: vec2): vec2 {
@@ -193,14 +199,15 @@ export class Body {
     if (!this.isStatic) {
       if (
         vec2.length(this.velocity) <= Body.velocityThreshold &&
-        this.omega <= Body.angularVelocityThreshold
+        Math.abs(this.omega) <= Body.angularVelocityThreshold
       ) {
         this._sleepTimer -= dt;
 
         if (this._sleepTimer <= 0) {
           this._isSleeping = true;
-          
         }
+      } else {
+        this.awake();
       }
     }
   }
@@ -208,5 +215,21 @@ export class Body {
   awake(): void {
     this._isSleeping = false;
     this._sleepTimer = Body.sleepTimerDuration;
+  }
+
+  advance(dt: number): void {
+    if (!this.isStatic) {
+      vec2.scaleAndAdd(this._position, this._position, this._velocity, dt);
+      this._angle += this._omega * dt;
+      this.updateTransform();
+    }
+  }
+
+  rollback(dt: number): void {
+    if (!this.isStatic) {
+      vec2.scaleAndAdd(this._position, this._position, this._velocity, -dt);
+      this._angle -= this._omega * dt;
+      this.updateTransform();
+    }
   }
 }

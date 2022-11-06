@@ -1,116 +1,135 @@
-import { Subject } from 'rxjs';
+import { vec2 } from 'gl-matrix';
 
-import { Body } from '../dynamics';
-
+import { PairsRegistry } from '../dynamics';
 import {
-  SatNarrowPhase,
+  GjkEpaNarrowPhase,
   NarrowPhaseInterface,
-  ContactInfo,
+  SatNarrowPhase,
 } from './narrow-phase';
+import { Collider } from './collider';
 
-import { BroadPhaseInterface, BruteForceBroadPhase } from './broad-phase';
-import { Collider, BodyCollider } from './collider';
+import { ContactInfo } from './contact';
+import {
+  BroadPhaseInterface,
+  BruteForceBroadPhase,
+  testCapsuleCapsule,
+} from './broad-phase';
+import { DefaultMidPhase, MidPhaseInterface } from './mid-phase';
 
-export type BodiesPair = [Body, Body];
-export type BodiesPairMap = Map<number, BodiesPair>;
+import { getToi } from './utils';
+import { MeshShape } from './shape';
+
+const p0 = vec2.create();
+const p1 = vec2.create();
+const q0 = vec2.create();
+const q1 = vec2.create();
 
 export class CollisionDetector {
-  private readonly broadPhase: BroadPhaseInterface = new BruteForceBroadPhase();
-  private readonly narrowPhase: NarrowPhaseInterface = new SatNarrowPhase();
+  public readonly broadPhase: BroadPhaseInterface;
+  public readonly midPhase: MidPhaseInterface;
+  public readonly narrowPhase: NarrowPhaseInterface;
 
-  // @todo: replace bodies to colliders
-  private readonly collideEnterBroadcast = new Subject<BodiesPair>();
-  private readonly collideBroadcast = new Subject<BodiesPair>();
-  private readonly collideLeaveBroadcast = new Subject<BodiesPair>();
-  private readonly colliding: BodiesPairMap = new Map<number, BodiesPair>();
-  private readonly pairs: BodiesPairMap = new Map<number, BodiesPair>();
+  private readonly continuous = new Array<Collider>();
 
-  get collideEnter$() {
-    return this.collideEnterBroadcast.asObservable();
+  constructor(registry: PairsRegistry) {
+    this.broadPhase = new BruteForceBroadPhase();
+    this.midPhase = new DefaultMidPhase();
+    this.narrowPhase = new SatNarrowPhase(registry);
+    // this.narrowPhase = new GjkEpaNarrowPhase(registry);
   }
 
-  get collide$() {
-    return this.collideBroadcast.asObservable();
-  }
+  getTimeOfFirstImpact(dt: number): number {
+    let minToi = 1;
+    let pairs = new Set<[Collider, Collider]>();
+    const cNumber = this.continuous.length;
 
-  get collideLeave$() {
-    return this.collideLeaveBroadcast.asObservable();
+    for (let i = 0; i < cNumber; i++) {
+      let left = this.continuous[i];
+
+      vec2.copy(p0, left.body.position);
+      vec2.scaleAndAdd(p1, p0, left.body.velocity, dt);
+
+      for (let j = i + 1; j < cNumber; j++) {
+        let right = this.continuous[j];
+
+        if ((left.mask & right.mask) === 0x0) {
+          continue;
+        }
+
+        vec2.copy(q0, right.body.position);
+        vec2.scaleAndAdd(q1, q0, right.body.velocity, dt);
+
+        if (
+          testCapsuleCapsule(
+            p0,
+            p1,
+            left.shape.radius,
+            q0,
+            q1,
+            right.shape.radius
+          )
+        ) {
+          pairs.add([left, right]);
+        }
+      }
+
+      const query = this.broadPhase.queryCapsule(p0, p1, left.shape.radius);
+
+      for (const right of query) {
+        if (
+          right === left ||
+          right.body.continuous ||
+          (left.mask & right.mask) === 0x0
+        ) {
+          continue;
+        }
+
+        pairs.add([left, right]);
+      }
+    }
+
+    for (const [left, right] of pairs) {
+      let toi = 0;
+
+      if (right.shape instanceof MeshShape) {
+        // @todo: involve bsp-trees for meshes
+      } else {
+        toi = getToi(
+          left.body,
+          left.shape.radius,
+          right.body,
+          right.shape.radius,
+          dt
+        );
+
+        if (toi < minToi) {
+          minToi = toi;
+        }
+      }
+    }
+
+    return minToi;
   }
 
   registerCollider(collider: Collider) {
     this.broadPhase.registerCollider(collider);
+
+    if (collider.body.continuous) {
+      this.continuous.push(collider);
+    }
   }
 
   unregisterCollider(collider: Collider) {
     this.broadPhase.unregisterCollider(collider);
-  }
 
-  detectCollisions() {
-    const candidates = this.broadPhase.detectCandidates();
-    const contacts = this.narrowPhase.detectContacts(candidates);
-
-    this.setPairs(contacts);
-    const { enter, collide, leave } = this.getCollisions(
-      this.pairs,
-      this.colliding
-    );
-    this.emitCollisions(enter, collide, leave);
-
-    return contacts;
-  }
-
-  private pairId(left: Body, right: Body) {
-    return left.id > right.id
-      ? (left.id << 15) | right.id
-      : (right.id << 15) | left.id;
-  }
-
-  private setPairs(contacts: ContactInfo[]) {
-    for (const contact of contacts) {
-      if (
-        contact.collider0 instanceof BodyCollider &&
-        contact.collider1 instanceof BodyCollider
-      ) {
-        const leftBody = contact.collider0.body;
-        const rightBody = contact.collider1.body;
-
-        this.pairs.set(this.pairId(leftBody, rightBody), [leftBody, rightBody]);
-      }
+    if (collider.body.continuous) {
+      this.continuous.splice(this.continuous.indexOf(collider), 1);
     }
   }
 
-  private getCollisions(actual: BodiesPairMap, colliding: BodiesPairMap) {
-    const enter: BodiesPair[] = [];
-    const collide: BodiesPair[] = [];
-    const leave: BodiesPair[] = [];
-
-    const out = new Set(colliding.keys());
-
-    for (const [id, pair] of actual) {
-      if (!colliding.has(id)) {
-        colliding.set(id, pair);
-        enter.push(pair);
-      } else {
-        out.delete(id);
-      }
-      collide.push(pair);
-    }
-
-    for (const id of out) {
-      leave.push(colliding.get(id));
-      colliding.delete(id);
-    }
-
-    return { enter, collide, leave };
-  }
-
-  private emitCollisions(
-    enter: BodiesPair[],
-    collide: BodiesPair[],
-    leave: BodiesPair[]
-  ) {
-    leave.forEach((pair) => this.collideLeaveBroadcast.next(pair));
-    collide.forEach((pair) => this.collideBroadcast.next(pair));
-    enter.forEach((pair) => this.collideEnterBroadcast.next(pair));
+  *detectCollisions(): Iterable<ContactInfo> {
+    const midCandidates = this.broadPhase.detectCandidates();
+    const contactCandidates = this.midPhase.detectCandidates(midCandidates);
+    yield* this.narrowPhase.detectContacts(contactCandidates);
   }
 }

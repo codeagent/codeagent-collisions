@@ -3,7 +3,7 @@ import { vec2 } from 'gl-matrix';
 import { World } from '../world';
 import { Body } from '../body';
 import { ConstraintBase } from './constraint.base';
-import { MouseControlInterface } from '../../utils';
+import { MouseControlInterface } from '../joint';
 
 export class MouseXConstraint extends ConstraintBase {
   constructor(
