@@ -62,13 +62,9 @@ export class FrictionConstraint extends ConstraintBase {
         : 0.0;
 
     const c1 = Math.abs(
-      this.mu * combined * vec2.dot(this.world.gravity, this.normal)
+      this.mu * combined * vec2.dot(this.world.settings.gravity, this.normal)
     );
 
     return { min: -c1, max: c1 };
-  }
-
-  getBodies(): [Body, Body] {
-    return [this.bodyA, this.bodyB];
   }
 }

@@ -1,6 +1,5 @@
 import { vec2 } from 'gl-matrix';
 import {
-  World,
   Body,
   Polygon,
   Circle,
@@ -10,6 +9,7 @@ import {
   Collider,
   Ellipse,
   Box,
+  createWorld,
 } from './physics';
 
 import MESH from './objects/mesh';
@@ -18,37 +18,17 @@ import PINTBALL from './objects/pintball';
 import HELIX from './objects/helix';
 import PISTON from './objects/piston';
 
-const createQuadShape = (size: number): Polygon => {
-  return new Polygon([
-    vec2.fromValues(size * 0.5, -size * 0.5),
-    vec2.fromValues(size * 0.5, size * 0.5),
-    vec2.fromValues(-size * 0.5, size * 0.5),
-    vec2.fromValues(-size * 0.5, -size * 0.5),
-  ]);
-};
-
-const createRectShape = (w: number, h: number): Polygon => {
-  return new Polygon([
-    vec2.fromValues(w * 0.5, -h * 0.5),
-    vec2.fromValues(w * 0.5, h * 0.5),
-    vec2.fromValues(-w * 0.5, h * 0.5),
-    vec2.fromValues(-w * 0.5, -h * 0.5),
-  ]);
-};
-
-const createTriangleShape = (r: number = 1): Polygon => {
-  return new Polygon([
-    vec2.fromValues(-0.5 * r, -0.5 * r),
-    vec2.fromValues(0.5 * r, -0.5 * r),
-    vec2.fromValues(0.0, 0.5 * r),
-  ]);
-};
-
-export const world = new World();
+export const world = createWorld({
+  uid: 'test',
+  narrowPhase: 'sat',
+  solverIterations: 10,
+});
 
 export const createChainScene = (links: number, x = 0.0) => {
-  world.restitution = 0.5;
-  world.pushFactor = 0.25;
+   Object.assign(world.settings, { defaultRestitution: 0.5 });
+   Object.assign(world.settings, { defaultPushFactor: 0.25 });
+
+  
 
   const chain = new Array<Body>(links);
   const size = 0.5;
@@ -63,7 +43,7 @@ export const createChainScene = (links: number, x = 0.0) => {
       vec2.fromValues(offset - Math.SQRT2 * size + x - 11, 10),
       -Math.PI * 0.25
     );
-    world.addCollider(new Collider(body, createQuadShape(size)));
+    world.addCollider(new Collider(body, new Box(size, size)));
 
     if (i > 0) {
       const bodyA = chain[i - 1];
@@ -78,9 +58,9 @@ export const createChainScene = (links: number, x = 0.0) => {
 };
 
 export const createStackScene = (n: number) => {
-  world.restitution = 0.15;
-  world.pushFactor = 0.15;
-  world.friction = 0.25;
+   Object.assign(world.settings, { defaultRestitution: 0.15 });
+   Object.assign(world.settings, { defaultPushFactor: 0.15 });
+   Object.assign(world.settings, { defaultFriction: 0.95 });
 
   // floor
   world.addCollider(
@@ -91,7 +71,7 @@ export const createStackScene = (n: number) => {
         vec2.fromValues(0.0, -9),
         0.0
       ),
-      createRectShape(26, 1)
+      new Box(26, 1)
     )
   );
 
@@ -104,7 +84,7 @@ export const createStackScene = (n: number) => {
         vec2.fromValues(-14, 0),
         0.0
       ),
-      createRectShape(1, 16)
+      new Box(1, 16)
     )
   );
 
@@ -117,12 +97,12 @@ export const createStackScene = (n: number) => {
         vec2.fromValues(14, 0),
         0.0
       ),
-      createRectShape(1, 16)
+      new Box(1, 16)
     )
   );
 
-  let box = createRectShape(1, 1);
-  let girder = createRectShape(3, 1);
+  let box = new Box(1, 1);
+  let girder = new Box(3, 1);
   let capsule = new Capsule(0.5, 3);
   let circle = new Circle(0.5);
   let mass = 1.0;
@@ -301,9 +281,9 @@ export const createPendulumScene = (n: number) => {
   const length = 8;
   const m = 1.0;
 
-  world.restitution = 1.0; //elastic bounces
-  world.pushFactor = 0.96;
-  world.friction = 0.0;
+   Object.assign(world.settings, { defaultRestitution: 1.0 }); //elastic bounces
+   Object.assign(world.settings, { defaultPushFactor: 0.96 });
+   Object.assign(world.settings, { defaultFriction: 0.0 });
 
   // ceil
   const ceil = world.createBody(
@@ -312,7 +292,7 @@ export const createPendulumScene = (n: number) => {
     vec2.fromValues(0.0, 10),
     0.0
   );
-  world.addCollider(new Collider(ceil, createRectShape(20, 1)));
+  world.addCollider(new Collider(ceil, new Box(20, 1)));
 
   let offset = 0;
 
@@ -354,9 +334,9 @@ export const createPendulumScene = (n: number) => {
 };
 
 export const createStairsScene = (n: number) => {
-  world.restitution = 0.2;
-  world.pushFactor = 0.4;
-  world.friction = 0.2;
+   Object.assign(world.settings, { defaultRestitution: 0.2 });
+   Object.assign(world.settings, { defaultPushFactor: 0.4 });
+   Object.assign(world.settings, { defaultFriction: 0.2 });
 
   const w = 6;
   const h = 2.0;
@@ -391,7 +371,7 @@ export const createStairsScene = (n: number) => {
           vec2.fromValues(x, y),
           n % 2 ? Math.PI * 0.125 : -Math.PI * 0.125
         ),
-        createRectShape(w, 0.5)
+        new Box(w, 0.5)
       )
     );
 
@@ -406,7 +386,7 @@ export const createStairsScene = (n: number) => {
         vec2.fromValues(0.0, y - 1),
         0.0
       ),
-      createRectShape(20, 1)
+      new Box(20, 1)
     )
   );
 
@@ -418,7 +398,7 @@ export const createStairsScene = (n: number) => {
         vec2.fromValues(-8, y),
         0.0
       ),
-      createQuadShape(1)
+      new Box(1, 1)
     )
   );
 
@@ -430,7 +410,7 @@ export const createStairsScene = (n: number) => {
         vec2.fromValues(8, y),
         0.0
       ),
-      createQuadShape(1)
+      new Box(1, 1)
     )
   );
 
@@ -449,9 +429,9 @@ export const createGaussianScene = () => {
   let obstacleSize = 0.25;
   let ballR = 0.2;
 
-  world.restitution = 0.5;
-  world.pushFactor = 0.4;
-  world.friction = 0.3;
+   Object.assign(world.settings, { defaultRestitution: 0.5 });
+   Object.assign(world.settings, { defaultPushFactor: 0.4 });
+   Object.assign(world.settings, { defaultFriction: 0.3 });
 
   // floor
   world.addCollider(
@@ -462,7 +442,7 @@ export const createGaussianScene = () => {
         vec2.fromValues(0.0, -10),
         0.0
       ),
-      createRectShape(20, 1)
+      new Box(20, 1)
     )
   );
 
@@ -475,7 +455,7 @@ export const createGaussianScene = () => {
         vec2.fromValues(-10, -3.5),
         0.0
       ),
-      createRectShape(0.5, 12)
+      new Box(0.5, 12)
     )
   );
 
@@ -488,7 +468,7 @@ export const createGaussianScene = () => {
         vec2.fromValues(10, -3.5),
         0.0
       ),
-      createRectShape(0.5, 12)
+      new Box(0.5, 12)
     )
   );
 
@@ -506,7 +486,7 @@ export const createGaussianScene = () => {
           vec2.fromValues(columns % 2 ? x : -x, -6.0),
           0.0
         ),
-        createRectShape(colW, 7)
+        new Box(colW, 7)
       )
     );
   }
@@ -520,7 +500,7 @@ export const createGaussianScene = () => {
         vec2.fromValues(3, 10),
         sinkSlope
       ),
-      createRectShape(10, 0.5)
+      new Box(10, 0.5)
     )
   );
 
@@ -532,7 +512,7 @@ export const createGaussianScene = () => {
         vec2.fromValues(-3, 10),
         -sinkSlope
       ),
-      createRectShape(10, 0.5)
+      new Box(10, 0.5)
     )
   );
 
@@ -552,7 +532,7 @@ export const createGaussianScene = () => {
             vec2.fromValues(u, v),
             Math.PI * 0.25
           ),
-          createQuadShape(obstacleSize)
+          new Box(obstacleSize, obstacleSize)
         )
       );
 
@@ -587,9 +567,9 @@ export const createGaussianScene = () => {
 };
 
 export const createJointScene = () => {
-  world.restitution = 0.35;
-  world.pushFactor = 0.65;
-  world.friction = 0.55;
+   Object.assign(world.settings, { defaultRestitution: 0.35 });
+   Object.assign(world.settings, { defaultPushFactor: 0.65 });
+   Object.assign(world.settings, { defaultFriction: 0.55 });
 
   const wheel = world.createBody(
     Number.POSITIVE_INFINITY,
@@ -614,10 +594,10 @@ export const createJointScene = () => {
     vec2.fromValues(0.0, -1.5),
     0.0
   );
-  world.addCollider(new Collider(bar, createRectShape(10, 0.1)));
+  world.addCollider(new Collider(bar, new Box(10, 0.1)));
 
   const slider = world.createBody(1, 1, vec2.fromValues(0.0, -1), 0.0);
-  world.addCollider(new Collider(slider, createRectShape(3, 0.5)));
+  world.addCollider(new Collider(slider, new Box(3, 0.5)));
 
   world.addPrismaticJoint(
     bar,
@@ -646,7 +626,7 @@ export const createJointScene = () => {
         vec2.fromValues(-3, 3.5),
         0.0
       ),
-      createRectShape(0.1, 8)
+      new Box(0.1, 8)
     )
   );
 
@@ -658,7 +638,7 @@ export const createJointScene = () => {
         vec2.fromValues(-4, 3.5),
         0.0
       ),
-      createRectShape(0.1, 8)
+      new Box(0.1, 8)
     )
   );
 
@@ -667,7 +647,7 @@ export const createJointScene = () => {
     world.addCollider(
       new Collider(
         world.createBody(1, 1, vec2.fromValues(-3.5, n), 0.0),
-        createRectShape(0.85, 0.85)
+        new Box(0.85, 0.85)
       )
     );
   }
@@ -679,13 +659,13 @@ export const createJointScene = () => {
     vec2.fromValues(5.0, -5.5),
     0.0
   );
-  world.addCollider(new Collider(swing, createRectShape(5.5, 0.1)));
+  world.addCollider(new Collider(swing, new Box(5.5, 0.1)));
 
   const ball = world.createBody(1.1, 0.1, vec2.fromValues(5.0, -8.0), 0.0);
   world.addCollider(new Collider(ball, new Circle(0.5)));
 
   const cube = world.createBody(1.1, 0.1, vec2.fromValues(3.0, -8.0), 0.0);
-  world.addCollider(new Collider(cube, createRectShape(1.0, 1.0)));
+  world.addCollider(new Collider(cube, new Box(1.0, 1.0)));
 
   world.addSpring(
     ball,
@@ -706,7 +686,7 @@ export const createJointScene = () => {
         vec2.fromValues(0.0, -9),
         0.0
       ),
-      createRectShape(16, 1)
+      new Box(16, 1)
     )
   );
 
@@ -726,7 +706,7 @@ export const createJointScene = () => {
       const y = o[1] + r * Math.sin(phi);
 
       const body = world.createBody(m, m, vec2.fromValues(x, y), phi);
-      world.addCollider(new Collider(body, createRectShape(size, size * 0.5)));
+      world.addCollider(new Collider(body, new Box(size, size * 0.5)));
 
       if (i > 0) {
         const bodyA = chain[i - 1];
@@ -751,16 +731,16 @@ export const createJointScene = () => {
 };
 
 export const createSuspensionScene = () => {
-  world.restitution = 0.35;
-  world.pushFactor = 0.65;
-  world.friction = 0.55;
+   Object.assign(world.settings, { defaultRestitution: 0.35 });
+   Object.assign(world.settings, { defaultPushFactor: 0.65 });
+   Object.assign(world.settings, { defaultFriction: 0.55 });
 
   const stiffness = 25;
   const exstinction = 1;
 
   let length = 6;
   const hull = world.createBody(1.0, 1.0, vec2.fromValues(10.0, -4.0), 0.0);
-  world.addCollider(new Collider(hull, createRectShape(length, 1.0)));
+  world.addCollider(new Collider(hull, new Box(length, 1.0)));
 
   let wheels = 4;
   for (let i = 0; i < wheels; i++) {
@@ -799,7 +779,7 @@ export const createSuspensionScene = () => {
         vec2.fromValues(-14, 0),
         0.0
       ),
-      createRectShape(0.25, 16)
+      new Box(0.25, 16)
     )
   );
 
@@ -812,7 +792,7 @@ export const createSuspensionScene = () => {
         vec2.fromValues(14, 0),
         0.0
       ),
-      createRectShape(0.25, 16)
+      new Box(0.25, 16)
     )
   );
 
@@ -825,7 +805,7 @@ export const createSuspensionScene = () => {
         vec2.fromValues(0.0, -9),
         0.0
       ),
-      createRectShape(30, 1)
+      new Box(30, 1)
     )
   );
 
@@ -847,9 +827,9 @@ export const createSuspensionScene = () => {
 };
 
 export const createHelixScene = () => {
-  world.restitution = 0.25;
-  world.pushFactor = 0.65;
-  world.friction = 0.75;
+   Object.assign(world.settings, { defaultRestitution: 0.25 });
+   Object.assign(world.settings, { defaultPushFactor: 0.65 });
+   Object.assign(world.settings, { defaultFriction: 0.75 });
 
   world.addCollider(
     new Collider(
@@ -876,9 +856,9 @@ export const createHelixScene = () => {
 };
 
 export const createPinballScene = () => {
-  world.restitution = 0.75;
-  world.pushFactor = 0.65;
-  world.friction = 0.75;
+   Object.assign(world.settings, { defaultRestitution: 0.75 });
+   Object.assign(world.settings, { defaultPushFactor: 0.65 });
+   Object.assign(world.settings, { defaultFriction: 0.75 });
 
   world.addCollider(
     new Collider(
@@ -905,9 +885,9 @@ export const createPinballScene = () => {
 };
 
 export const createMeshScene = () => {
-  world.restitution = 0.25;
-  world.pushFactor = 0.65;
-  world.friction = 0.75;
+   Object.assign(world.settings, { defaultRestitution: 0.25 });
+   Object.assign(world.settings, { defaultPushFactor: 0.65 });
+   Object.assign(world.settings, { defaultFriction: 0.75 });
 
   world.addCollider(
     new Collider(
@@ -936,7 +916,7 @@ export const createMeshScene = () => {
         vec2.fromValues(-14, 0),
         0.0
       ),
-      createRectShape(0.25, 16)
+      new Box(0.25, 16)
     )
   );
 
@@ -949,7 +929,7 @@ export const createMeshScene = () => {
         vec2.fromValues(14, 0),
         0.0
       ),
-      createRectShape(0.25, 16)
+      new Box(0.25, 16)
     )
   );
 
@@ -962,15 +942,15 @@ export const createMeshScene = () => {
         vec2.fromValues(0.0, -9),
         0.0
       ),
-      createRectShape(30, 1)
+      new Box(30, 1)
     )
   );
 };
 
 export const pistonScene = () => {
-  world.restitution = 0.25;
-  world.pushFactor = 0.65;
-  world.friction = 0.75;
+   Object.assign(world.settings, { defaultRestitution: 0.25 });
+   Object.assign(world.settings, { defaultPushFactor: 0.65 });
+   Object.assign(world.settings, { defaultFriction: 0.75 });
 
   world.addCollider(
     new Collider(
@@ -1017,9 +997,9 @@ export const pistonScene = () => {
 };
 
 export const createGearScene = () => {
-  world.restitution = 0.25;
-  world.pushFactor = 0.65;
-  world.friction = 0.75;
+   Object.assign(world.settings, { defaultRestitution: 0.25 });
+   Object.assign(world.settings, { defaultPushFactor: 0.65 });
+   Object.assign(world.settings, { defaultFriction: 0.75 });
 
   const collection = loadObj(GEARS);
 
@@ -1030,7 +1010,7 @@ export const createGearScene = () => {
     vec2.fromValues(0, 0),
     0
   );
-  world.addMotor(motor, 10.0, 1.0);
+  world.addMotor(motor, 15.0, 5.0);
   world.addCollider(
     new Collider(motor, new MeshShape(collection['gear_o_049']))
   );
@@ -1083,9 +1063,17 @@ export const createGearScene = () => {
 };
 
 export const createGjkScene = () => {
+  const createTriangleShape = (r: number = 1): Polygon => {
+    return new Polygon([
+      vec2.fromValues(-0.5 * r, -0.5 * r),
+      vec2.fromValues(0.5 * r, -0.5 * r),
+      vec2.fromValues(0.0, 0.5 * r),
+    ]);
+  };
+
   // Scene
   let body = world.createBody(1.0, 1.0, vec2.fromValues(-4, -6), 0.0);
-  world.addCollider(new Collider(body, createRectShape(1, 1), 0x01));
+  world.addCollider(new Collider(body, new Box(1, 1), 0x01));
 
   body = world.createBody(1.0, 1.0, vec2.fromValues(4, -6), 0.0);
   world.addCollider(new Collider(body, createTriangleShape(3), 0x02));
@@ -1183,9 +1171,9 @@ export const createEpaScene = () => {
 };
 
 export const createWarmScene = () => {
-  world.restitution = 0.0;
-  world.pushFactor = 0.7;
-  world.friction = 0.27;
+   Object.assign(world.settings, { defaultRestitution: 0.0 });
+   Object.assign(world.settings, { defaultPushFactor: 0.7 });
+   Object.assign(world.settings, { defaultFriction: 0.27 });
 
   // floor
   let body = world.createBody(
@@ -1194,7 +1182,7 @@ export const createWarmScene = () => {
     vec2.fromValues(0.0, -9),
     0.0
   );
-  world.addCollider(new Collider(body, createRectShape(20, 1.1)));
+  world.addCollider(new Collider(body, new Box(20, 1.1)));
 
   const omega = Math.PI * 1.0;
   const velocity = vec2.fromValues(0.0, -1000.0);
@@ -1223,13 +1211,13 @@ export const createWarmScene = () => {
   );
   box2.omega = omega;
   box2.velocity = velocity;
-  world.addCollider(new Collider(box2, createRectShape(1, 1)));
+  world.addCollider(new Collider(box2, new Box(1, 1)));
 };
 
 export const createManifoldScene = () => {
-  world.restitution = 0.5;
-  world.pushFactor = 0.95;
-  world.friction = 0.7;
+   Object.assign(world.settings, { defaultRestitution: 0.5 });
+   Object.assign(world.settings, { defaultPushFactor: 0.95 });
+   Object.assign(world.settings, { defaultFriction: 0.7 });
 
   const objects = loadObj(GEARS);
 

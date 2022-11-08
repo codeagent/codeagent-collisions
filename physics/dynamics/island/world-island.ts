@@ -2,7 +2,7 @@ import { vec2 } from 'gl-matrix';
 
 import { Body } from '../body';
 import { ConstraintInterface } from '../constraint';
-import { Profiler, StackAllocator } from '../../utils';
+import { Profiler } from '../../utils';
 import {
   VcV,
   VmV,
@@ -15,10 +15,11 @@ import {
   MxDxMt,
   projectedGaussSeidel,
 } from '../../math';
-import { World } from '../world';
 import { JointInterface } from '../joint';
+import { StackAllocator } from './allocator';
+import { Settings } from '../../settings';
 
-const RESERVED_MEMORY = 5e6; // 5mb
+const v = vec2.create();
 
 export class WorldIsland {
   get sleeping() {
@@ -31,7 +32,7 @@ export class WorldIsland {
 
   private readonly bodies = new Array<Body>();
   private readonly joints = new Set<JointInterface>();
-  private readonly allocator = new StackAllocator(RESERVED_MEMORY);
+  private readonly allocator: StackAllocator;
 
   private id: number = -1;
   private positions: Float32Array;
@@ -58,7 +59,9 @@ export class WorldIsland {
   private constraintsNumber = 0;
   private _sleeping = true;
 
-  constructor(private readonly world: World) {}
+  constructor(private readonly settings: Settings) {
+    this.allocator = new StackAllocator(settings.islandReservedMemory);
+  }
 
   setId(id: number) {
     this.id = id;
@@ -88,34 +91,32 @@ export class WorldIsland {
     this.allocate();
     this.bodiesToArrays();
 
-    const length = this.bodies.length * 3;
     if (this.constraintsNumber > 0) {
       // Resolve
       Profiler.instance.begin('WorldInsland.solve');
-      this.solve(this.cvForces, this.c0Forces, dt, this.world.pushFactor);
+      this.solve(
+        this.cvForces,
+        this.c0Forces,
+        dt,
+        this.settings.defaultPushFactor
+      );
       Profiler.instance.end('WorldInsland.solve');
 
       //  Correct positions
-      VpV(this.tmpForces, this.forces, this.cvForces, length);
+      VpV(this.tmpForces, this.forces, this.cvForces);
       VcV(this.tmpVelocities, this.velocities);
-      VmV(this.accelerations, this.tmpForces, this.invMasses, length);
-      VpVxS(
-        this.tmpVelocities,
-        this.tmpVelocities,
-        this.accelerations,
-        dt,
-        length
-      );
-      VpVxS(this.positions, this.positions, this.tmpVelocities, dt, length);
+      VmV(this.accelerations, this.tmpForces, this.invMasses);
+      VpVxS(this.tmpVelocities, this.tmpVelocities, this.accelerations, dt);
+      VpVxS(this.positions, this.positions, this.tmpVelocities, dt);
 
       // Correct velocities
-      VpV(this.tmpForces, this.forces, this.c0Forces, length);
-      VmV(this.accelerations, this.tmpForces, this.invMasses, length);
-      VpVxS(this.velocities, this.velocities, this.accelerations, dt, length);
+      VpV(this.tmpForces, this.forces, this.c0Forces);
+      VmV(this.accelerations, this.tmpForces, this.invMasses);
+      VpVxS(this.velocities, this.velocities, this.accelerations, dt);
     } else {
-      VmV(this.accelerations, this.forces, this.invMasses, length);
-      VpVxS(this.velocities, this.velocities, this.accelerations, dt, length);
-      VpVxS(this.positions, this.positions, this.velocities, dt, length);
+      VmV(this.accelerations, this.forces, this.invMasses);
+      VpVxS(this.velocities, this.velocities, this.accelerations, dt);
+      VpVxS(this.positions, this.positions, this.velocities, dt);
     }
 
     this.arraysToBodies();
@@ -147,13 +148,12 @@ export class WorldIsland {
         this.lambdas0[j] = constraint.getCache(0);
         this.lambdas1[j] = constraint.getCache(1);
 
-        const [bodyA, bodyB] = constraint.getBodies();
-        if (bodyA && !bodyA.isStatic) {
-          bodyA.islandJacobians.push(j);
+        if (constraint.bodyA && !constraint.bodyA.isStatic) {
+          constraint.bodyA.islandJacobians.push(j);
         }
 
-        if (bodyB && !bodyB.isStatic) {
-          bodyB.islandJacobians.push(j);
+        if (constraint.bodyB && !constraint.bodyB.isStatic) {
+          constraint.bodyB.islandJacobians.push(j);
         }
 
         constraints[j] = constraint;
@@ -168,10 +168,8 @@ export class WorldIsland {
     const lookup = new Array<number[]>(this.constraintsNumber);
     let k = 0;
     for (const constraint of constraints) {
-      const [bodyA, bodyB] = constraint.getBodies();
-
-      const ca = bodyA ? bodyA.islandJacobians : [];
-      const cb = bodyB ? bodyB.islandJacobians : [];
+      const ca = constraint.bodyA ? constraint.bodyA.islandJacobians : [];
+      const cb = constraint.bodyB ? constraint.bodyB.islandJacobians : [];
 
       let i = 0;
       let j = 0;
@@ -211,12 +209,12 @@ export class WorldIsland {
     const csrA = MxDxMt(csrJ, this.invMasses, lookup);
     Profiler.instance.end('WorldInsland.MxDxMtCsr');
 
-    VmV(this.bhat, this.invMasses, this.forces, n);
-    VpVxS(this.bhat, this.bhat, this.velocities, 1.0 / dt, n);
+    VmV(this.bhat, this.invMasses, this.forces);
+    VpVxS(this.bhat, this.bhat, this.velocities, 1.0 / dt);
     MxV(this.b, csrJ, this.bhat);
 
-    VxSpVxS(this.bt0, this.v0, 1.0 / dt, this.b, -1.0, this.constraintsNumber);
-    VxSpVxS(this.bt1, this.v1, 1.0 / dt, this.b, -1.0, this.constraintsNumber);
+    VxSpVxS(this.bt0, this.v0, 1.0 / dt, this.b, -1.0);
+    VxSpVxS(this.bt1, this.v1, 1.0 / dt, this.b, -1.0);
 
     Profiler.instance.begin('WorldInsland.projectedGaussSeidel');
     projectedGaussSeidel(
@@ -227,7 +225,7 @@ export class WorldIsland {
       this.bt1,
       this.cMin,
       this.cMax,
-      this.world.iterations
+      this.settings.solverIterations
     );
     Profiler.instance.end('WorldInsland.projectedGaussSeidel');
 
@@ -248,24 +246,27 @@ export class WorldIsland {
     this.forces = this.allocator.allocate(bodiesArraySize);
     this.invMasses = this.allocator.allocate(bodiesArraySize);
     this.accelerations = this.allocator.allocate(bodiesArraySize);
-    this.c0Forces = this.allocator.allocate(bodiesArraySize);
-    this.cvForces = this.allocator.allocate(bodiesArraySize);
-    this.tmpForces = this.allocator.allocate(bodiesArraySize);
-    this.tmpVelocities = this.allocator.allocate(bodiesArraySize);
-    this.bhat = this.allocator.allocate(bodiesArraySize);
 
-    this.v0 = this.allocator.allocate(this.constraintsNumber);
-    this.v1 = this.allocator.allocate(this.constraintsNumber);
-    this.cMin = this.allocator.allocate(this.constraintsNumber);
-    this.cMax = this.allocator.allocate(this.constraintsNumber);
-    this.lambdas0 = this.allocator.allocate(this.constraintsNumber);
-    this.lambdas1 = this.allocator.allocate(this.constraintsNumber);
-    this.b = this.allocator.allocate(this.constraintsNumber);
-    this.bt0 = this.allocator.allocate(this.constraintsNumber);
-    this.bt1 = this.allocator.allocate(this.constraintsNumber);
-    this.J = this.allocator.allocate(
-      this.constraintsNumber * this.bodies.length * 3
-    );
+    if (this.constraintsNumber > 0) {
+      this.c0Forces = this.allocator.allocate(bodiesArraySize);
+      this.cvForces = this.allocator.allocate(bodiesArraySize);
+      this.tmpForces = this.allocator.allocate(bodiesArraySize);
+      this.tmpVelocities = this.allocator.allocate(bodiesArraySize);
+      this.bhat = this.allocator.allocate(bodiesArraySize);
+
+      this.v0 = this.allocator.allocate(this.constraintsNumber);
+      this.v1 = this.allocator.allocate(this.constraintsNumber);
+      this.cMin = this.allocator.allocate(this.constraintsNumber);
+      this.cMax = this.allocator.allocate(this.constraintsNumber);
+      this.lambdas0 = this.allocator.allocate(this.constraintsNumber);
+      this.lambdas1 = this.allocator.allocate(this.constraintsNumber);
+      this.b = this.allocator.allocate(this.constraintsNumber);
+      this.bt0 = this.allocator.allocate(this.constraintsNumber);
+      this.bt1 = this.allocator.allocate(this.constraintsNumber);
+      this.J = this.allocator.allocate(
+        this.constraintsNumber * this.bodies.length * 3
+      );
+    }
   }
 
   private deallocate() {
@@ -300,7 +301,6 @@ export class WorldIsland {
 
   private arraysToBodies() {
     const n = this.bodies.length * 3;
-    const v = vec2.create();
 
     for (let i = 0; i < n; i += 3) {
       const body = this.bodies[Math.trunc(i / 3)];

@@ -5,7 +5,7 @@ import { Body } from '../body';
 export class AngularMotorConstraint extends ConstraintBase {
   constructor(
     public readonly world: World,
-    public readonly body: Body,
+    public readonly bodyA: Body,
     public readonly speed: number,
     public readonly torque: number
   ) {
@@ -16,8 +16,8 @@ export class AngularMotorConstraint extends ConstraintBase {
     const jacobian = out.subarray(offset, offset + length);
     jacobian.fill(0.0);
 
-    if (isFinite(this.body.inertia)) {
-      const bodyIndex = this.body.bodyIndex
+    if (isFinite(this.bodyA.inertia)) {
+      const bodyIndex = this.bodyA.bodyIndex;
       jacobian[bodyIndex * 3] = 0;
       jacobian[bodyIndex * 3 + 1] = 0;
       jacobian[bodyIndex * 3 + 2] = 1;
@@ -30,9 +30,5 @@ export class AngularMotorConstraint extends ConstraintBase {
 
   getClamping() {
     return { min: -this.torque, max: this.torque };
-  }
-
-  getBodies(): [Body, Body] {
-    return [this.body, null];
   }
 }

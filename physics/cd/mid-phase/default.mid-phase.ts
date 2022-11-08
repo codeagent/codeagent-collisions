@@ -1,9 +1,15 @@
-import { MeshOBBNode, MeshShape } from '../shape';
+import { Service } from 'typedi';
+
+import { MeshOBBNode } from '../../utils/mesh';
 import { ContactCandidatePair, ContactCandidate } from '../contact';
 import { testAABBOBBTree, testOBBOBBTrees } from './tests';
 import { MidPhaseInterface } from './mid-phase.interface';
+import { MeshShape } from '../shape';
 
+@Service()
 export class DefaultMidPhase implements MidPhaseInterface {
+  constructor() {}
+
   *detectCandidates(
     pairs: Iterable<ContactCandidatePair>
   ): Iterable<ContactCandidatePair> {
@@ -25,14 +31,14 @@ export class DefaultMidPhase implements MidPhaseInterface {
           for (const [leftNode, rightNode] of nodes) {
             yield [
               new ContactCandidate(
-                right.collider,
-                rightNode.payload.triangleShape,
-                right.aabb
-              ),
-              new ContactCandidate(
                 left.collider,
                 leftNode.payload.triangleShape,
                 left.aabb
+              ),
+              new ContactCandidate(
+                right.collider,
+                rightNode.payload.triangleShape,
+                right.aabb
               ),
             ];
           }

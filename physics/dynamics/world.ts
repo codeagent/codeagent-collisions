@@ -1,9 +1,9 @@
 import { vec2 } from 'gl-matrix';
+import { Inject, Service } from 'typedi';
 
 import { Body } from './body';
-
 import { CollisionDetector, Collider } from '../cd';
-import { releaseId, uniqueId, Profiler, Clock, pairId } from '../utils';
+import { Clock, IdManager, pairId } from '../utils';
 import {
   DistanceJoint,
   JointInterface,
@@ -17,27 +17,26 @@ import {
   MouseControlInterface,
 } from './joint';
 import { Pair, PairsRegistry } from './pairs-registry';
-import { IslandsGeneratorInterface, LocalIslandsGenerator, SoleIslandGenerator } from './island';
+import { IslandsGeneratorInterface } from './island';
 
+import { ISLANDS_GENERATOR, SETTINGS } from '../di';
+import { Settings } from '../settings';
+
+@Service()
 export class World {
-  public readonly bodies: Body[];
-  public readonly registry: PairsRegistry;
-  public readonly detector: CollisionDetector;
-  public readonly islandGenerator: IslandsGeneratorInterface;
+  public readonly bodies: Body[] = [];
+
+  private readonly bodyForce = vec2.create();
 
   constructor(
-    public gravity = vec2.fromValues(0.0, -9.8),
-    public pushFactor = 0.6,
-    public iterations = 10,
-    public friction = 0.5,
-    public restitution = 0.5
-  ) {
-    this.bodies = [];
-    this.registry = new PairsRegistry();
-    this.detector = new CollisionDetector(this.registry);
-    // this.islandGenerator = new LocalIslandsGenerator(this);
-    this.islandGenerator = new SoleIslandGenerator(this);
-  }
+    @Inject(SETTINGS) public readonly settings: Readonly<Settings>,
+    @Inject(ISLANDS_GENERATOR)
+    public readonly islandGenerator: IslandsGeneratorInterface,
+    public readonly registry: PairsRegistry,
+    public readonly detector: CollisionDetector,
+    public readonly clock: Clock,
+    public readonly idManager: IdManager
+  ) {}
 
   createBody(
     mass: number,
@@ -46,7 +45,7 @@ export class World {
     angle: number,
     continuous = false
   ) {
-    const body = new Body(uniqueId(), this, continuous);
+    const body = new Body(this.idManager.getUniqueId(), this, continuous);
     body.mass = mass;
     body.inertia = intertia;
     body.position = position;
@@ -64,7 +63,7 @@ export class World {
       return;
     }
     this.bodies.splice(bodyIndex, 1);
-    releaseId(body.id);
+    this.idManager.releaseId(body.id);
 
     if (body.collider) {
       this.removeCollider(body.collider);
@@ -217,7 +216,13 @@ export class World {
 
     for (const body of this.bodies) {
       if (body.collider !== collider) {
-        this.registry.registerPair(new Pair(body.collider, collider));
+        this.registry.registerPair(
+          new Pair(
+            body.collider,
+            collider,
+            this.settings.contactProximityThreshold
+          )
+        );
       }
     }
   }
@@ -242,16 +247,48 @@ export class World {
     }
   }
 
-  private applyGlobalForces() {
-    const weight = vec2.create();
+  dispose() {
+    this.registry.clear();
+
     for (const body of this.bodies) {
+      if (body.collider) {
+        this.detector.unregisterCollider(body.collider);
+      }
+    }
+
+    this.bodies.length = 0;
+  }
+
+  private applyGlobalForces() {
+    for (const body of this.bodies) {
+      vec2.copy(this.bodyForce, body.force);
+
       if (body.invMass) {
-        body.force = vec2.scaleAndAdd(
-          weight,
-          body.force,
-          this.gravity,
+        vec2.scaleAndAdd(
+          this.bodyForce,
+          this.bodyForce,
+          this.settings.gravity,
           body.mass
         );
+      }
+
+      if (this.settings.defaultDamping) {
+        vec2.scaleAndAdd(
+          this.bodyForce,
+          this.bodyForce,
+          body.velocity,
+          -this.settings.defaultDamping * vec2.length(body.velocity)
+        );
+      }
+
+      body.force = this.bodyForce;
+
+      if (this.settings.defaultAngularDamping) {
+        body.torque -=
+          this.settings.defaultAngularDamping *
+          body.omega *
+          body.omega *
+          Math.sign(body.omega);
       }
     }
   }
@@ -262,14 +299,10 @@ export class World {
     }
   }
 
-  // #region ccd
-
   public step(dt: number) {
-    Clock.instance.tick(dt);
+    this.clock.tick(dt);
 
-    const MAX_ITERATIONS = 8;
-
-    let iterations = MAX_ITERATIONS;
+    let iterations = this.settings.toiSubsteps;
     let span = dt;
     let toi = 0;
     let t = 0;
@@ -279,19 +312,12 @@ export class World {
     do {
       toi = this.detector.getTimeOfFirstImpact(span); // between [0-1]
 
+      // Corect very small values assuming that there are no impacts
       if (toi < 1.0e-6) {
         toi = 1;
       }
 
       t = span * toi;
-
-      if (iterations === 1) {
-        console.log(toi);
-      }
-
-      // if (toi < 1) {
-      //   debugger;
-      // }
 
       this.detectCollisions();
       this.advance(t);
@@ -314,17 +340,11 @@ export class World {
     }
   }
 
-  // #endregion
-
   private detectCollisions() {
-    Profiler.instance.begin('World.detectCollisions');
-
     this.registry.validatePairs();
 
     for (const contactInfo of this.detector.detectCollisions()) {
       this.registry.addContact(contactInfo);
     }
-
-    Profiler.instance.end('World.detectCollisions');
   }
 }

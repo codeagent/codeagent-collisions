@@ -84,8 +84,4 @@ export class LineConstraint extends ConstraintBase {
   getClamping() {
     return { min: Number.NEGATIVE_INFINITY, max: Number.POSITIVE_INFINITY };
   }
-
-  getBodies(): [Body, Body] {
-    return [this.bodyA, this.bodyB];
-  }
 }

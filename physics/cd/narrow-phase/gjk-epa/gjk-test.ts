@@ -74,8 +74,8 @@ export const gjkTest = (world: World) => {
   world.bodies.forEach((body) => {
     body.applyForce(
       vec2.fromValues(
-        body.mass * -world.gravity[0],
-        body.mass * -world.gravity[1]
+        body.mass * -world.settings.gravity[0],
+        body.mass * -world.settings.gravity[1]
       )
     );
     body.applyForce(

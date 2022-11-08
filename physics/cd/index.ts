@@ -5,6 +5,6 @@ export * from './broad-phase';
 export * from './mid-phase';
 export * from './narrow-phase';
 export * from './collider';
-export * from './utils';
+export * from './toi';
 export * from './aabb';
 export * from './obb';

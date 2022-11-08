@@ -1,6 +1,7 @@
-export class Clock {
-  static readonly instance = new Clock();
+import { Service } from 'typedi';
 
+@Service()
+export class Clock {
   get time() {
     return this._time;
   }

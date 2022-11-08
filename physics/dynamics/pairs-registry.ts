@@ -1,95 +1,10 @@
 import { vec2 } from 'gl-matrix';
+import { Service } from 'typedi';
 
 import { betweenPair, SpaceMapping, SpaceMappingInterface } from '../math';
 import { pairId } from '../utils';
 import { Collider, ContactInfo } from '../cd';
 import { Contact } from './joint';
-
-export class Pair {
-  public readonly id: number;
-  public readonly spacesMapping: SpaceMappingInterface;
-
-  private readonly contactManifold: ContactManifold;
-
-  constructor(
-    public readonly collider0: Collider,
-    public readonly collider1: Collider
-  ) {
-    this.id = pairId(this.collider0.id, this.collider1.id);
-    this.spacesMapping = betweenPair(
-      this.collider0.transform,
-      this.collider1.transform
-    );
-    this.contactManifold = new ContactManifold(
-      this.collider0,
-      this.collider1,
-      5e-3
-    );
-  }
-
-  updateTransforms(): void {
-    (this.spacesMapping as SpaceMapping).update(
-      this.collider0.transform,
-      this.collider1.transform
-    );
-  }
-
-  validateContacts(): boolean {
-    return this.contactManifold.validate();
-  }
-
-  addContact(contactInfo: ContactInfo): void {
-    this.contactManifold.addContact(contactInfo);
-  }
-
-  *getContacts(): Iterable<Contact> {
-    yield* this.contactManifold;
-  }
-}
-
-export class PairsRegistry {
-  private readonly registry = new Map<number, Pair>();
-  private readonly active = new Set<Pair>();
-
-  getPairById(id: number): Pair {
-    return this.registry.get(id);
-  }
-
-  registerPair(pair: Pair) {
-    this.registry.set(pair.id, pair);
-  }
-
-  unregisterPair(id: number) {
-    const pair = this.getPairById(id);
-
-    if (pair) {
-      this.active.delete(pair);
-      this.registry.delete(id);
-    }
-  }
-
-  clear() {
-    this.registry.clear();
-    this.active.clear();
-  }
-
-  validatePairs() {
-    for (const pair of this.active) {
-      if (!pair.validateContacts()) {
-        this.active.delete(pair);
-      }
-    }
-  }
-
-  addContact(contactInfo: Readonly<ContactInfo>) {
-    const id = pairId(contactInfo.collider0.id, contactInfo.collider1.id);
-    const pair = this.registry.get(id);
-    if (pair) {
-      pair.addContact(contactInfo);
-      this.active.add(pair);
-    }
-  }
-}
 
 const a = vec2.create();
 const b = vec2.create();
@@ -220,6 +135,93 @@ class ContactManifold implements Iterable<Contact> {
   *[Symbol.iterator]() {
     for (const contact of this.contacts) {
       yield contact;
+    }
+  }
+}
+
+export class Pair {
+  public readonly id: number;
+  public readonly spacesMapping: SpaceMappingInterface;
+  private readonly contactManifold: ContactManifold;
+
+  constructor(
+    public readonly collider0: Collider,
+    public readonly collider1: Collider,
+    public readonly proximityThreshold: number
+  ) {
+    this.id = pairId(this.collider0.id, this.collider1.id);
+    this.spacesMapping = betweenPair(
+      this.collider0.transform,
+      this.collider1.transform
+    );
+    this.contactManifold = new ContactManifold(
+      this.collider0,
+      this.collider1,
+      this.proximityThreshold
+    );
+  }
+
+  updateTransforms(): void {
+    (this.spacesMapping as SpaceMapping).update(
+      this.collider0.transform,
+      this.collider1.transform
+    );
+  }
+
+  validateContacts(): boolean {
+    return this.contactManifold.validate();
+  }
+
+  addContact(contactInfo: ContactInfo): void {
+    this.contactManifold.addContact(contactInfo);
+  }
+
+  *getContacts(): Iterable<Contact> {
+    yield* this.contactManifold;
+  }
+}
+
+@Service()
+export class PairsRegistry {
+  private readonly registry = new Map<number, Pair>();
+  private readonly active = new Set<Pair>();
+
+  getPairById(id: number): Pair {
+    return this.registry.get(id);
+  }
+
+  registerPair(pair: Pair) {
+    this.registry.set(pair.id, pair);
+  }
+
+  unregisterPair(id: number) {
+    const pair = this.getPairById(id);
+
+    if (pair) {
+      this.active.delete(pair);
+      this.registry.delete(id);
+    }
+  }
+
+  clear() {
+    this.registry.clear();
+    this.active.clear();
+  }
+
+  validatePairs() {
+    for (const pair of this.active) {
+      if (!pair.validateContacts()) {
+        this.active.delete(pair);
+      }
+    }
+  }
+
+  addContact(contactInfo: Readonly<ContactInfo>) {
+    const id = pairId(contactInfo.collider0.id, contactInfo.collider1.id);
+    const pair = this.registry.get(id);
+    if (pair) {
+      pair.addContact(contactInfo);
+      this.active.add(pair);
     }
   }
 }

@@ -42,7 +42,7 @@ export class StackAllocator {
   free(entries: number = 1): void {
     for (let i = 0; i < entries; i++) {
       if (this.stack.length === 0) {
-        throw new Error(`StackAllocator.allocate: Stack is empty`);
+        throw new Error('StackAllocator.allocate: Stack is empty');
       }
 
       const entry = this.stack.pop();

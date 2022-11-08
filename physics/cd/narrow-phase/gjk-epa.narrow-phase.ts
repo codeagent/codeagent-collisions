@@ -1,4 +1,5 @@
 import { vec2 } from 'gl-matrix';
+import { Inject, Service } from 'typedi';
 
 import { inverse } from '../../math';
 import { PairsRegistry } from '../../dynamics';
@@ -12,18 +13,20 @@ import {
   getPolyPolyContactManifold,
 } from './gjk-epa/manifold';
 import { NarrowPhaseInterface } from './narrow-phase.interface';
+import { Settings } from '../../settings';
+import { SETTINGS } from '../../di';
 
+@Service()
 export class GjkEpaNarrowPhase implements NarrowPhaseInterface {
-  private readonly margin = 1.0e-2;
-  private readonly relError = 1.0e-6;
-  private readonly epsilon = 1.0e-4;
-  private readonly maxIterations = 25;
   private readonly mtv = vec2.create();
-
   private readonly simplex = new Set<vec2>();
   private readonly initialDir = vec2.create();
 
-  constructor(private readonly registry: PairsRegistry) {}
+  @Inject(() => PairsRegistry) private readonly registry: PairsRegistry;
+
+  constructor(
+    @Inject(SETTINGS) private readonly settings: Readonly<Settings>
+  ) {}
 
   *detectContacts(
     pairs: Iterable<ContactCandidatePair>
@@ -49,12 +52,12 @@ export class GjkEpaNarrowPhase implements NarrowPhaseInterface {
         right.shape,
         pair.spacesMapping,
         this.initialDir,
-        -this.margin,
-        this.relError,
-        this.maxIterations
+        -this.settings.narrowPhaseMargin,
+        this.settings.gjkRelError,
+        this.settings.gjkMaxIterations
       );
 
-      if (dist < this.epsilon) {
+      if (dist < this.settings.epaEpsilon) {
         // inner shapes are intersect - crank a epa algorithm!
 
         this.simplex.clear();
@@ -66,8 +69,8 @@ export class GjkEpaNarrowPhase implements NarrowPhaseInterface {
           pair.spacesMapping,
           this.initialDir,
           0,
-          this.relError,
-          this.maxIterations
+          this.settings.gjkRelError,
+          this.settings.gjkMaxIterations
         );
 
         epa(
@@ -77,8 +80,8 @@ export class GjkEpaNarrowPhase implements NarrowPhaseInterface {
           right.shape,
           pair.spacesMapping,
           0,
-          this.epsilon,
-          this.maxIterations
+          this.settings.epaEpsilon,
+          this.settings.epaMaxIterations
         );
 
         vec2.negate(this.mtv, this.mtv);

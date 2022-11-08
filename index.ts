@@ -22,11 +22,11 @@ import {
   createManifoldScene,
 } from './scene';
 
-import { Profiler } from './physics';
+import { BroadPhaseInterface, defaultSettings, Profiler } from './physics';
 import { MouseControl } from './physics/utils/mouse-control';
 
 import { gjkTest } from './physics/cd/narrow-phase/gjk-epa/gjk-test';
-import { toiTest } from './physics/cd/utils/toi-test';
+import { toiTest } from './physics/cd/toi-test';
 import { epaTest } from './physics/cd/narrow-phase/gjk-epa/epa-test';
 import { manifoldTest } from './physics/cd/narrow-phase/manifold-test';
 
@@ -107,7 +107,8 @@ merge(
   fromEvent(document.getElementById('manifold'), 'click').pipe(
     map((e) => e.srcElement['id'])
   ),
-  of('gauss').pipe(delay(1000))
+
+  of('joint').pipe(delay(1000))
 )
   .pipe(
     tap((id) => {
@@ -127,6 +128,8 @@ merge(
     control = new MouseControl(world, 0.95, 1.0e4);
     control.attach(canvas);
   });
+
+console.log(world);
 
 const dt = 1.0 / 60.0;
 animationFrames().subscribe(() => {
@@ -172,3 +175,32 @@ Profiler.instance
     // console.clear();
     // console.table(e);
   });
+
+// import 'reflect-metadata';
+
+// import { vec2 } from 'gl-matrix';
+// import Container, { Inject, Service, Token } from 'typedi';
+// import { DEP, DepA, DepB, DepInterface, Settings, SETTINGS } from './sett';
+
+// @Service()
+// class ServiceA {
+//   constructor(
+//     @Inject(DEP) private readonly dep: DepInterface,
+//     @Inject(SETTINGS) private readonly settings: Settings
+//   ) {}
+// }
+
+// Container.of('CUSTOM').set([
+//   {
+//     id: SETTINGS,
+//     value: { a: 'b' },
+//   },
+
+//   {
+//     id: DEP,
+//     type: DepB,
+//   },
+// ]);
+
+// console.log(Container.of('CUSTOM').get(SETTINGS));
+// console.log(Container.of('CUSTOM').get(ServiceA));

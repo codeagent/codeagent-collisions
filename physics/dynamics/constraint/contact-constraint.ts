@@ -15,8 +15,7 @@ export class ContactConstraint extends ConstraintBase {
     public readonly bodyB: Body,
     public readonly joint: vec2,
     public readonly normal: vec2, // normal at bodyA
-    public penetration: number,
-    public readonly slop: number = 5.0e-3
+    public penetration: number
   ) {
     super();
   }
@@ -50,7 +49,14 @@ export class ContactConstraint extends ConstraintBase {
 
   getPushFactor(dt: number, strength: number): number {
     if (strength) {
-      return (Math.max(this.penetration - this.slop, 0) / dt) * strength;
+      return (
+        (Math.max(
+          this.penetration - this.world.settings.contactConstraintSlop,
+          0
+        ) /
+          dt) *
+        strength
+      );
     } else {
       const x = vec3.create();
       this.jacobian.fill(0);
@@ -82,15 +88,14 @@ export class ContactConstraint extends ConstraintBase {
         this.velocities[5] = this.bodyB.omega;
       }
     }
-    return -VxV(this.jacobian, this.velocities) * this.world.restitution;
+    return (
+      -VxV(this.jacobian, this.velocities) *
+      this.world.settings.defaultRestitution
+    );
   }
 
   getClamping() {
     return { min: 0.0, max: Number.POSITIVE_INFINITY };
-  }
-
-  getBodies(): [Body, Body] {
-    return [this.bodyA, this.bodyB];
   }
 
   setPenetration(penetration: number) {

@@ -1,4 +1,6 @@
 import { vec2 } from 'gl-matrix';
+import Container from 'typedi';
+
 import {
   BLUISH_COLOR,
   drawContact,
@@ -9,13 +11,15 @@ import {
 } from '../../../draw';
 
 import { World } from '../../dynamics';
-import { SatNarrowPhase } from './sat.narrow-phase';
 
 import { ContactCandidate, ContactInfo } from '../contact';
 import { MouseControl } from '../../utils/mouse-control';
+import { NarrowPhaseInterface } from './narrow-phase.interface';
+
+import { NARROW_PHASE } from '../../di';
 
 const damping = 10;
-let satNarrowPhase: SatNarrowPhase = null;
+let satNarrowPhase: NarrowPhaseInterface = null;
 
 const drawContactPoints = (point0: vec2, point1: vec2, color = '#22FF22') => {
   drawDot(point0, BLUISH_COLOR);
@@ -30,14 +34,14 @@ const drawManifold = (manifold: ContactInfo[]) =>
 
 export const manifoldTest = (world: World, control: MouseControl) => {
   if (!satNarrowPhase) {
-    satNarrowPhase = new SatNarrowPhase(world.registry);
+    satNarrowPhase = Container.of(world.settings.uid).get(NARROW_PHASE);
   }
 
   world.bodies.forEach((body) => {
     body.applyForce(
       vec2.fromValues(
-        body.mass * -world.gravity[0],
-        body.mass * -world.gravity[1]
+        body.mass * -world.settings.gravity[0],
+        body.mass * -world.settings.gravity[1]
       )
     );
     body.applyForce(

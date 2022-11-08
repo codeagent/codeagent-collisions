@@ -92,8 +92,4 @@ export class SpringConstraint extends ConstraintBase {
 
     return { min: c, max: c };
   }
-
-  getBodies(): [Body, Body] {
-    return [this.bodyA, this.bodyB];
-  }
 }

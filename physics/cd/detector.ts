@@ -1,42 +1,33 @@
 import { vec2 } from 'gl-matrix';
+import { Inject, Service } from 'typedi';
 
-import { PairsRegistry } from '../dynamics';
-import {
-  GjkEpaNarrowPhase,
-  NarrowPhaseInterface,
-  SatNarrowPhase,
-} from './narrow-phase';
+import { NarrowPhaseInterface } from './narrow-phase';
 import { Collider } from './collider';
 
 import { ContactInfo } from './contact';
-import {
-  BroadPhaseInterface,
-  BruteForceBroadPhase,
-  testCapsuleCapsule,
-} from './broad-phase';
-import { DefaultMidPhase, MidPhaseInterface } from './mid-phase';
+import { BroadPhaseInterface, testCapsuleCapsule } from './broad-phase';
+import { MidPhaseInterface } from './mid-phase';
 
-import { getToi } from './utils';
+import { getToi } from './toi';
 import { MeshShape } from './shape';
+import { Settings } from '../settings';
+import { BROAD_PHASE, MID_PHASE, NARROW_PHASE, SETTINGS } from '../di';
 
 const p0 = vec2.create();
 const p1 = vec2.create();
 const q0 = vec2.create();
 const q1 = vec2.create();
 
+@Service()
 export class CollisionDetector {
-  public readonly broadPhase: BroadPhaseInterface;
-  public readonly midPhase: MidPhaseInterface;
-  public readonly narrowPhase: NarrowPhaseInterface;
-
   private readonly continuous = new Array<Collider>();
 
-  constructor(registry: PairsRegistry) {
-    this.broadPhase = new BruteForceBroadPhase();
-    this.midPhase = new DefaultMidPhase();
-    this.narrowPhase = new SatNarrowPhase(registry);
-    // this.narrowPhase = new GjkEpaNarrowPhase(registry);
-  }
+  constructor(
+    @Inject(SETTINGS) private readonly settings: Settings,
+    @Inject(BROAD_PHASE) private readonly broadPhase: BroadPhaseInterface,
+    @Inject(MID_PHASE) private readonly midPhase: MidPhaseInterface,
+    @Inject(NARROW_PHASE) private readonly narrowPhase: NarrowPhaseInterface
+  ) {}
 
   getTimeOfFirstImpact(dt: number): number {
     let minToi = 1;
@@ -99,7 +90,9 @@ export class CollisionDetector {
           left.shape.radius,
           right.body,
           right.shape.radius,
-          dt
+          dt,
+          this.settings.toiEpsilon,
+          this.settings.toiMaxIterations
         );
 
         if (toi < minToi) {

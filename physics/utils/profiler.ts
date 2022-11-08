@@ -1,11 +1,13 @@
 import { Subject } from 'rxjs';
 import { bufferTime, filter, map } from 'rxjs/operators';
+import { Service } from 'typedi';
 
 export interface ProfilerStream {
   name: string;
   value: number;
 }
 
+@Service()
 export class Profiler {
   public static readonly instance = new Profiler();
   private readonly records = new Map<string, number>();

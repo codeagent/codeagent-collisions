@@ -1,14 +1,18 @@
 import { vec2 } from 'gl-matrix';
-import { Collider } from '../collider';
+import { Service } from 'typedi';
 
+import { Collider } from '../collider';
 import { AABB } from '../aabb';
 import { ContactCandidate, ContactCandidatePair } from '../contact';
 import { testAABBAABB, testAABBCapsule } from './tests';
 import { BroadPhaseInterface } from './broad-phase.interface';
 
+@Service()
 export class BruteForceBroadPhase implements BroadPhaseInterface {
   private readonly colliders: Collider[] = [];
   private readonly colliderAABB = new WeakMap<Collider, AABB>();
+
+  constructor() {}
 
   registerCollider(collider: Collider) {
     this.colliders.push(collider);

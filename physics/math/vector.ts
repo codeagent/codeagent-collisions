@@ -2,32 +2,26 @@ export type Vector = Float32Array;
 
 export const VxV = (V1: Vector, V2: Vector): number => {
   let dot = 0.0;
-  for (let j = 0; j < V1.length; j++) {
+  for (let j = 0, length = V1.length; j < length; j++) {
     dot += V1[j] * V2[j];
   }
   return dot;
 };
 
-export const VmV = (out: Vector, V1: Vector, V2: Vector, length: number) => {
-  for (let i = 0; i < length; i++) {
+export const VmV = (out: Vector, V1: Vector, V2: Vector) => {
+  for (let i = 0, length = out.length; i < length; i++) {
     out[i] = V1[i] * V2[i];
   }
 };
 
-export const VpVxS = (
-  out: Vector,
-  V1: Vector,
-  V2: Vector,
-  S: number,
-  length: number
-) => {
-  for (let i = 0; i < length; i++) {
+export const VpVxS = (out: Vector, V1: Vector, V2: Vector, S: number) => {
+  for (let i = 0, length = out.length; i < length; i++) {
     out[i] = V1[i] + V2[i] * S;
   }
 };
 
-export const VpV = (out: Vector, V1: Vector, V2: Vector, length: number) => {
-  for (let i = 0; i < length; i++) {
+export const VpV = (out: Vector, V1: Vector, V2: Vector) => {
+  for (let i = 0, length = out.length; i < length; i++) {
     out[i] = V1[i] + V2[i];
   }
 };
@@ -37,10 +31,9 @@ export const VxSpVxS = (
   V1: Vector,
   S1: number,
   V2: Vector,
-  S2: number,
-  length: number
+  S2: number
 ) => {
-  for (let i = 0; i < length; i++) {
+  for (let i = 0, length = out.length; i < length; i++) {
     out[i] = V1[i] * S1 + V2[i] * S2;
   }
 };

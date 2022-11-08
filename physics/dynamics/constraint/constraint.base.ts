@@ -5,6 +5,9 @@ import {
 import { Body } from '../body';
 
 export abstract class ConstraintBase implements ConstraintInterface {
+  readonly bodyA: Body | null = null;
+  readonly bodyB: Body | null = null;
+
   private readonly cache: number[] = [0.0, 0.0];
 
   getCache(id: 0 | 1): number {
@@ -18,5 +21,4 @@ export abstract class ConstraintBase implements ConstraintInterface {
   abstract getJacobian(out: Float32Array, offset: number, length: number): void;
   abstract getPushFactor(dt: number, strength: number): number;
   abstract getClamping(): ConstraintClamping;
-  abstract getBodies(): [Body, Body];
 }

@@ -6,7 +6,6 @@ import { Polygon } from './polygon';
 export class Ellipse extends Polygon {
   private ellipseSupportFun: (out: vec2, dir: Readonly<vec2>) => vec2;
 
-  readonly radius: number = 0;
   /**
    * @param a radius along x axis
    * @param b radius along y axis

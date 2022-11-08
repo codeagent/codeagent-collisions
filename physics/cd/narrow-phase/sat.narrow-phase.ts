@@ -1,9 +1,14 @@
 import { vec2 } from 'gl-matrix';
+import { Inject, Service } from 'typedi';
 
 import { pairId } from '../../utils';
 import { PairsRegistry } from '../../dynamics';
 import { SpaceMappingInterface, inverse } from '../../math';
-import { ContactCandidatePair, ContactInfo, ContactCandidate } from '../contact';
+import {
+  ContactCandidatePair,
+  ContactInfo,
+  ContactCandidate,
+} from '../contact';
 import { Circle, Polygon } from '../shape';
 import {
   testCircleCircle,
@@ -13,8 +18,9 @@ import {
 } from './sat';
 import { NarrowPhaseInterface } from './narrow-phase.interface';
 
+@Service()
 export class SatNarrowPhase implements NarrowPhaseInterface {
-  constructor(private readonly registry: PairsRegistry) {}
+  @Inject(() => PairsRegistry) private readonly registry: PairsRegistry;
 
   *detectContacts(
     pairs: Iterable<ContactCandidatePair>

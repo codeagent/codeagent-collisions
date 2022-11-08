@@ -6,10 +6,6 @@ import { Contact } from './joint';
 import { World } from './world';
 
 export class Body {
-  public static readonly velocityThreshold = 1.0e-1;
-  public static readonly angularVelocityThreshold = 1.0e-1;
-  public static readonly sleepTimerDuration = 1;
-
   get transform(): Readonly<mat3> {
     return this._transform;
   }
@@ -198,8 +194,10 @@ export class Body {
   tick(dt: number): void {
     if (!this.isStatic) {
       if (
-        vec2.length(this.velocity) <= Body.velocityThreshold &&
-        Math.abs(this.omega) <= Body.angularVelocityThreshold
+        vec2.length(this.velocity) <=
+          this.world.settings.sleepingVelocityThreshold &&
+        Math.abs(this.omega) <=
+          this.world.settings.sleepingAngularVelocityThreshold
       ) {
         this._sleepTimer -= dt;
 
@@ -214,7 +212,7 @@ export class Body {
 
   awake(): void {
     this._isSleeping = false;
-    this._sleepTimer = Body.sleepTimerDuration;
+    this._sleepTimer = this.world.settings.fallAsleepTimer;
   }
 
   advance(dt: number): void {

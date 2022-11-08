@@ -1,17 +1,21 @@
+import { Inject, Service } from 'typedi';
+
 import { Body } from '../body';
+import { SETTINGS } from '../../di';
 import { JointInterface } from '../joint';
-import { World } from '../world';
 import { IslandsGeneratorInterface } from './islands-generator.interface';
 import { WorldIsland } from './world-island';
+import { Settings } from '../../settings';
 
+@Service()
 export class SoleIslandGenerator implements IslandsGeneratorInterface {
   private readonly joints = new Set<JointInterface>();
   private readonly contacts = new Set<JointInterface>();
 
   private readonly island: WorldIsland;
 
-  constructor(private readonly world: World) {
-    this.island = new WorldIsland(this.world);
+  constructor(@Inject(SETTINGS) settings: Settings) {
+    this.island = new WorldIsland(settings);
   }
 
   *generate(bodies: Iterable<Body>): Iterable<WorldIsland> {
