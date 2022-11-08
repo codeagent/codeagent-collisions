@@ -42,12 +42,12 @@ const simplex = new Set<vec2>();
 const spacesMapping = betweenPair(mat3.create(), mat3.create());
 const proxy0 = new BodyProxy();
 const proxy1 = new BodyProxy();
-const toiPenetration = 5.0e-2;
 
 const distance = (
   distance: vec2,
   proxy0: Readonly<BodyProxy>,
-  proxy1: Readonly<BodyProxy>
+  proxy1: Readonly<BodyProxy>,
+  penetrationDepth: number
 ): number => {
   vec2.subtract(initialDir, proxy1.position, proxy0.position);
   spacesMapping.update(proxy0.transform, proxy1.transform);
@@ -59,7 +59,7 @@ const distance = (
     proxy1.shape,
     spacesMapping,
     initialDir,
-    -toiPenetration
+    -penetrationDepth
   );
 
   if (dist === 0) {
@@ -93,7 +93,8 @@ export const getToi = (
   r1: number,
   interval: number,
   epsilon: number,
-  maxIterations: number
+  maxIterations: number,
+  penetrationDepth: number
 ): number => {
   proxy0.wrap(body0);
   proxy1.wrap(body1);
@@ -105,7 +106,7 @@ export const getToi = (
   const angular = Math.abs(proxy0.omega) * r0 + Math.abs(proxy1.omega) * r1;
 
   do {
-    dist = distance(d, proxy0, proxy1);
+    dist = distance(d, proxy0, proxy1, penetrationDepth);
 
     // maximal possible projection of relative velocity onto d-direction
     const speed = vec2.dot(v, d) + angular;

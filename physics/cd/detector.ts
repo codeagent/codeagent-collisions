@@ -92,7 +92,8 @@ export class CollisionDetector {
           right.shape.radius,
           dt,
           this.settings.toiEpsilon,
-          this.settings.toiMaxIterations
+          this.settings.toiMaxIterations,
+          this.settings.toiPenetrationDepth
         );
 
         if (toi < minToi) {

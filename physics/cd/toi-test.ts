@@ -65,12 +65,13 @@ const drawBodiesImpact = (body0: Body, body1: Body, dt: number) => {
     body1.collider.shape.radius,
     dt,
     epsilon,
-    maxIterations
+    maxIterations,
+    5.0e-2
   );
 
   if (toi < 1) {
     const transform = mat3.create();
-    lerp(transform, body0, dt * (toi ));
+    lerp(transform, body0, dt * toi);
     drawBody(body0, BLUISH_COLOR, transform);
   }
 
