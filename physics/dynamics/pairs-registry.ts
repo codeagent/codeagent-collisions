@@ -2,9 +2,10 @@ import { vec2 } from 'gl-matrix';
 import { Service } from 'typedi';
 
 import { betweenPair, SpaceMapping, SpaceMappingInterface } from '../math';
-import { pairId } from '../utils';
+import { EventDispatcher, pairId } from '../utils';
 import { Collider, ContactInfo } from '../cd';
 import { Contact } from './joint';
+import { Events } from '../events';
 
 const a = vec2.create();
 const b = vec2.create();
@@ -12,10 +13,10 @@ const ab = vec2.create();
 const da = vec2.create();
 const db = vec2.create();
 
-class ContactManifold implements Iterable<Contact> {
+export class ContactManifold {
   public static readonly MAX_CONTACTS = 2;
 
-  private readonly contacts = new Set<Contact>();
+  public readonly contacts = new Set<Contact>();
 
   constructor(
     public readonly collider0: Collider,
@@ -131,18 +132,12 @@ class ContactManifold implements Iterable<Contact> {
       newContact.bodyB.addContact(newContact);
     }
   }
-
-  *[Symbol.iterator]() {
-    for (const contact of this.contacts) {
-      yield contact;
-    }
-  }
 }
 
 export class Pair {
   public readonly id: number;
   public readonly spacesMapping: SpaceMappingInterface;
-  private readonly contactManifold: ContactManifold;
+  public readonly contactManifold: ContactManifold;
 
   constructor(
     public readonly collider0: Collider,
@@ -175,16 +170,17 @@ export class Pair {
   addContact(contactInfo: ContactInfo): void {
     this.contactManifold.addContact(contactInfo);
   }
-
-  *getContacts(): Iterable<Contact> {
-    yield* this.contactManifold;
-  }
 }
 
 @Service()
 export class PairsRegistry {
   private readonly registry = new Map<number, Pair>();
   private readonly active = new Set<Pair>();
+  private readonly deleted = new Set<Pair>();
+  private readonly persistent = new Set<Pair>();
+  private readonly added = new Set<Pair>();
+
+  constructor(private readonly dispatcher: EventDispatcher) {}
 
   getPairById(id: number): Pair {
     return this.registry.get(id);
@@ -209,9 +205,16 @@ export class PairsRegistry {
   }
 
   validatePairs() {
+    this.deleted.clear();
+    this.persistent.clear();
+    this.added.clear();
+
     for (const pair of this.active) {
       if (!pair.validateContacts()) {
         this.active.delete(pair);
+        this.deleted.add(pair);
+      } else {
+        this.persistent.add(pair);
       }
     }
   }
@@ -219,9 +222,43 @@ export class PairsRegistry {
   addContact(contactInfo: Readonly<ContactInfo>) {
     const id = pairId(contactInfo.collider0.id, contactInfo.collider1.id);
     const pair = this.registry.get(id);
-    if (pair) {
-      pair.addContact(contactInfo);
-      this.active.add(pair);
+
+    pair.addContact(contactInfo);
+
+    if (this.deleted.delete(pair)) {
+      this.persistent.add(pair);
+    }
+
+    this.active.add(pair);
+    this.added.add(pair);
+  }
+
+  emitEvents() {
+    for (const pair of this.deleted) {
+      this.dispatcher.dispatch(
+        Events.CollisionEnd,
+        pair.collider0,
+        pair.collider1
+      );
+    }
+
+    for (const pair of this.persistent) {
+      this.dispatcher.dispatch(
+        Events.Collide,
+        pair.collider0,
+        pair.collider1,
+        pair.contactManifold.contacts
+      );
+      this.added.delete(pair);
+    }
+
+    for (const pair of this.added) {
+      this.dispatcher.dispatch(
+        Events.CollisionStart,
+        pair.collider0,
+        pair.collider1,
+        pair.contactManifold.contacts
+      );
     }
   }
 }

@@ -1,4 +1,5 @@
 import { mat3, vec2, vec3 } from 'gl-matrix';
+import { Events } from '../events';
 import { JointInterface } from '../';
 import { Collider } from '../cd';
 import { affineInverse } from '../math';
@@ -202,7 +203,7 @@ export class Body {
         this._sleepTimer -= dt;
 
         if (this._sleepTimer <= 0) {
-          this._isSleeping = true;
+          this.fallAsleep();
         }
       } else {
         this.awake();
@@ -210,24 +211,14 @@ export class Body {
     }
   }
 
-  awake(): void {
+  private awake(): void {
     this._isSleeping = false;
     this._sleepTimer = this.world.settings.fallAsleepTimer;
+    this.world.dispatch(Events.Awake, this);
   }
 
-  advance(dt: number): void {
-    if (!this.isStatic) {
-      vec2.scaleAndAdd(this._position, this._position, this._velocity, dt);
-      this._angle += this._omega * dt;
-      this.updateTransform();
-    }
-  }
-
-  rollback(dt: number): void {
-    if (!this.isStatic) {
-      vec2.scaleAndAdd(this._position, this._position, this._velocity, -dt);
-      this._angle -= this._omega * dt;
-      this.updateTransform();
-    }
+  private fallAsleep(): void {
+    this._isSleeping = true;
+    this.world.dispatch(Events.FallAsleep, this);
   }
 }

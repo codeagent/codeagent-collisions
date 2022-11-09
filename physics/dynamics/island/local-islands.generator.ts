@@ -77,8 +77,17 @@ export class LocalIslandsGenerator implements IslandsGeneratorInterface {
             continue;
           }
 
-          this.island.addJoint(contact);
           this.contacts.add(contact);
+
+          // skip virtual collisions
+          if (
+            contact.contactInfo.collider0.virtual ||
+            contact.contactInfo.collider1.virtual
+          ) {
+            continue;
+          }
+
+          this.island.addJoint(contact);
 
           const second = contact.bodyA === body ? contact.bodyB : contact.bodyA;
           if (second && !this.bodies.has(second)) {

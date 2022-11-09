@@ -45,8 +45,17 @@ export class SoleIslandGenerator implements IslandsGeneratorInterface {
           continue;
         }
 
-        this.island.addJoint(contact);
         this.contacts.add(contact);
+
+        // skip virtual collisions
+        if (
+          contact.contactInfo.collider0.virtual ||
+          contact.contactInfo.collider1.virtual
+        ) {
+          continue;
+        }
+
+        this.island.addJoint(contact);
       }
 
       this.island.addBody(body);

@@ -2,8 +2,8 @@ import { vec2 } from 'gl-matrix';
 import { Inject, Service } from 'typedi';
 
 import { Body } from './body';
-import { CollisionDetector, Collider } from '../cd';
-import { Clock, IdManager, pairId } from '../utils';
+import { CollisionDetector, Collider, ContactInfo } from '../cd';
+import { Clock, EventDispatcher, IdManager, pairId } from '../utils';
 import {
   DistanceJoint,
   JointInterface,
@@ -21,6 +21,7 @@ import { IslandsGeneratorInterface } from './island';
 
 import { ISLANDS_GENERATOR, SETTINGS } from '../di';
 import { Settings } from '../settings';
+import { Events } from '../events';
 
 @Service()
 export class World {
@@ -31,12 +32,15 @@ export class World {
   constructor(
     @Inject(SETTINGS) public readonly settings: Readonly<Settings>,
     @Inject(ISLANDS_GENERATOR)
-    public readonly islandGenerator: IslandsGeneratorInterface,
-    public readonly registry: PairsRegistry,
-    public readonly detector: CollisionDetector,
-    public readonly clock: Clock,
-    public readonly idManager: IdManager
-  ) {}
+    private readonly islandGenerator: IslandsGeneratorInterface,
+    private readonly registry: PairsRegistry,
+    private readonly detector: CollisionDetector,
+    private readonly clock: Clock,
+    private readonly idManager: IdManager,
+    private readonly dispatcher: EventDispatcher
+  ) {
+    this.dispatch(Events.WorldCreated, this);
+  }
 
   createBody(
     mass: number,
@@ -54,6 +58,8 @@ export class World {
     this.bodies.push(body);
     body.updateTransform();
 
+    this.dispatcher.dispatch(Events.BodyCreated, body);
+
     return body;
   }
 
@@ -68,6 +74,8 @@ export class World {
     if (body.collider) {
       this.removeCollider(body.collider);
     }
+
+    this.dispatch(Events.BodyDestroyed, body);
   }
 
   addDistanceJoint(
@@ -87,6 +95,8 @@ export class World {
     );
     bodyA.addJoint(joint);
     bodyB.addJoint(joint);
+
+    this.dispatch(Events.JointAdded, joint);
 
     return joint;
   }
@@ -115,6 +125,8 @@ export class World {
     bodyA.addJoint(joint);
     bodyB.addJoint(joint);
 
+    this.dispatch(Events.JointAdded, joint);
+
     return joint;
   }
 
@@ -122,6 +134,8 @@ export class World {
     const joint = new RevoluteJoint(this, bodyA, jointA, bodyB, jointB);
     bodyA.addJoint(joint);
     bodyB.addJoint(joint);
+
+    this.dispatch(Events.JointAdded, joint);
 
     return joint;
   }
@@ -136,6 +150,8 @@ export class World {
     const joint = new WeldJoint(this, bodyA, jointA, bodyB, jointB, refAngle);
     bodyA.addJoint(joint);
     bodyB.addJoint(joint);
+
+    this.dispatch(Events.JointAdded, joint);
 
     return joint;
   }
@@ -162,6 +178,8 @@ export class World {
     bodyA.addJoint(joint);
     bodyB.addJoint(joint);
 
+    this.dispatch(Events.JointAdded, joint);
+
     return joint;
   }
 
@@ -187,6 +205,8 @@ export class World {
     bodyA.addJoint(joint);
     bodyB.addJoint(joint);
 
+    this.dispatch(Events.JointAdded, joint);
+
     return joint;
   }
 
@@ -200,12 +220,16 @@ export class World {
     const joint = new MouseJoint(this, control, body, pos, stiffness, maxForce);
     body.addJoint(joint);
 
+    this.dispatch(Events.JointAdded, joint);
+
     return joint;
   }
 
   addMotor(body: Body, speed: number, torque: number) {
     const joint = new MotorJoint(this, body, speed, torque);
     body.addJoint(joint);
+
+    this.dispatch(Events.JointAdded, joint);
 
     return joint;
   }
@@ -225,6 +249,8 @@ export class World {
         );
       }
     }
+
+    this.dispatch(Events.ColliderAdded, collider, collider.body);
   }
 
   removeCollider(collider: Collider) {
@@ -235,6 +261,8 @@ export class World {
       const id = pairId(body.collider.id, collider.id);
       this.registry.unregisterPair(id);
     }
+
+    this.dispatch(Events.ColliderRemoved, collider, collider.body);
   }
 
   removeJoint(joint: JointInterface) {
@@ -245,10 +273,13 @@ export class World {
     if (joint.bodyB) {
       joint.bodyB.removeJoint(joint);
     }
+
+    this.dispatch(Events.JointRemoved, joint);
   }
 
   dispose() {
     this.registry.clear();
+    this.idManager.reset();
 
     for (const body of this.bodies) {
       if (body.collider) {
@@ -257,6 +288,20 @@ export class World {
     }
 
     this.bodies.length = 0;
+
+    this.dispatch(Events.WorldDestroyed, this);
+  }
+
+  on<T extends Function>(eventName: keyof typeof Events, handler: T) {
+    this.dispatcher.addEventListener(eventName, handler);
+  }
+
+  off<T extends Function>(eventName: keyof typeof Events, handler: T) {
+    this.dispatcher.removeEventListener(eventName, handler);
+  }
+
+  dispatch(eventName: keyof typeof Events, ...payload: unknown[]) {
+    this.dispatcher.dispatch(eventName, ...payload);
   }
 
   private applyGlobalForces() {
@@ -301,6 +346,7 @@ export class World {
 
   public step(dt: number) {
     this.clock.tick(dt);
+    this.dispatch(Events.PreStep, this.clock.frame, this.clock.time);
 
     let iterations = this.settings.toiSubsteps;
     let span = dt;
@@ -313,7 +359,7 @@ export class World {
       toi = this.detector.getTimeOfFirstImpact(span); // between [0-1]
 
       // Corect very small values assuming that there are no impacts
-      if (toi < 1.0e-6) {
+      if (toi < 1.0e-3) {
         toi = 1;
       }
 
@@ -330,12 +376,15 @@ export class World {
     for (const body of this.bodies) {
       body.tick(dt);
     }
+
+    this.dispatch(Events.PostStep, this.clock.frame, this.clock.time);
   }
 
   private advance(dt: number) {
     for (const island of this.islandGenerator.generate(this.bodies)) {
       if (!island.sleeping) {
         island.step(dt);
+        this.dispatch(Events.IslandStep, island);
       }
     }
   }
@@ -346,5 +395,7 @@ export class World {
     for (const contactInfo of this.detector.detectCollisions()) {
       this.registry.addContact(contactInfo);
     }
+
+    this.registry.emitEvents();
   }
 }

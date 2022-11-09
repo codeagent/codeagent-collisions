@@ -2,7 +2,6 @@ import { vec2 } from 'gl-matrix';
 
 import { Body } from '../body';
 import { ConstraintInterface } from '../constraint';
-import { Profiler } from '../../utils';
 import {
   VcV,
   VmV,
@@ -93,14 +92,12 @@ export class WorldIsland {
 
     if (this.constraintsNumber > 0) {
       // Resolve
-      Profiler.instance.begin('WorldInsland.solve');
       this.solve(
         this.cvForces,
         this.c0Forces,
         dt,
         this.settings.defaultPushFactor
       );
-      Profiler.instance.end('WorldInsland.solve');
 
       //  Correct positions
       VpV(this.tmpForces, this.forces, this.cvForces);
@@ -131,7 +128,6 @@ export class WorldIsland {
   ) {
     this.J.fill(0);
 
-    Profiler.instance.begin('WorldInsland.getJacobian');
     const n = this.bodies.length * 3;
     let j = 0;
     let i = 0;
@@ -162,9 +158,6 @@ export class WorldIsland {
       }
     }
 
-    Profiler.instance.end('WorldInsland.getJacobian');
-
-    Profiler.instance.begin('WorldInsland.lookup');
     const lookup = new Array<number[]>(this.constraintsNumber);
     let k = 0;
     for (const constraint of constraints) {
@@ -196,27 +189,19 @@ export class WorldIsland {
       }
       lookup[k++] = queue;
     }
-    Profiler.instance.end('WorldInsland.lookup');
 
     // A = J * Minv * Jt
     // b = 1.0 / ∆t * v − J * (1 / ∆t * v1 + Minv * fext)
 
-    Profiler.instance.begin('WorldInsland.compress');
     const csrJ = compress(this.J, this.constraintsNumber, n);
-    Profiler.instance.end('WorldInsland.compress');
-
-    Profiler.instance.begin('WorldInsland.MxDxMtCsr');
     const csrA = MxDxMt(csrJ, this.invMasses, lookup);
-    Profiler.instance.end('WorldInsland.MxDxMtCsr');
 
     VmV(this.bhat, this.invMasses, this.forces);
     VpVxS(this.bhat, this.bhat, this.velocities, 1.0 / dt);
     MxV(this.b, csrJ, this.bhat);
-
     VxSpVxS(this.bt0, this.v0, 1.0 / dt, this.b, -1.0);
     VxSpVxS(this.bt1, this.v1, 1.0 / dt, this.b, -1.0);
 
-    Profiler.instance.begin('WorldInsland.projectedGaussSeidel');
     projectedGaussSeidel(
       this.lambdas0,
       this.lambdas1,
@@ -227,7 +212,6 @@ export class WorldIsland {
       this.cMax,
       this.settings.solverIterations
     );
-    Profiler.instance.end('WorldInsland.projectedGaussSeidel');
 
     MtxV(outForces0, csrJ, this.lambdas0);
     MtxV(outForces1, csrJ, this.lambdas1);

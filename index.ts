@@ -22,7 +22,6 @@ import {
   createManifoldScene,
 } from './scene';
 
-import { BroadPhaseInterface, defaultSettings, Profiler } from './physics';
 import { MouseControl } from './physics/utils/mouse-control';
 
 import { gjkTest } from './physics/cd/narrow-phase/gjk-epa/gjk-test';
@@ -108,7 +107,7 @@ merge(
     map((e) => e.srcElement['id'])
   ),
 
-  of('joint').pipe(delay(1000))
+  of('warm').pipe(delay(1000))
 )
   .pipe(
     tap((id) => {
@@ -146,61 +145,5 @@ animationFrames().subscribe(() => {
     manifoldTest(world, control);
   }
 
-  Profiler.instance.begin('drawWorld');
   drawWorld(world);
-  Profiler.instance.end('drawWorld');
 });
-
-Profiler.instance
-  .listen(
-    'World.integrate',
-    'World.detectCollisions',
-    'World.updateBodiesTransforms',
-
-    'CollisionDetector.updateAABBs',
-    'CollisionDetector.broadPhase',
-    'CollisionDetector.narrowPhase',
-    'CollisionDetector.narrowPhase',
-
-    'WorldInsland.solve',
-    'WorldInsland.getJacobian',
-    'WorldInsland.lookup',
-    'WorldInsland.MxDxMtCsr',
-    'WorldInsland.projectedGaussSeidel',
-    'WorldInsland.compress',
-
-    'drawWorld'
-  )
-  .subscribe(() => {
-    // console.clear();
-    // console.table(e);
-  });
-
-// import 'reflect-metadata';
-
-// import { vec2 } from 'gl-matrix';
-// import Container, { Inject, Service, Token } from 'typedi';
-// import { DEP, DepA, DepB, DepInterface, Settings, SETTINGS } from './sett';
-
-// @Service()
-// class ServiceA {
-//   constructor(
-//     @Inject(DEP) private readonly dep: DepInterface,
-//     @Inject(SETTINGS) private readonly settings: Settings
-//   ) {}
-// }
-
-// Container.of('CUSTOM').set([
-//   {
-//     id: SETTINGS,
-//     value: { a: 'b' },
-//   },
-
-//   {
-//     id: DEP,
-//     type: DepB,
-//   },
-// ]);
-
-// console.log(Container.of('CUSTOM').get(SETTINGS));
-// console.log(Container.of('CUSTOM').get(ServiceA));

@@ -15,6 +15,7 @@ export class Collider {
   constructor(
     public readonly body: Body,
     public readonly shape: Shape,
-    public readonly mask = 0xffffffff
+    public readonly mask = 0xffffffff,
+    public readonly virtual = false // this type of collider is not involve in contact resolving, only event will be triggered
   ) {}
 }
