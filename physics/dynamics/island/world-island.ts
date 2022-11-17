@@ -2,23 +2,11 @@ import { vec2 } from 'gl-matrix';
 
 import { Body } from '../body';
 import { ConstraintInterface } from '../constraint';
-import {
-  VcV,
-  VmV,
-  VpV,
-  VpVxS,
-  VxSpVxS,
-  compress,
-  MtxV,
-  MxV,
-  MxDxMt,
-  projectedGaussSeidel,
-} from '../../math';
+import { VmV, VpVxS } from '../../math';
 import { JointInterface } from '../joint';
-import { StackAllocator } from './allocator';
 import { Settings } from '../../settings';
-
-const v = vec2.create();
+import { ConstraintsSolverInterface } from '../solver';
+import { Memory, Stack } from '../../utils';
 
 export class WorldIsland {
   get sleeping() {
@@ -29,9 +17,9 @@ export class WorldIsland {
     return this.bodies.length === 0;
   }
 
-  private readonly bodies = new Array<Body>();
-  private readonly joints = new Set<JointInterface>();
-  private readonly allocator: StackAllocator;
+  private readonly bodies: Body[] = [];
+  private readonly constraints: ConstraintInterface[] = [];
+  private readonly stack: Stack;
 
   private id: number = -1;
   private positions: Float32Array;
@@ -39,27 +27,18 @@ export class WorldIsland {
   private forces: Float32Array;
   private invMasses: Float32Array;
   private accelerations: Float32Array;
-  private c0Forces: Float32Array;
-  private cvForces: Float32Array;
-  private tmpForces: Float32Array;
-  private tmpVelocities: Float32Array;
-
-  private v0: Float32Array;
-  private v1: Float32Array;
-  private cMin: Float32Array;
-  private cMax: Float32Array;
-  private lambdas0: Float32Array;
-  private lambdas1: Float32Array;
-  private b: Float32Array;
-  private bt0: Float32Array;
-  private bt1: Float32Array;
-  private bhat: Float32Array;
-  private J: Float32Array;
-  private constraintsNumber = 0;
   private _sleeping = true;
+  private readonly bodyPosition = vec2.create();
+  private readonly bodyVelocity = vec2.create();
 
-  constructor(private readonly settings: Settings) {
-    this.allocator = new StackAllocator(settings.islandReservedMemory);
+  constructor(
+    private readonly settings: Settings,
+    private readonly solver: ConstraintsSolverInterface,
+    private readonly memory: Memory
+  ) {
+    this.stack = new Stack(
+      this.memory.reserve(this.settings.maxBodiesNumber * 60)
+    );
   }
 
   setId(id: number) {
@@ -69,197 +48,66 @@ export class WorldIsland {
   addBody(body: Body) {
     body.bodyIndex = this.bodies.length;
     body.islandId = this.id;
-    body.islandJacobians.length = 0;
     this._sleeping = this._sleeping && body.isSleeping;
     this.bodies.push(body);
   }
 
   addJoint(joint: JointInterface) {
-    this.joints.add(joint);
-    this.constraintsNumber += joint.length;
+    this.constraints.push(...joint);
   }
 
   clear() {
     this.bodies.length = 0;
-    this.constraintsNumber = 0;
+    this.constraints.length = 0;
     this._sleeping = true;
-    this.joints.clear();
   }
 
-  step(dt: number) {
-    this.allocate();
-    this.bodiesToArrays();
-
-    if (this.constraintsNumber > 0) {
-      // Resolve
-      this.solve(
-        this.cvForces,
-        this.c0Forces,
-        dt,
-        this.settings.defaultPushFactor
-      );
-
-      //  Correct positions
-      VpV(this.tmpForces, this.forces, this.cvForces);
-      VcV(this.tmpVelocities, this.velocities);
-      VmV(this.accelerations, this.tmpForces, this.invMasses);
-      VpVxS(this.tmpVelocities, this.tmpVelocities, this.accelerations, dt);
-      VpVxS(this.positions, this.positions, this.tmpVelocities, dt);
-
-      // Correct velocities
-      VpV(this.tmpForces, this.forces, this.c0Forces);
-      VmV(this.accelerations, this.tmpForces, this.invMasses);
-      VpVxS(this.velocities, this.velocities, this.accelerations, dt);
+  public step(dt: number): void {
+    if (this.constraints.length > 0) {
+      this.solve(dt);
     } else {
-      VmV(this.accelerations, this.forces, this.invMasses);
-      VpVxS(this.velocities, this.velocities, this.accelerations, dt);
-      VpVxS(this.positions, this.positions, this.velocities, dt);
+      this.integrate(dt);
     }
-
-    this.arraysToBodies();
-    this.deallocate();
   }
 
-  private solve(
-    outForces0: Float32Array,
-    outForces1: Float32Array,
-    dt: number,
-    pushFactor: number
-  ) {
-    this.J.fill(0);
+  private solve(dt: number): void {
+    const arraySize = this.bodies.length * 3;
+    this.positions = this.stack.pushFloat32(arraySize);
+    this.velocities = this.stack.pushFloat32(arraySize);
 
-    const n = this.bodies.length * 3;
-    let j = 0;
-    let i = 0;
-
-    const constraints = new Array<ConstraintInterface>(this.constraintsNumber);
-    for (const joint of this.joints) {
-      for (const constraint of joint) {
-        constraint.getJacobian(this.J, i, n);
-        const { min, max } = constraint.getClamping();
-        this.cMin[j] = min;
-        this.cMax[j] = max;
-        this.v0[j] = constraint.getPushFactor(dt, pushFactor);
-        this.v1[j] = constraint.getPushFactor(dt, 0);
-        this.lambdas0[j] = constraint.getCache(0);
-        this.lambdas1[j] = constraint.getCache(1);
-
-        if (constraint.bodyA && !constraint.bodyA.isStatic) {
-          constraint.bodyA.islandJacobians.push(j);
-        }
-
-        if (constraint.bodyB && !constraint.bodyB.isStatic) {
-          constraint.bodyB.islandJacobians.push(j);
-        }
-
-        constraints[j] = constraint;
-        i += n;
-        j++;
-      }
-    }
-
-    const lookup = new Array<number[]>(this.constraintsNumber);
-    let k = 0;
-    for (const constraint of constraints) {
-      const ca = constraint.bodyA ? constraint.bodyA.islandJacobians : [];
-      const cb = constraint.bodyB ? constraint.bodyB.islandJacobians : [];
-
-      let i = 0;
-      let j = 0;
-      let tip = -1;
-      const queue: number[] = [];
-
-      while (i < ca.length || j < cb.length) {
-        let val: number;
-        if (i === ca.length) {
-          val = cb[j++];
-        } else if (j === cb.length) {
-          val = ca[i++];
-        } else {
-          if (ca[i] < cb[j]) {
-            val = ca[i++];
-          } else {
-            val = cb[j++];
-          }
-        }
-        if (tip !== val) {
-          queue.push(val);
-          tip = val;
-        }
-      }
-      lookup[k++] = queue;
-    }
-
-    // A = J * Minv * Jt
-    // b = 1.0 / ∆t * v − J * (1 / ∆t * v1 + Minv * fext)
-
-    const csrJ = compress(this.J, this.constraintsNumber, n);
-    const csrA = MxDxMt(csrJ, this.invMasses, lookup);
-
-    VmV(this.bhat, this.invMasses, this.forces);
-    VpVxS(this.bhat, this.bhat, this.velocities, 1.0 / dt);
-    MxV(this.b, csrJ, this.bhat);
-    VxSpVxS(this.bt0, this.v0, 1.0 / dt, this.b, -1.0);
-    VxSpVxS(this.bt1, this.v1, 1.0 / dt, this.b, -1.0);
-
-    projectedGaussSeidel(
-      this.lambdas0,
-      this.lambdas1,
-      csrA,
-      this.bt0,
-      this.bt1,
-      this.cMin,
-      this.cMax,
-      this.settings.solverIterations
+    this.solver.solve(
+      this.positions,
+      this.velocities,
+      this.bodies,
+      this.constraints,
+      dt
     );
 
-    MtxV(outForces0, csrJ, this.lambdas0);
-    MtxV(outForces1, csrJ, this.lambdas1);
-
-    for (let j = 0; j < this.constraintsNumber; j++) {
-      constraints[j].setCache(0 as 0 | 1, this.lambdas0[j]);
-      constraints[j].setCache(1 as 0 | 1, this.lambdas1[j]);
-    }
+    this.arraysToBodies(this.positions, this.velocities);
+    this.stack.clear();
   }
 
-  private allocate() {
-    const bodiesArraySize = 3 * this.bodies.length;
+  private integrate(dt: number): void {
+    const arraySize = this.bodies.length * 3;
+    this.positions = this.stack.pushFloat32(arraySize);
+    this.velocities = this.stack.pushFloat32(arraySize);
+    this.forces = this.stack.pushFloat32(arraySize);
+    this.invMasses = this.stack.pushFloat32(arraySize);
+    this.accelerations = this.stack.pushFloat32(arraySize);
 
-    this.positions = this.allocator.allocate(bodiesArraySize);
-    this.velocities = this.allocator.allocate(bodiesArraySize);
-    this.forces = this.allocator.allocate(bodiesArraySize);
-    this.invMasses = this.allocator.allocate(bodiesArraySize);
-    this.accelerations = this.allocator.allocate(bodiesArraySize);
+    this.serializeBodies(this.bodies);
 
-    if (this.constraintsNumber > 0) {
-      this.c0Forces = this.allocator.allocate(bodiesArraySize);
-      this.cvForces = this.allocator.allocate(bodiesArraySize);
-      this.tmpForces = this.allocator.allocate(bodiesArraySize);
-      this.tmpVelocities = this.allocator.allocate(bodiesArraySize);
-      this.bhat = this.allocator.allocate(bodiesArraySize);
+    VmV(this.accelerations, this.forces, this.invMasses);
+    VpVxS(this.velocities, this.velocities, this.accelerations, dt);
+    VpVxS(this.positions, this.positions, this.velocities, dt);
 
-      this.v0 = this.allocator.allocate(this.constraintsNumber);
-      this.v1 = this.allocator.allocate(this.constraintsNumber);
-      this.cMin = this.allocator.allocate(this.constraintsNumber);
-      this.cMax = this.allocator.allocate(this.constraintsNumber);
-      this.lambdas0 = this.allocator.allocate(this.constraintsNumber);
-      this.lambdas1 = this.allocator.allocate(this.constraintsNumber);
-      this.b = this.allocator.allocate(this.constraintsNumber);
-      this.bt0 = this.allocator.allocate(this.constraintsNumber);
-      this.bt1 = this.allocator.allocate(this.constraintsNumber);
-      this.J = this.allocator.allocate(
-        this.constraintsNumber * this.bodies.length * 3
-      );
-    }
+    this.arraysToBodies(this.positions, this.velocities);
+    this.stack.clear();
   }
 
-  private deallocate() {
-    this.allocator.clear();
-  }
-
-  private bodiesToArrays() {
+  private serializeBodies(bodies: Readonly<Body>[]) {
     let i = 0;
-    for (const body of this.bodies) {
+    for (const body of bodies) {
       const position = body.position;
       const velocity = body.velocity;
       const force = body.force;
@@ -283,23 +131,19 @@ export class WorldIsland {
     }
   }
 
-  private arraysToBodies() {
+  private arraysToBodies(positions: Float32Array, velocities: Float32Array) {
     const n = this.bodies.length * 3;
 
-    for (let i = 0; i < n; i += 3) {
-      const body = this.bodies[Math.trunc(i / 3)];
+    for (let i = 0, j = 0; i < n; i += 3, j++) {
+      const body = this.bodies[j];
 
-      vec2.set(v, this.positions[i], this.positions[i + 1]);
-      body.position = v;
-      body.angle = this.positions[i + 2];
+      vec2.set(this.bodyPosition, positions[i], positions[i + 1]);
+      body.position = this.bodyPosition;
+      body.angle = positions[i + 2];
 
-      vec2.set(v, this.velocities[i], this.velocities[i + 1]);
-      body.velocity = v;
+      vec2.set(this.bodyVelocity, velocities[i], velocities[i + 1]);
+      body.velocity = this.bodyVelocity;
       body.omega = this.velocities[i + 2];
-
-      vec2.set(v, this.forces[i], this.forces[i + 1]);
-      body.force = v;
-      body.torque = this.forces[i + 2];
 
       body.updateTransform();
     }

@@ -107,7 +107,7 @@ merge(
     map((e) => e.srcElement['id'])
   ),
 
-  of('warm').pipe(delay(1000))
+  of('gauss')
 )
   .pipe(
     tap((id) => {

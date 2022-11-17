@@ -7,14 +7,20 @@ export const NARROW_PHASE = new Token<NarrowPhaseInterface>('NARROW_PHASE');
 export const ISLANDS_GENERATOR = new Token<IslandsGeneratorInterface>(
   'ISLANDS_GENERATOR'
 );
+export const CONSTRAINTS_SOLVER = new Token<ConstraintsSolverInterface>(
+  'CONSTRAINTS_SOLVER'
+);
+export const LINEAR_EQUATIONS_SOLVER =
+  new Token<LinearEquationsSolverInterface>('LINEAR_EQUATIONS_SOLVER');
 
+import { defaultSettings, Settings } from './settings';
 import {
   IslandsGeneratorInterface,
   LocalIslandsGenerator,
   SoleIslandGenerator,
+  ConstraintsSolverInterface,
+  ConstraintsSolver,
 } from './dynamics';
-
-import { Settings } from './settings';
 
 import {
   BroadPhaseInterface,
@@ -25,21 +31,20 @@ import {
   NarrowPhaseInterface,
   SatNarrowPhase,
 } from './cd';
+import { GaussSeidelSolver, LinearEquationsSolverInterface } from './math';
 
-export const configureContainer = (settings: Settings): ContainerInstance => {
+export const configureContainer = (
+  settings: Partial<Settings> = {}
+): ContainerInstance => {
+  settings = { ...defaultSettings, ...settings };
+
   const container = Container.of(settings.uid);
 
-  if (settings.broadPhase === 'default') {
-    container.set({ id: BROAD_PHASE, type: BruteForceBroadPhase });
-  } else {
-    throw new Error('Physics2D: Unknown broad phase identifier');
-  }
-
-  if (settings.midPhase === 'default') {
-    container.set({ id: MID_PHASE, type: DefaultMidPhase });
-  } else {
-    throw new Error('Physics2D: Unknown mid phase identifier');
-  }
+  container.set({ id: SETTINGS, value: settings });
+  container.set({ id: BROAD_PHASE, type: BruteForceBroadPhase });
+  container.set({ id: MID_PHASE, type: DefaultMidPhase });
+  container.set({ id: CONSTRAINTS_SOLVER, type: ConstraintsSolver });
+  container.set({ id: LINEAR_EQUATIONS_SOLVER, type: GaussSeidelSolver });
 
   if (settings.narrowPhase === 'sat') {
     container.set({ id: NARROW_PHASE, type: SatNarrowPhase });
@@ -60,8 +65,6 @@ export const configureContainer = (settings: Settings): ContainerInstance => {
       "Physics2D: Unknown island generator identifier, supported keys: 'local', 'sole'"
     );
   }
-
-  container.set({ id: SETTINGS, value: settings });
 
   return container;
 };

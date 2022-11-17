@@ -1,6 +1,6 @@
 import { Service } from 'typedi';
 
-import { MeshOBBNode } from '../../utils/mesh';
+import { MeshOBBNode } from '../../utils';
 import { ContactCandidatePair, ContactCandidate } from '../contact';
 import { testAABBOBBTree, testOBBOBBTrees } from './tests';
 import { MidPhaseInterface } from './mid-phase.interface';

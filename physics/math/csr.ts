@@ -132,21 +132,18 @@ export const MtxV = (out: Vector, mat: Matrix, vec: Vector) => {
 };
 
 export const projectedGaussSeidel = (
-  out0: Vector,
-  out1: Vector,
+  out: Vector,
   A: Matrix,
-  b0: Vector,
-  b1: Vector,
-  cMin: Vector,
-  cMax: Vector,
+  b: Vector,
+  min: Vector,
+  max: Vector,
   maxIterations: number
 ) => {
-  const n = b0.length;
+  const n = b.length;
 
   while (maxIterations-- > 0) {
     for (let j = 0; j < n; j++) {
-      out0[j] = b0[j];
-      out1[j] = b1[j];
+      out[j] = b[j];
 
       let denom = 1.0;
       for (let k = A.rows[j], k1 = A.rows[j + 1]; k < k1; k++) {
@@ -158,18 +155,12 @@ export const projectedGaussSeidel = (
           continue;
         }
 
-        out0[j] -= v * out0[c];
-        out1[j] -= v * out1[c];
+        out[j] -= v * out[c];
       }
 
-      out0[j] /= denom;
-      out1[j] /= denom;
-
-      out0[j] = Math.min(out0[j], cMax[j]);
-      out1[j] = Math.min(out1[j], cMax[j]);
-
-      out0[j] = Math.max(out0[j], cMin[j]);
-      out1[j] = Math.max(out1[j], cMin[j]);
+      out[j] /= denom;
+      out[j] = Math.min(out[j], max[j]);
+      out[j] = Math.max(out[j], min[j]);
     }
   }
 };

@@ -3,6 +3,11 @@ import { vec2 } from 'gl-matrix';
 export interface Settings {
   uid: string;
   gravity: vec2;
+  maxBodiesNumber: number;
+  maxConstraintsNumber: number;
+
+  // Memory
+  totalReservedMemory: number; // in bytes
 
   // Default (todo: material)
   defaultPushFactor: number;
@@ -12,12 +17,12 @@ export interface Settings {
   defaultAngularDamping: number; // todo:
 
   // Solver
-  solver: 'gauss-seidel';
-  solverIterations: number;
+  solverPositionIterations: number;
+  solverVelocityIterations: number;
+  solverMaxIterations: number; // do not use this setting. It will be changed by other parts during simulation
 
   // Island
   islandGenerator: 'local' | 'sole';
-  islandReservedMemory: number;
 
   // Contacts
   contactProximityThreshold: number;
@@ -29,8 +34,6 @@ export interface Settings {
   fallAsleepTimer: number;
 
   // CD phase
-  broadPhase: 'default';
-  midPhase: 'default';
   narrowPhase: 'sat' | 'gjk-epa';
   narrowPhaseMargin: number;
 
@@ -49,23 +52,24 @@ export interface Settings {
 
 export const defaultSettings: Settings = {
   uid: 'default',
+  maxBodiesNumber: 512,
+  maxConstraintsNumber: 2048,
   gravity: vec2.fromValues(0.0, -9.8),
+  totalReservedMemory: 64e6,
   defaultPushFactor: 0.25,
   defaultFriction: 0.5,
   defaultRestitution: 0.5,
   defaultDamping: 0.005,
   defaultAngularDamping: 0.05,
-  solver: 'gauss-seidel',
-  solverIterations: 10,
+  solverPositionIterations: 10,
+  solverVelocityIterations: 10,
+  solverMaxIterations: 10,
   islandGenerator: 'local',
-  islandReservedMemory: 5e6, // 5mb
   contactProximityThreshold: 5e-3, // 5mm
   contactConstraintSlop: 5.0e-3, // 5 mm
   sleepingVelocityThreshold: 1.0e-1, // 0.1 m/s
   sleepingAngularVelocityThreshold: 1.0e-1, // 0.1 rad/s;
   fallAsleepTimer: 0.5,
-  broadPhase: 'default',
-  midPhase: 'default',
   narrowPhase: 'sat',
   narrowPhaseMargin: 1.0e-2, // 1cm
   toiEpsilon: 1.0e-3, // 1mm

@@ -2,10 +2,13 @@ import { Service, Inject } from 'typedi';
 
 import { Body } from '../body';
 import { JointInterface } from '../joint';
-import { SETTINGS } from '../../di';
+import { SETTINGS, CONSTRAINTS_SOLVER } from '../../di';
 import { IslandsGeneratorInterface } from './islands-generator.interface';
 import { WorldIsland } from './world-island';
 import { Settings } from '../../settings';
+import { ConstraintsSolverInterface } from '../solver';
+import { Memory } from '../../utils';
+
 @Service()
 export class LocalIslandsGenerator implements IslandsGeneratorInterface {
   private readonly bodies = new Set<Body>();
@@ -15,8 +18,12 @@ export class LocalIslandsGenerator implements IslandsGeneratorInterface {
   private readonly free = new Set<Body>();
   private readonly island: WorldIsland;
 
-  constructor(@Inject(SETTINGS) settings: Settings) {
-    this.island = new WorldIsland(settings);
+  constructor(
+    @Inject(SETTINGS) settings: Settings,
+    @Inject(CONSTRAINTS_SOLVER) solver: ConstraintsSolverInterface,
+    memory: Memory
+  ) {
+    this.island = new WorldIsland(settings, solver, memory);
   }
 
   *generate(bodies: Iterable<Body>): Iterable<WorldIsland> {

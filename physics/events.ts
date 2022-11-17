@@ -1,5 +1,4 @@
 export namespace Events {
-  export const WorldCreated = 'WorldCreated';
   export const WorldDestroyed = 'WorldDestroyed';
   export const BodyCreated = 'BodyCreated';
   export const BodyDestroyed = 'BodyDestroyed';
@@ -11,7 +10,8 @@ export namespace Events {
   export const Collide = 'Collide';
   export const CollisionEnd = 'CollisionEnd';
   export const PreStep = 'PreStep';
-  export const IslandStep = 'IslandStep';
+  export const IslandPreStep = 'IslandPreStep';
+  export const IslandPostStep = 'IslandPostStep';
   export const PostStep = 'PostStep';
   export const FallAsleep = 'FallAsleep';
   export const Awake = 'Awake';

@@ -112,7 +112,7 @@ export class Body {
   public collider: Collider;
   public bodyIndex: number = -1; // index in host island
   public islandId: number = -1; // id of host island
-  public readonly islandJacobians: number[] = []; // the list of constraints in island with witch given body will be interacted
+  public readonly solverConstraints: number[] = []; // the list of constraints in island with witch given body will be interacted
 
   private readonly _position = vec2.create();
   private readonly _velocity = vec2.create();

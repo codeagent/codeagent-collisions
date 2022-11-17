@@ -202,6 +202,9 @@ export class PairsRegistry {
   clear() {
     this.registry.clear();
     this.active.clear();
+    this.deleted.clear();
+    this.persistent.clear();
+    this.added.clear();
   }
 
   validatePairs() {

@@ -2,8 +2,8 @@ import { vec2 } from 'gl-matrix';
 import { Inject, Service } from 'typedi';
 
 import { Body } from './body';
-import { CollisionDetector, Collider, ContactInfo } from '../cd';
-import { Clock, EventDispatcher, IdManager, pairId } from '../utils';
+import { CollisionDetector, Collider } from '../cd';
+import { Clock, EventDispatcher, IdManager, Memory, pairId } from '../utils';
 import {
   DistanceJoint,
   JointInterface,
@@ -37,10 +37,9 @@ export class World {
     private readonly detector: CollisionDetector,
     private readonly clock: Clock,
     private readonly idManager: IdManager,
-    private readonly dispatcher: EventDispatcher
-  ) {
-    this.dispatch(Events.WorldCreated, this);
-  }
+    private readonly dispatcher: EventDispatcher,
+    private readonly memory: Memory
+  ) {}
 
   createBody(
     mass: number,
@@ -49,6 +48,12 @@ export class World {
     angle: number,
     continuous = false
   ) {
+    if (this.bodies.length === this.settings.maxBodiesNumber) {
+      throw new Error(
+        `World.createBody: Failed to create body: maximum namber of bodies attained: ${this.settings.maxBodiesNumber}`
+      );
+    }
+
     const body = new Body(this.idManager.getUniqueId(), this, continuous);
     body.mass = mass;
     body.inertia = intertia;
@@ -280,6 +285,7 @@ export class World {
   dispose() {
     this.registry.clear();
     this.idManager.reset();
+    this.memory.clear();
 
     for (const body of this.bodies) {
       if (body.collider) {
@@ -364,10 +370,8 @@ export class World {
       }
 
       t = span * toi;
-
       this.detectCollisions();
       this.advance(t);
-
       span -= t;
     } while (iterations-- && toi < 1);
 
@@ -383,8 +387,9 @@ export class World {
   private advance(dt: number) {
     for (const island of this.islandGenerator.generate(this.bodies)) {
       if (!island.sleeping) {
+        this.dispatch(Events.IslandPreStep, island);
         island.step(dt);
-        this.dispatch(Events.IslandStep, island);
+        this.dispatch(Events.IslandPostStep, island);
       }
     }
   }

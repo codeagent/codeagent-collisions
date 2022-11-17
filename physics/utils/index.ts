@@ -6,3 +6,5 @@ export * from './clock';
 export * from './quick-hull';
 export * from './mesh';
 export * from './event-dispatcher';
+export * from './memory';
+export * from './stack';

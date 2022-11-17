@@ -21,14 +21,12 @@ import PISTON from './objects/piston';
 export const world = createWorld({
   uid: 'test',
   narrowPhase: 'sat',
-  solverIterations: 10,
+  islandGenerator: 'sole',
 });
 
 export const createChainScene = (links: number, x = 0.0) => {
-   Object.assign(world.settings, { defaultRestitution: 0.5 });
-   Object.assign(world.settings, { defaultPushFactor: 0.25 });
-
-  
+  Object.assign(world.settings, { defaultRestitution: 0.5 });
+  Object.assign(world.settings, { defaultPushFactor: 0.25 });
 
   const chain = new Array<Body>(links);
   const size = 0.5;
@@ -58,9 +56,9 @@ export const createChainScene = (links: number, x = 0.0) => {
 };
 
 export const createStackScene = (n: number) => {
-   Object.assign(world.settings, { defaultRestitution: 0.15 });
-   Object.assign(world.settings, { defaultPushFactor: 0.15 });
-   Object.assign(world.settings, { defaultFriction: 0.95 });
+  Object.assign(world.settings, { defaultRestitution: 0.15 });
+  Object.assign(world.settings, { defaultPushFactor: 0.15 });
+  Object.assign(world.settings, { defaultFriction: 0.95 });
 
   // floor
   world.addCollider(
@@ -281,9 +279,9 @@ export const createPendulumScene = (n: number) => {
   const length = 8;
   const m = 1.0;
 
-   Object.assign(world.settings, { defaultRestitution: 1.0 }); //elastic bounces
-   Object.assign(world.settings, { defaultPushFactor: 0.96 });
-   Object.assign(world.settings, { defaultFriction: 0.0 });
+  Object.assign(world.settings, { defaultRestitution: 1.0 }); //elastic bounces
+  Object.assign(world.settings, { defaultPushFactor: 0.96 });
+  Object.assign(world.settings, { defaultFriction: 0.0 });
 
   // ceil
   const ceil = world.createBody(
@@ -334,9 +332,9 @@ export const createPendulumScene = (n: number) => {
 };
 
 export const createStairsScene = (n: number) => {
-   Object.assign(world.settings, { defaultRestitution: 0.2 });
-   Object.assign(world.settings, { defaultPushFactor: 0.4 });
-   Object.assign(world.settings, { defaultFriction: 0.2 });
+  Object.assign(world.settings, { defaultRestitution: 0.2 });
+  Object.assign(world.settings, { defaultPushFactor: 0.4 });
+  Object.assign(world.settings, { defaultFriction: 0.2 });
 
   const w = 6;
   const h = 2.0;
@@ -429,9 +427,9 @@ export const createGaussianScene = () => {
   let obstacleSize = 0.25;
   let ballR = 0.2;
 
-   Object.assign(world.settings, { defaultRestitution: 0.5 });
-   Object.assign(world.settings, { defaultPushFactor: 0.4 });
-   Object.assign(world.settings, { defaultFriction: 0.3 });
+  Object.assign(world.settings, { defaultRestitution: 0.5 });
+  Object.assign(world.settings, { defaultPushFactor: 0.4 });
+  Object.assign(world.settings, { defaultFriction: 0.3 });
 
   // floor
   world.addCollider(
@@ -567,9 +565,9 @@ export const createGaussianScene = () => {
 };
 
 export const createJointScene = () => {
-   Object.assign(world.settings, { defaultRestitution: 0.35 });
-   Object.assign(world.settings, { defaultPushFactor: 0.65 });
-   Object.assign(world.settings, { defaultFriction: 0.55 });
+  Object.assign(world.settings, { defaultRestitution: 0.35 });
+  Object.assign(world.settings, { defaultPushFactor: 0.65 });
+  Object.assign(world.settings, { defaultFriction: 0.55 });
 
   const wheel = world.createBody(
     Number.POSITIVE_INFINITY,
@@ -731,9 +729,9 @@ export const createJointScene = () => {
 };
 
 export const createSuspensionScene = () => {
-   Object.assign(world.settings, { defaultRestitution: 0.35 });
-   Object.assign(world.settings, { defaultPushFactor: 0.65 });
-   Object.assign(world.settings, { defaultFriction: 0.55 });
+  Object.assign(world.settings, { defaultRestitution: 0.35 });
+  Object.assign(world.settings, { defaultPushFactor: 0.65 });
+  Object.assign(world.settings, { defaultFriction: 0.55 });
 
   const stiffness = 25;
   const exstinction = 1;
@@ -827,9 +825,9 @@ export const createSuspensionScene = () => {
 };
 
 export const createHelixScene = () => {
-   Object.assign(world.settings, { defaultRestitution: 0.25 });
-   Object.assign(world.settings, { defaultPushFactor: 0.65 });
-   Object.assign(world.settings, { defaultFriction: 0.75 });
+  Object.assign(world.settings, { defaultRestitution: 0.25 });
+  Object.assign(world.settings, { defaultPushFactor: 0.65 });
+  Object.assign(world.settings, { defaultFriction: 0.75 });
 
   world.addCollider(
     new Collider(
@@ -856,9 +854,9 @@ export const createHelixScene = () => {
 };
 
 export const createPinballScene = () => {
-   Object.assign(world.settings, { defaultRestitution: 0.75 });
-   Object.assign(world.settings, { defaultPushFactor: 0.65 });
-   Object.assign(world.settings, { defaultFriction: 0.75 });
+  Object.assign(world.settings, { defaultRestitution: 0.75 });
+  Object.assign(world.settings, { defaultPushFactor: 0.65 });
+  Object.assign(world.settings, { defaultFriction: 0.75 });
 
   world.addCollider(
     new Collider(
@@ -885,9 +883,9 @@ export const createPinballScene = () => {
 };
 
 export const createMeshScene = () => {
-   Object.assign(world.settings, { defaultRestitution: 0.25 });
-   Object.assign(world.settings, { defaultPushFactor: 0.65 });
-   Object.assign(world.settings, { defaultFriction: 0.75 });
+  Object.assign(world.settings, { defaultRestitution: 0.25 });
+  Object.assign(world.settings, { defaultPushFactor: 0.65 });
+  Object.assign(world.settings, { defaultFriction: 0.75 });
 
   world.addCollider(
     new Collider(
@@ -948,9 +946,9 @@ export const createMeshScene = () => {
 };
 
 export const pistonScene = () => {
-   Object.assign(world.settings, { defaultRestitution: 0.25 });
-   Object.assign(world.settings, { defaultPushFactor: 0.65 });
-   Object.assign(world.settings, { defaultFriction: 0.75 });
+  Object.assign(world.settings, { defaultRestitution: 0.25 });
+  Object.assign(world.settings, { defaultPushFactor: 0.65 });
+  Object.assign(world.settings, { defaultFriction: 0.75 });
 
   world.addCollider(
     new Collider(
@@ -997,9 +995,9 @@ export const pistonScene = () => {
 };
 
 export const createGearScene = () => {
-   Object.assign(world.settings, { defaultRestitution: 0.25 });
-   Object.assign(world.settings, { defaultPushFactor: 0.65 });
-   Object.assign(world.settings, { defaultFriction: 0.75 });
+  Object.assign(world.settings, { defaultRestitution: 0.25 });
+  Object.assign(world.settings, { defaultPushFactor: 0.65 });
+  Object.assign(world.settings, { defaultFriction: 0.75 });
 
   const collection = loadObj(GEARS);
 
@@ -1171,9 +1169,9 @@ export const createEpaScene = () => {
 };
 
 export const createWarmScene = () => {
-   Object.assign(world.settings, { defaultRestitution: 0.0 });
-   Object.assign(world.settings, { defaultPushFactor: 0.7 });
-   Object.assign(world.settings, { defaultFriction: 0.27 });
+  Object.assign(world.settings, { defaultRestitution: 0.0 });
+  Object.assign(world.settings, { defaultPushFactor: 0.7 });
+  Object.assign(world.settings, { defaultFriction: 0.27 });
 
   // floor
   let body = world.createBody(
@@ -1215,9 +1213,9 @@ export const createWarmScene = () => {
 };
 
 export const createManifoldScene = () => {
-   Object.assign(world.settings, { defaultRestitution: 0.5 });
-   Object.assign(world.settings, { defaultPushFactor: 0.95 });
-   Object.assign(world.settings, { defaultFriction: 0.7 });
+  Object.assign(world.settings, { defaultRestitution: 0.5 });
+  Object.assign(world.settings, { defaultPushFactor: 0.95 });
+  Object.assign(world.settings, { defaultFriction: 0.7 });
 
   const objects = loadObj(GEARS);
 

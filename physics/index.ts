@@ -3,7 +3,7 @@ import Container from 'typedi';
 
 import { configureContainer } from './di';
 import { World } from './dynamics';
-import { defaultSettings, Settings } from './settings';
+import { Settings } from './settings';
 
 export * from './cd';
 export * from './dynamics';
@@ -13,7 +13,7 @@ export * from './settings';
 export * from './di';
 
 export const createWorld = (settings: Partial<Settings> = {}): World => {
-  return configureContainer({ ...defaultSettings, ...settings }).get(World);
+  return configureContainer(settings).get(World);
 };
 
 export const destroyWorld = (world: World) => {
