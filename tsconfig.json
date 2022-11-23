@@ -15,7 +15,7 @@
     "emitDecoratorMetadata": true,
     "forceConsistentCasingInFileNames": true,
     "declaration": false,
-    "paths": { "js-physics-2d": ["src/"] }
+    "paths": { "js-physics-2d": ["src/"], "js-physics-2d/*": ["src/*"] }
   },
   "exclude": ["./node_modules"]
 }
