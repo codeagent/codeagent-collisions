@@ -1,0 +1,10 @@
+{
+  "extends": "./tsconfig.json",
+  "compilerOptions": {
+    "rootDirs": ["./src", "./test"],
+    "strict": false,
+    "strictPropertyInitialization": false,
+    "noImplicitAny": false,
+    "module": "ES2015"
+  }
+}
