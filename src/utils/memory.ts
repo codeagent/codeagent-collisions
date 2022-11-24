@@ -21,8 +21,8 @@ export class Memory {
   private static readonly MIN_BLOCK_SIZE = 32;
   public readonly size: number;
   private readonly buffer: Uint8Array;
-  private readonly freeList: MemoryBlock;
   private readonly reserved = new WeakMap<Uint8Array, MemoryBlock>();
+  private freeList: MemoryBlock;
 
   constructor(@Inject('SETTINGS') settings: Settings) {
     this.buffer = new Uint8Array((this.size = settings.totalReservedMemory));
@@ -62,6 +62,8 @@ export class Memory {
 
       if (block.prev) {
         block.prev.next = right;
+      } else {
+        this.freeList = right;
       }
 
       if (block.next) {
@@ -80,6 +82,8 @@ export class Memory {
 
       if (block.prev) {
         block.prev.next = block.next;
+      } else {
+        this.freeList = block.next;
       }
 
       block.next = block.prev = null;
@@ -97,8 +101,8 @@ export class Memory {
       );
     }
 
-    let left = this.firstSibling(block);
-    let right = left ? left.next : null;
+    let [left, right] = this.closests(block);
+    let merged: MemoryBlock;
 
     if (
       left &&
@@ -106,16 +110,16 @@ export class Memory {
       right &&
       right.start === block.end
     ) {
-      this.mergeInBetween(left, block, right);
+      merged = this.mergeInBetween(left, block, right);
       this.reserved.delete(left.array);
       this.reserved.delete(block.array);
       this.reserved.delete(right.array);
     } else if (left && left.end === block.start) {
-      this.mergeRight(left, block);
+      merged = this.mergeRight(left, block);
       this.reserved.delete(left.array);
       this.reserved.delete(block.array);
     } else if (right && right.start === block.end) {
-      this.mergeLeft(block, right);
+      merged = this.mergeLeft(block, right);
       this.reserved.delete(block.array);
       this.reserved.delete(right.array);
     } else {
@@ -130,7 +134,12 @@ export class Memory {
         right.prev = block;
       }
 
+      merged = block;
       this.reserved.delete(block.array);
+    }
+
+    if (!merged.prev) {
+      this.freeList = merged;
     }
   }
 
@@ -145,27 +154,31 @@ export class Memory {
 
       block = next;
     }
-
     this.buffer.fill(0);
+
+    this.freeList = new MemoryBlock(this.buffer, 0, this.size);
   }
 
-  dump(): void {
-    const table: MemoryBlock[] = [];
+  dump(): MemoryBlock[] {
+    let list: MemoryBlock[] = [];
+
     let block = this.freeList;
     while (block !== null) {
-      table.push(block);
+      list.push(block);
       block = block.next;
     }
 
-    console.table(table, ['start', 'size', 'end']);
+    return list;
   }
 
-  private mergeLeft(left: MemoryBlock, right: MemoryBlock): void {
+  private mergeLeft(left: MemoryBlock, right: MemoryBlock): MemoryBlock {
     const block = new MemoryBlock(
       this.buffer.subarray(left.start, right.end),
       left.start,
       left.size + right.size
     );
+
+    console.log(left.size, right.size);
 
     block.prev = right.prev;
     block.next = right.next;
@@ -180,13 +193,15 @@ export class Memory {
 
     left.prev = left.next = null;
     right.prev = right.next = null;
+
+    return block;
   }
 
   private mergeInBetween(
     left: MemoryBlock,
     mid: MemoryBlock,
     right: MemoryBlock
-  ): void {
+  ): MemoryBlock {
     const block = new MemoryBlock(
       this.buffer.subarray(left.start, right.end),
       left.start,
@@ -207,9 +222,11 @@ export class Memory {
     left.prev = left.next = null;
     mid.prev = mid.next = null;
     right.prev = right.next = null;
+
+    return block;
   }
 
-  private mergeRight(left: MemoryBlock, right: MemoryBlock): void {
+  private mergeRight(left: MemoryBlock, right: MemoryBlock): MemoryBlock {
     const block = new MemoryBlock(
       this.buffer.subarray(left.start, right.end),
       left.start,
@@ -229,15 +246,17 @@ export class Memory {
 
     left.prev = left.next = null;
     right.prev = right.next = null;
+
+    return block;
   }
 
   private bestFit(size: number): MemoryBlock {
     let block = this.freeList;
-    let best = this.freeList;
+    let best = null;
 
     while (block !== null) {
       if (block.size >= size) {
-        if (best.size > block.size) {
+        if (best === null || best.size > block.size) {
           best = block;
         }
       }
@@ -248,7 +267,7 @@ export class Memory {
     return best;
   }
 
-  private firstSibling(block: MemoryBlock): MemoryBlock {
+  private closests(block: MemoryBlock): [MemoryBlock, MemoryBlock] {
     let sibling = this.freeList;
 
     while (sibling !== null && sibling.end <= block.start) {
@@ -256,9 +275,9 @@ export class Memory {
     }
 
     if (sibling) {
-      return sibling.prev;
+      return [sibling.prev, sibling];
     }
 
-    return null;
+    return [null, null];
   }
 }

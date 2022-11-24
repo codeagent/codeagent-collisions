@@ -12,14 +12,13 @@ import { getToi } from './toi';
 import { MeshShape } from './shape';
 import { Settings } from '../settings';
 
-const p0 = vec2.create();
-const p1 = vec2.create();
-const q0 = vec2.create();
-const q1 = vec2.create();
-
 @Service()
 export class CollisionDetector {
   private readonly continuous = new Array<Collider>();
+  private readonly p0 = vec2.create();
+  private readonly p1 = vec2.create();
+  private readonly q0 = vec2.create();
+  private readonly q1 = vec2.create();
 
   constructor(
     @Inject('SETTINGS') private readonly settings: Settings,
@@ -36,8 +35,8 @@ export class CollisionDetector {
     for (let i = 0; i < cNumber; i++) {
       let left = this.continuous[i];
 
-      vec2.copy(p0, left.body.position);
-      vec2.scaleAndAdd(p1, p0, left.body.velocity, dt);
+      vec2.copy(this.p0, left.body.position);
+      vec2.scaleAndAdd(this.p1, this.p0, left.body.velocity, dt);
 
       for (let j = i + 1; j < cNumber; j++) {
         let right = this.continuous[j];
@@ -46,16 +45,16 @@ export class CollisionDetector {
           continue;
         }
 
-        vec2.copy(q0, right.body.position);
-        vec2.scaleAndAdd(q1, q0, right.body.velocity, dt);
+        vec2.copy(this.q0, right.body.position);
+        vec2.scaleAndAdd(this.q1, this.q0, right.body.velocity, dt);
 
         if (
           testCapsuleCapsule(
-            p0,
-            p1,
+            this.p0,
+            this.p1,
             left.shape.radius,
-            q0,
-            q1,
+            this.q0,
+            this.q1,
             right.shape.radius
           )
         ) {
@@ -63,7 +62,11 @@ export class CollisionDetector {
         }
       }
 
-      const query = this.broadPhase.queryCapsule(p0, p1, left.shape.radius);
+      const query = this.broadPhase.queryCapsule(
+        this.p0,
+        this.p1,
+        left.shape.radius
+      );
 
       for (const right of query) {
         if (

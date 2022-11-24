@@ -7,9 +7,7 @@ import { MidPhaseInterface } from './mid-phase.interface';
 import { MeshShape } from '../shape';
 
 @Service()
-export class DefaultMidPhase implements MidPhaseInterface {
-  constructor() {}
-
+export class MidPhase implements MidPhaseInterface {
   *detectCandidates(
     pairs: Iterable<ContactCandidatePair>
   ): Iterable<ContactCandidatePair> {

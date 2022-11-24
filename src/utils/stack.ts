@@ -60,7 +60,7 @@ export class Stack {
   pop(count: number = 1): void {
     while (count > 0) {
       if (this.stack.length === 0) {
-        throw new Error('VectorsStack.popVector: Stack is empty');
+        throw new Error('Stack.pop: Stack is empty');
       }
 
       const entry = this.stack.pop();
@@ -87,7 +87,7 @@ export class Stack {
     if (bytes + this.offset > this.size) {
       const free = this.size - this.offset;
       throw new Error(
-        `VectorsStack.pushVector: Not enough memory to allocate, requested: ${bytes}, free: ${free} bytes`
+        `Stack.push: Not enough memory to allocate, requested: ${bytes}, free: ${free} bytes`
       );
     }
 

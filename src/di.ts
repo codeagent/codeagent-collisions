@@ -7,12 +7,7 @@ import {
   ConstraintsSolver,
 } from './dynamics';
 
-import {
-  BruteForceBroadPhase,
-  DefaultMidPhase,
-  GjkEpaNarrowPhase,
-  SatNarrowPhase,
-} from './cd';
+import { BroadPhase, MidPhase, GjkEpaNarrowPhase, SatNarrowPhase } from './cd';
 import { GaussSeidelSolver } from './math';
 
 export const configureContainer = (
@@ -23,8 +18,8 @@ export const configureContainer = (
   const container = Container.of(settings.uid);
 
   container.set({ id: 'SETTINGS', value: settings });
-  container.set({ id: 'BROAD_PHASE', type: BruteForceBroadPhase });
-  container.set({ id: 'MID_PHASE', type: DefaultMidPhase });
+  container.set({ id: 'BROAD_PHASE', type: BroadPhase });
+  container.set({ id: 'MID_PHASE', type: MidPhase });
   container.set({ id: 'CONSTRAINTS_SOLVER', type: ConstraintsSolver });
   container.set({ id: 'LINEAR_EQUATIONS_SOLVER', type: GaussSeidelSolver });
 
