@@ -2,7 +2,7 @@ import { vec2 } from 'gl-matrix';
 import { Inject, Service } from 'typedi';
 
 import { inverse } from '../../math';
-import { Pair, PairsRegistry } from '../../dynamics';
+import { PairsRegistry, PairsRegistryInterface } from '../../dynamics';
 import { pairId } from '../../utils';
 import { ContactCandidatePair, ContactInfo } from '../contact';
 import { Circle, Polygon } from '../shape';
@@ -24,7 +24,7 @@ export class GjkEpaNarrowPhase implements NarrowPhaseInterface {
   constructor(
     @Inject('SETTINGS') private readonly settings: Readonly<Settings>,
     @Inject(() => PairsRegistry)
-    private readonly registry: { getPairById(id: number): Pair }
+    private readonly registry: PairsRegistryInterface
   ) {}
 
   *detectContacts(

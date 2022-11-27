@@ -17,7 +17,7 @@
   ],
   "repository": {
     "type": "git",
-    "url": "https://github.com/codeagent/physics-2d.git"
+    "url": "https://github.com/codeagent/js-physics-2d.git"
   },
   "scripts": {
     "build:clean": "npx rimraf dist",

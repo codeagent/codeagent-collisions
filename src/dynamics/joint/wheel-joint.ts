@@ -11,10 +11,6 @@ import {
 import { Body } from '../body';
 
 export class WheelJoint implements JointInterface {
-  get length(): number {
-    return this.constraints.length;
-  }
-
   private readonly constraints: ConstraintInterface[] = [];
 
   constructor(
@@ -66,8 +62,6 @@ export class WheelJoint implements JointInterface {
   }
 
   *[Symbol.iterator]() {
-    for (let i = 0, length = this.constraints.length; i < length; i++) {
-      yield this.constraints[i];
-    }
+    yield* this.constraints;
   }
 }

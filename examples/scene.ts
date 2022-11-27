@@ -20,8 +20,9 @@ import PISTON from './objects/piston.obj';
 
 export const world = createWorld({
   uid: 'test',
+  broadPhase: 'naive',
   narrowPhase: 'sat',
-  islandGenerator: 'sole',
+  islandGenerator: 'local',
 });
 
 export const createChainScene = (links: number, x = 0.0) => {

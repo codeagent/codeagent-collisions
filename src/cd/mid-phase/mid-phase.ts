@@ -8,6 +8,11 @@ import { MeshShape } from '../shape';
 
 @Service()
 export class MidPhase implements MidPhaseInterface {
+  private readonly candidatePair: [ContactCandidate, ContactCandidate] = [
+    new ContactCandidate(),
+    new ContactCandidate(),
+  ];
+
   *detectCandidates(
     pairs: Iterable<ContactCandidatePair>
   ): Iterable<ContactCandidatePair> {
@@ -27,18 +32,12 @@ export class MidPhase implements MidPhaseInterface {
           )
         ) {
           for (const [leftNode, rightNode] of nodes) {
-            yield [
-              new ContactCandidate(
-                left.collider,
-                leftNode.payload.triangleShape,
-                left.aabb
-              ),
-              new ContactCandidate(
-                right.collider,
-                rightNode.payload.triangleShape,
-                right.aabb
-              ),
-            ];
+            this.candidatePair[0].collider = left.collider;
+            this.candidatePair[0].shape = leftNode.payload.triangleShape;
+            this.candidatePair[1].collider = right.collider;
+            this.candidatePair[1].shape = rightNode.payload.triangleShape;
+
+            yield this.candidatePair;
           }
         }
       } else if (left.shape instanceof MeshShape) {
@@ -47,20 +46,18 @@ export class MidPhase implements MidPhaseInterface {
         if (
           testAABBOBBTree(
             nodes,
-            right.aabb,
+            right.collider.aabb,
             left.shape.obbTree,
             left.collider.transform
           )
         ) {
           for (const node of nodes) {
-            yield [
-              new ContactCandidate(
-                left.collider,
-                node.payload.triangleShape,
-                left.aabb
-              ),
-              right,
-            ];
+            this.candidatePair[0].collider = left.collider;
+            this.candidatePair[0].shape = node.payload.triangleShape;
+            this.candidatePair[1].collider = right.collider;
+            this.candidatePair[1].shape = right.shape;
+
+            yield this.candidatePair;
           }
         }
       } else if (right.shape instanceof MeshShape) {
@@ -69,20 +66,18 @@ export class MidPhase implements MidPhaseInterface {
         if (
           testAABBOBBTree(
             nodes,
-            left.aabb,
+            left.collider.aabb,
             right.shape.obbTree,
             right.collider.transform
           )
         ) {
           for (const node of nodes) {
-            yield [
-              left,
-              new ContactCandidate(
-                right.collider,
-                node.payload.triangleShape,
-                right.aabb
-              ),
-            ];
+            this.candidatePair[0].collider = left.collider;
+            this.candidatePair[0].shape = left.shape;
+            this.candidatePair[1].collider = right.collider;
+            this.candidatePair[1].shape = node.payload.triangleShape;
+
+            yield this.candidatePair;
           }
         }
       } else {

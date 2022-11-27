@@ -7,3 +7,4 @@ export * from './mesh';
 export * from './event-dispatcher';
 export * from './memory';
 export * from './stack';
+export * from './priority-queue';

@@ -178,8 +178,6 @@ export class Memory {
       left.size + right.size
     );
 
-    console.log(left.size, right.size);
-
     block.prev = right.prev;
     block.next = right.next;
 

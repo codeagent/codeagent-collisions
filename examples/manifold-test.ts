@@ -56,8 +56,8 @@ export const manifoldTest = (world: World, control: MouseControl) => {
       const body0 = world.bodies[i];
       const body1 = world.bodies[j];
       pairs.push([
-        new ContactCandidate(body0.collider, body0.collider.shape, null),
-        new ContactCandidate(body1.collider, body1.collider.shape, null),
+        new ContactCandidate(body0.collider, body0.collider.shape),
+        new ContactCandidate(body1.collider, body1.collider.shape),
       ]);
     }
   }

@@ -15,10 +15,6 @@ export class MouseJoint implements JointInterface {
   private mouseXConstraint: MouseXConstraint;
   private mouseYConstraint: MouseYConstraint;
 
-  get length(): number {
-    return 2;
-  }
-
   constructor(
     public readonly world: World,
     public readonly control: MouseControlInterface,

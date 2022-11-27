@@ -7,7 +7,7 @@ import {
   fromBarycentric,
   SpaceMappingInterface,
 } from '../../../math';
-import { PriorityQueue } from './priority-queue';
+import { PriorityQueue } from '../../../utils';
 import { support } from './support';
 
 class Edge {

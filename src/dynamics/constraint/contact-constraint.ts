@@ -1,9 +1,12 @@
-import { vec2, vec3 } from 'gl-matrix';
+import { vec2 } from 'gl-matrix';
 
 import { World } from '../world';
 import { ConstraintBase } from './constraint.base';
 import { Body } from '../body';
-import { VxV } from '../../math';
+import { cross, VxV } from '../../math';
+
+const ra = vec2.create();
+const rb = vec2.create();
 
 export class ContactConstraint extends ConstraintBase {
   private readonly jacobian = new Float32Array(6);
@@ -24,26 +27,22 @@ export class ContactConstraint extends ConstraintBase {
     const jacobian = out.subarray(offset, offset + length);
     jacobian.fill(0.0);
 
-    const x = vec3.create();
-
     if (!this.bodyA.isStatic) {
-      const ra = vec2.create();
       vec2.sub(ra, this.joint, this.bodyA.position);
 
       const bodyAIndex = this.bodyA.bodyIndex;
-      jacobian[bodyAIndex * 3] = -this.normal[0];
-      jacobian[bodyAIndex * 3 + 1] = -this.normal[1];
-      jacobian[bodyAIndex * 3 + 2] = -vec2.cross(x, ra, this.normal)[2];
+      this.jacobian[0] = jacobian[bodyAIndex * 3] = -this.normal[0];
+      this.jacobian[1] = jacobian[bodyAIndex * 3 + 1] = -this.normal[1];
+      this.jacobian[2] = jacobian[bodyAIndex * 3 + 2] = -cross(ra, this.normal);
     }
 
     if (!this.bodyB.isStatic) {
-      const rb = vec2.create();
       vec2.sub(rb, this.joint, this.bodyB.position);
 
       const bodyBIndex = this.bodyB.bodyIndex;
-      jacobian[bodyBIndex * 3] = this.normal[0];
-      jacobian[bodyBIndex * 3 + 1] = this.normal[1];
-      jacobian[bodyBIndex * 3 + 2] = vec2.cross(x, rb, this.normal)[2];
+      this.jacobian[3] = jacobian[bodyBIndex * 3] = this.normal[0];
+      this.jacobian[4] = jacobian[bodyBIndex * 3 + 1] = this.normal[1];
+      this.jacobian[5] = jacobian[bodyBIndex * 3 + 2] = cross(rb, this.normal);
     }
   }
 
@@ -58,38 +57,16 @@ export class ContactConstraint extends ConstraintBase {
         strength
       );
     } else {
-      const x = vec3.create();
-      this.jacobian.fill(0);
       this.velocities.fill(0);
-
-      if (!this.bodyA.isStatic) {
-        const ra = vec2.create();
-        vec2.sub(ra, this.joint, this.bodyA.position);
-
-        this.jacobian[0] = -this.normal[0];
-        this.jacobian[1] = -this.normal[1];
-        this.jacobian[2] = -vec2.cross(x, ra, this.normal)[2];
-
-        this.velocities[0] = this.bodyA.velocity[0];
-        this.velocities[1] = this.bodyA.velocity[1];
-        this.velocities[2] = this.bodyA.omega;
-      }
-
-      if (!this.bodyB.isStatic) {
-        const rb = vec2.create();
-        vec2.sub(rb, this.joint, this.bodyB.position);
-
-        this.jacobian[3] = this.normal[0];
-        this.jacobian[4] = this.normal[1];
-        this.jacobian[5] = vec2.cross(x, rb, this.normal)[2];
-
-        this.velocities[3] = this.bodyB.velocity[0];
-        this.velocities[4] = this.bodyB.velocity[1];
-        this.velocities[5] = this.bodyB.omega;
-      }
+      this.velocities[0] = this.bodyA.velocity[0];
+      this.velocities[1] = this.bodyA.velocity[1];
+      this.velocities[2] = this.bodyA.omega;
+      this.velocities[3] = this.bodyB.velocity[0];
+      this.velocities[4] = this.bodyB.velocity[1];
+      this.velocities[5] = this.bodyB.omega;
     }
     return (
-      -VxV(this.jacobian, this.velocities) *
+      -VxV(this.velocities, this.jacobian) *
       this.world.settings.defaultRestitution
     );
   }

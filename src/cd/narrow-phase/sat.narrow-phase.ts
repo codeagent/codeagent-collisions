@@ -2,7 +2,7 @@ import { vec2 } from 'gl-matrix';
 import { Inject, Service } from 'typedi';
 
 import { pairId } from '../../utils';
-import { Pair, PairsRegistry } from '../../dynamics';
+import { PairsRegistry, PairsRegistryInterface } from '../../dynamics';
 import { SpaceMappingInterface, inverse } from '../../math';
 import {
   ContactCandidatePair,
@@ -22,7 +22,7 @@ import { NarrowPhaseInterface } from './narrow-phase.interface';
 export class SatNarrowPhase implements NarrowPhaseInterface {
   constructor(
     @Inject(() => PairsRegistry)
-    private readonly registry: { getPairById(id: number): Pair }
+    private readonly registry: PairsRegistryInterface
   ) {}
 
   *detectContacts(

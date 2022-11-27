@@ -1,14 +1,12 @@
 import { vec2 } from 'gl-matrix';
 
 import { Shape } from './shape';
-import { AABB } from './aabb';
 import { Collider } from './collider';
 
 export class ContactCandidate {
   constructor(
-    readonly collider: Readonly<Collider>,
-    readonly shape: Readonly<Shape>,
-    readonly aabb: Readonly<AABB>
+    public collider: Readonly<Collider> = null,
+    public shape: Readonly<Shape> = null
   ) {}
 }
 

@@ -7,7 +7,13 @@ import {
   ConstraintsSolver,
 } from './dynamics';
 
-import { BroadPhase, MidPhase, GjkEpaNarrowPhase, SatNarrowPhase } from './cd';
+import {
+  NaiveBroadPhase,
+  SapBroadPhase,
+  MidPhase,
+  GjkEpaNarrowPhase,
+  SatNarrowPhase,
+} from './cd';
 import { GaussSeidelSolver } from './math';
 
 export const configureContainer = (
@@ -18,7 +24,6 @@ export const configureContainer = (
   const container = Container.of(settings.uid);
 
   container.set({ id: 'SETTINGS', value: settings });
-  container.set({ id: 'BROAD_PHASE', type: BroadPhase });
   container.set({ id: 'MID_PHASE', type: MidPhase });
   container.set({ id: 'CONSTRAINTS_SOLVER', type: ConstraintsSolver });
   container.set({ id: 'LINEAR_EQUATIONS_SOLVER', type: GaussSeidelSolver });
@@ -30,6 +35,16 @@ export const configureContainer = (
   } else {
     throw new Error(
       "Physics2D: Unknown narrow phase identifier, supported keys: 'sat', 'gjk-epa'"
+    );
+  }
+
+  if (settings.broadPhase === 'naive') {
+    container.set({ id: 'BROAD_PHASE', type: NaiveBroadPhase });
+  } else if (settings.broadPhase === 'sap') {
+    container.set({ id: 'BROAD_PHASE', type: SapBroadPhase });
+  } else {
+    throw new Error(
+      "Physics2D: Unknown broad phase identifier, supported keys: 'naive', 'sap'"
     );
   }
 

@@ -1,14 +1,10 @@
 import { World } from '../world';
 import { JointInterface } from './joint.interface';
-import { AngularMotorConstraint, ConstraintInterface } from '../constraint';
+import { AngularMotorConstraint } from '../constraint';
 import { Body } from '../body';
 
 export class MotorJoint implements JointInterface {
   public readonly bodyB: Body = null;
-
-  get length(): number {
-    return 1;
-  }
 
   private readonly motorConstraint: AngularMotorConstraint;
 

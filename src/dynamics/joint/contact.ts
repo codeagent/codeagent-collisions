@@ -14,12 +14,6 @@ export class Contact implements JointInterface {
     return this.contactInfo.collider1.body;
   }
 
-  get length(): number {
-    return this._length;
-  }
-
-  private _length = 1;
-
   private readonly contactConstraint: ContactConstraint;
   private readonly frictionConstraint: FrictionConstraint;
 
@@ -45,8 +39,6 @@ export class Contact implements JointInterface {
         vec2.fromValues(-contactInfo.normal[0], -contactInfo.normal[1]),
         world.settings.defaultFriction
       );
-
-      this._length++;
     }
   }
 

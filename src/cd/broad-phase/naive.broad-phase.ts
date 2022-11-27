@@ -8,18 +8,20 @@ import { testAABBAABB, testAABBCapsule } from './tests';
 import { BroadPhaseInterface } from './broad-phase.interface';
 
 @Service()
-export class BroadPhase implements BroadPhaseInterface {
+export class NaiveBroadPhase implements BroadPhaseInterface {
   private readonly colliders: Collider[] = [];
-  private readonly colliderAABB = new WeakMap<Collider, AABB>();
+  private readonly capsuleAABB: AABB = [vec2.create(), vec2.create()];
+  private readonly candidatePair: [ContactCandidate, ContactCandidate] = [
+    new ContactCandidate(),
+    new ContactCandidate(),
+  ];
 
   registerCollider(collider: Collider) {
     this.colliders.push(collider);
-    this.colliderAABB.set(collider, [vec2.create(), vec2.create()]);
   }
 
   unregisterCollider(collider: Collider): void {
     this.colliders.splice(this.colliders.indexOf(collider), 1);
-    this.colliderAABB.delete(collider);
   }
 
   *queryCapsule(
@@ -27,24 +29,23 @@ export class BroadPhase implements BroadPhaseInterface {
     p1: Readonly<vec2>,
     radius: number
   ): Iterable<Collider> {
-    const capsuleAABB: AABB = [
-      vec2.fromValues(
-        Math.min(p0[0], p1[0]) - radius,
-        Math.min(p0[1], p1[1]) - radius
-      ),
-      vec2.fromValues(
-        Math.max(p0[0], p1[0]) + radius,
-        Math.max(p0[1], p1[1]) + radius
-      ),
-    ];
+    vec2.set(
+      this.capsuleAABB[0],
+      Math.min(p0[0], p1[0]) - radius,
+      Math.min(p0[1], p1[1]) - radius
+    );
+    vec2.set(
+      this.capsuleAABB[1],
+      Math.max(p0[0], p1[0]) + radius,
+      Math.max(p0[1], p1[1]) + radius
+    );
 
     this.updateAABBs();
 
     for (const collider of this.colliders) {
-      const aabb = this.colliderAABB.get(collider);
       if (
-        testAABBAABB(capsuleAABB, aabb) &&
-        testAABBCapsule(aabb, p0, p1, radius)
+        testAABBAABB(this.capsuleAABB, collider.aabb) &&
+        testAABBCapsule(collider.aabb, p0, p1, radius)
       ) {
         yield collider;
       }
@@ -63,16 +64,12 @@ export class BroadPhase implements BroadPhaseInterface {
           continue;
         }
 
-        const leftShape = leftCollider.shape;
-        const rightShape = rightCollider.shape;
-        const leftAABB = this.colliderAABB.get(leftCollider);
-        const rightAABB = this.colliderAABB.get(rightCollider);
-
-        if (testAABBAABB(leftAABB, rightAABB)) {
-          yield [
-            new ContactCandidate(leftCollider, leftShape, leftAABB),
-            new ContactCandidate(rightCollider, rightShape, rightAABB),
-          ];
+        if (testAABBAABB(leftCollider.aabb, rightCollider.aabb)) {
+          this.candidatePair[0].collider = leftCollider;
+          this.candidatePair[0].shape = leftCollider.shape;
+          this.candidatePair[1].collider = rightCollider;
+          this.candidatePair[1].shape = rightCollider.shape;
+          yield this.candidatePair;
         }
       }
     }
@@ -80,8 +77,7 @@ export class BroadPhase implements BroadPhaseInterface {
 
   private updateAABBs() {
     for (const collider of this.colliders) {
-      const aabb = this.colliderAABB.get(collider);
-      collider.shape.aabb(aabb, collider.transform);
+      collider.updateAABB();
     }
   }
 }

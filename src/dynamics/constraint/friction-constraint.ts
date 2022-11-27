@@ -1,8 +1,13 @@
-import { vec2, vec3 } from 'gl-matrix';
+import { vec2 } from 'gl-matrix';
 
 import { Body } from '../body';
 import { World } from '../world';
 import { ConstraintBase } from './constraint.base';
+import { cross } from '../../math';
+
+const normal = vec2.create();
+const ra = vec2.create();
+const rb = vec2.create();
 
 export class FrictionConstraint extends ConstraintBase {
   constructor(
@@ -20,27 +25,24 @@ export class FrictionConstraint extends ConstraintBase {
     const jacobian = out.subarray(offset, offset + length);
     jacobian.fill(0.0);
 
-    const x = vec3.create();
-    const normal = vec2.fromValues(-this.normal[1], this.normal[0]);
+    vec2.set(normal, -this.normal[1], this.normal[0]);
 
     if (!this.bodyA.isStatic) {
-      const ra = vec2.create();
       vec2.sub(ra, this.joint, this.bodyA.position);
 
       const bodyAIndex = this.bodyA.bodyIndex;
       jacobian[bodyAIndex * 3] = -normal[0];
       jacobian[bodyAIndex * 3 + 1] = -normal[1];
-      jacobian[bodyAIndex * 3 + 2] = -vec2.cross(x, ra, normal)[2];
+      jacobian[bodyAIndex * 3 + 2] = -cross(ra, normal);
     }
 
     if (!this.bodyB.isStatic) {
-      const rb = vec2.create();
       vec2.sub(rb, this.joint, this.bodyB.position);
 
       const bodyBIndex = this.bodyB.bodyIndex;
       jacobian[bodyBIndex * 3] = normal[0];
       jacobian[bodyBIndex * 3 + 1] = normal[1];
-      jacobian[bodyBIndex * 3 + 2] = vec2.cross(x, rb, normal)[2];
+      jacobian[bodyBIndex * 3 + 2] = cross(rb, normal);
     }
   }
 

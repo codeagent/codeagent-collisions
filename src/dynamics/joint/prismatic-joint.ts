@@ -1,4 +1,4 @@
-import { vec2, vec3 } from 'gl-matrix';
+import { vec2 } from 'gl-matrix';
 
 import { World } from '../world';
 import { JointInterface } from './joint.interface';
@@ -14,10 +14,6 @@ import { Body } from '../body';
 
 export class PrismaticJoint implements JointInterface {
   private readonly constraints: ConstraintInterface[] = [];
-
-  get length(): number {
-    return this.constraints.length;
-  }
 
   constructor(
     public readonly world: World,
@@ -70,8 +66,6 @@ export class PrismaticJoint implements JointInterface {
   }
 
   *[Symbol.iterator]() {
-    for (let i = 0, length = this.constraints.length; i < length; i++) {
-      yield this.constraints[i];
-    }
+    yield* this.constraints;
   }
 }

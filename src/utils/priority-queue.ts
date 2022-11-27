@@ -55,27 +55,88 @@ export class PriorityQueue<T extends object> implements Iterable<T> {
     this._size++;
   }
 
+  resort(): void {
+    if (this._size < 2) {
+      return;
+    }
+
+    let p = this.begin.next;
+
+    while (p !== null) {
+      let q = p.prev;
+      let n = p.next;
+
+      while (q && this.predicate(q.value, p.value) > 0) {
+        q = q.prev;
+      }
+
+      if (q !== p.prev) {
+        if (p.prev) {
+          p.prev.next = p.next;
+        }
+
+        if (p.next) {
+          p.next.prev = p.prev;
+        } else {
+          this.end = p.prev;
+          this.end.next = null;
+        }
+
+        if (q) {
+          q.next.prev = p;
+          p.next = q.next;
+          q.next = p;
+          p.prev = q;
+        } else {
+          p.next = this.begin;
+          p.prev = null;
+          this.begin.prev = p;
+          this.begin = p;
+        }
+      }
+
+      p = n;
+    }
+  }
+
   dequeue(): T {
     if (this._size === 0) {
       return null;
     }
 
-    if (!this.begin) {
-      debugger;
-    }
-
     const value = this.begin.value;
     if (this.begin.next) {
       this.begin.next.prev = null;
-      this.begin = this.begin.next;
-    } else {
-      this.begin = this.end = null;
     }
-
+    this.begin = this.begin.next;
     this._size--;
     this.lookup.delete(value);
 
     return value;
+  }
+
+  remove(value: T) {
+    if (!this.lookup.has(value)) {
+      return;
+    }
+
+    const entry = this.lookup.get(value);
+    if (entry.prev && entry.next) {
+      entry.prev.next = entry.next;
+      entry.next.prev = entry.prev;
+    } else if (entry.next) {
+      entry.next.prev = null;
+      this.begin = entry.next;
+    } else if (entry.prev) {
+      entry.prev.next = null;
+      this.end = entry.prev;
+    } else {
+      this.end = this.begin = null;
+    }
+
+    this.lookup.delete(value);
+
+    this._size--;
   }
 
   *[Symbol.iterator]() {

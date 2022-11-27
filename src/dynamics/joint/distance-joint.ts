@@ -8,10 +8,6 @@ import { Body } from '../body';
 export class DistanceJoint implements JointInterface {
   private readonly distanceConstraint: DistanceConstraint;
 
-  get length(): number {
-    return 1;
-  }
-
   constructor(
     public readonly world: World,
     public readonly bodyA: Body,

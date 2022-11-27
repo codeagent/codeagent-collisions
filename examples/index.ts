@@ -2,7 +2,7 @@
 
 import { animationFrames, fromEvent, merge, of } from 'rxjs';
 import { delay, map, tap } from 'rxjs/operators';
-import { canvas, clear, drawWorld, projMat } from './draw';
+import { canvas, clear, drawText, drawWorld, projMat } from './draw';
 import {
   createPendulumScene,
   createStackScene,
@@ -30,6 +30,7 @@ import { gjkTest } from './gjk-test';
 import { toiTest } from './toi-test';
 import { epaTest } from './epa-test';
 import { manifoldTest } from './manifold-test';
+import { Profiler } from './profiler';
 
 self['world'] = world;
 
@@ -124,17 +125,19 @@ merge(
     if (control) {
       control.release();
     }
-    while (world.bodies.length) world.destroyBody(world.bodies[0]);
+    world.dispose();
     lookup[(sceneId = id)]();
     control = new MouseControl(world, projMat);
     control.attach(canvas);
   });
 
-console.log(world);
-
 const dt = 1.0 / 60.0;
+const profiler = new Profiler();
 animationFrames().subscribe(() => {
+  profiler.begin('step');
   world.step(dt);
+  profiler.end('step');
+
   clear();
 
   if (sceneId === 'gjk') {
@@ -147,5 +150,12 @@ animationFrames().subscribe(() => {
     manifoldTest(world, control);
   }
 
+  profiler.begin('draw');
   drawWorld(world);
+  profiler.end('draw');
+});
+
+profiler.listen('draw', 'step').subscribe((e) => {
+  document.getElementById('step').innerHTML = `${e.step.toFixed(2)}`;
+  document.getElementById('draw').innerHTML = `${e.draw.toFixed(2)}`;
 });

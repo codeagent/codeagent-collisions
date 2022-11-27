@@ -6,10 +6,6 @@ import { SpringConstraint } from '../constraint';
 import { Body } from '../body';
 
 export class SpringJoint implements JointInterface {
-  get length(): number {
-    return 1;
-  }
-
   private readonly springConstraint: SpringConstraint;
 
   constructor(

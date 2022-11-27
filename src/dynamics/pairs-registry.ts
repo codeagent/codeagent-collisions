@@ -172,8 +172,12 @@ export class Pair {
   }
 }
 
+export interface PairsRegistryInterface {
+  getPairById(id: number): Pair;
+}
+
 @Service()
-export class PairsRegistry {
+export class PairsRegistry implements PairsRegistryInterface {
   private readonly registry = new Map<number, Pair>();
   private readonly active = new Set<Pair>();
   private readonly deleted = new Set<Pair>();

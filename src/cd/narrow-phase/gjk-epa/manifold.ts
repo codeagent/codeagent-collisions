@@ -48,9 +48,9 @@ const queryBestEdge = (
 
 export const getPolyPolyContactManifold = (
   out: ContactInfo[],
-  collider0: Collider,
+  collider0: Readonly<Collider>,
   poly0: Readonly<Polygon>,
-  collider1: Collider,
+  collider1: Readonly<Collider>,
   poly1: Readonly<Polygon>,
   spaceMapping: SpaceMappingInterface,
   mtv: Readonly<vec2>
@@ -130,9 +130,9 @@ export const getPolyPolyContactManifold = (
 
 export const getPolyCircleContactManifold = (
   out: ContactInfo[],
-  collider0: Collider,
+  collider0: Readonly<Collider>,
   poly: Readonly<Polygon>,
-  collider1: Collider,
+  collider1: Readonly<Collider>,
   circle: Readonly<Circle>,
   spaceMapping: SpaceMappingInterface,
   mtv: Readonly<vec2>
@@ -191,9 +191,9 @@ export const getPolyCircleContactManifold = (
 
 export const getCircleCircleContactManifold = (
   out: ContactInfo[],
-  collider0: Collider,
+  collider0: Readonly<Collider>,
   circle0: Readonly<Circle>,
-  collider1: Collider,
+  collider1: Readonly<Collider>,
   circle1: Readonly<Circle>,
   spaceMapping: SpaceMappingInterface,
   mtv: Readonly<vec2>

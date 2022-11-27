@@ -7,10 +7,6 @@ import { RevoluteXConstraint, RevoluteYConstraint } from '../constraint';
 import { Body } from '../body';
 
 export class RevoluteJoint implements JointInterface {
-  get length(): number {
-    return 2;
-  }
-
   private readonly revoluteXConstraint: RevoluteXConstraint;
   private readonly revoluteYConstraint: RevoluteYConstraint;
 

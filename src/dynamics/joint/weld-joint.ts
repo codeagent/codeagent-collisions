@@ -17,10 +17,6 @@ export class WeldJoint implements JointInterface {
   private readonly minAngleConstraint: MinAngleConstraint;
   private readonly maxAngleConstraint: MaxAngleConstraint;
 
-  get length(): number {
-    return 4;
-  }
-
   constructor(
     public readonly world: World,
     public readonly bodyA: Body,

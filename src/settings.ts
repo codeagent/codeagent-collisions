@@ -34,6 +34,7 @@ export interface Settings {
   fallAsleepTimer: number;
 
   // CD phase
+  broadPhase: 'sap' | 'naive';
   narrowPhase: 'sat' | 'gjk-epa';
   narrowPhaseMargin: number;
 
@@ -70,6 +71,7 @@ export const defaultSettings: Settings = {
   sleepingVelocityThreshold: 1.0e-1, // 0.1 m/s
   sleepingAngularVelocityThreshold: 1.0e-1, // 0.1 rad/s;
   fallAsleepTimer: 0.5,
+  broadPhase: 'naive',
   narrowPhase: 'sat',
   narrowPhaseMargin: 1.0e-2, // 1cm
   toiEpsilon: 1.0e-3, // 1mm

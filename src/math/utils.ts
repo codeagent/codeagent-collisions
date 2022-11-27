@@ -36,14 +36,26 @@ export const areEqual = <T extends ArrayLike<number>>(
   return true;
 };
 
+const ab = vec2.create();
+const ap = vec2.create();
+const ac = vec2.create();
+const ad = vec2.create();
+const cd = vec2.create();
+const ca = vec2.create();
+const cb = vec2.create();
+const c0 = vec2.create();
+const c1 = vec2.create();
+const c2 = vec2.create();
+const c3 = vec2.create();
+
 export const closestPointToLineSegment = (
   out: vec2,
   a: Readonly<vec2>,
   b: Readonly<vec2>,
   p: Readonly<vec2>
 ): vec2 => {
-  const ab = vec2.sub(vec2.create(), b, a);
-  const ap = vec2.sub(vec2.create(), p, a);
+  vec2.sub(ab, b, a);
+  vec2.sub(ap, p, a);
 
   // Project c onto ab, computing parameterized position d(t)=a+ t*(b – a)
   let t = vec2.dot(ap, ab) / vec2.dot(ab, ab);
@@ -67,24 +79,17 @@ export const closestPointsBetweenLineSegments = (
   q0: Readonly<vec2>,
   q1: Readonly<vec2>
 ): void => {
-  const ab = vec2.create();
   vec2.sub(ab, p1, p0);
+
   const ab2 = vec2.dot(ab, ab);
 
-  const ac = vec2.create();
   vec2.sub(ac, q0, p0);
-
-  const ad = vec2.create();
   vec2.sub(ad, q1, p0);
-
-  const cd = vec2.create();
   vec2.sub(cd, q1, q0);
+
   const cd2 = vec2.dot(cd, cd);
 
-  const ca = vec2.create();
   vec2.sub(ca, p0, q0);
-
-  const cb = vec2.create();
   vec2.sub(cb, p1, q0);
 
   const t0 = Math.max(0, Math.min(1, vec2.dot(ab, ac) / ab2));
@@ -92,16 +97,9 @@ export const closestPointsBetweenLineSegments = (
   const t2 = Math.max(0, Math.min(1, vec2.dot(cd, ca) / cd2));
   const t3 = Math.max(0, Math.min(1, vec2.dot(cd, cb) / cd2));
 
-  const c0 = vec2.create();
   vec2.scaleAndAdd(c0, p0, ab, t0);
-
-  const c1 = vec2.create();
   vec2.scaleAndAdd(c1, p0, ab, t1);
-
-  const c2 = vec2.create();
   vec2.scaleAndAdd(c2, q0, cd, t2);
-
-  const c3 = vec2.create();
   vec2.scaleAndAdd(c3, q0, cd, t3);
 
   let min = Number.POSITIVE_INFINITY;
@@ -126,8 +124,8 @@ export const sqDistanceToLineSegment = (
   b: Readonly<vec2>,
   p: Readonly<vec2>
 ): number => {
-  const ab = vec2.sub(vec2.create(), b, a);
-  const ap = vec2.sub(vec2.create(), p, a);
+  vec2.sub(ab, b, a);
+  vec2.sub(ap, p, a);
 
   // Project p onto ab, computing parameterized position d(t)=a+ t*(b – a)
   let t = vec2.dot(ap, ab) / vec2.dot(ab, ab);
@@ -141,10 +139,9 @@ export const sqDistanceToLineSegment = (
     t = 1.0;
   }
 
-  const c = vec2.create();
-  vec2.scaleAndAdd(c, a, ab, t);
+  vec2.scaleAndAdd(c0, a, ab, t);
 
-  return vec2.sqrDist(p, c);
+  return vec2.sqrDist(p, c0);
 };
 
 export const closestPointToTriangle = (
@@ -273,18 +270,15 @@ export const getPolygonCentroid = (
   return vec2.fromValues(area * cx, area * cy);
 };
 
-const point0 = vec2.create();
-const point1 = vec2.create();
-
 export const clipByPlane = (
   p0: vec2,
   p1: Readonly<vec2>,
   normal: Readonly<vec2>,
   origin: Readonly<vec2>
 ): vec2 => {
-  vec2.sub(point0, origin, p0);
-  vec2.sub(point1, p1, p0);
-  let t = vec2.dot(point0, normal) / vec2.dot(point1, normal);
+  vec2.sub(c0, origin, p0);
+  vec2.sub(c1, p1, p0);
+  let t = vec2.dot(c0, normal) / vec2.dot(c1, normal);
   t = Math.max(0, Math.min(1, t));
-  return vec2.scaleAndAdd(p0, p0, point1, t);
+  return vec2.scaleAndAdd(p0, p0, c1, t);
 };

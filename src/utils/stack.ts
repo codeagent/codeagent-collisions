@@ -74,8 +74,8 @@ export class Stack {
     this.offset = 0;
   }
 
-  dump(): void {
-    console.table(this.stack);
+  dump(): StackEntry<ArrayBufferView>[] {
+    return this.stack;
   }
 
   private pushTypedArray<T extends ArrayBufferView>(
