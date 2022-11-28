@@ -5,7 +5,7 @@ import { World } from '../world';
 import { ConstraintBase } from './constraint.base';
 import { cross } from '../../math';
 
-const normal = vec2.create();
+const tangent = vec2.create();
 const ra = vec2.create();
 const rb = vec2.create();
 
@@ -21,29 +21,20 @@ export class FrictionConstraint extends ConstraintBase {
     super();
   }
 
-  getJacobian(out: Float32Array, offset: number, length: number): void {
-    const jacobian = out.subarray(offset, offset + length);
-    jacobian.fill(0.0);
+  getJacobian(out: Float32Array): void {
+    out.fill(0.0);
 
-    vec2.set(normal, -this.normal[1], this.normal[0]);
+    vec2.set(tangent, -this.normal[1], this.normal[0]);
 
-    if (!this.bodyA.isStatic) {
-      vec2.sub(ra, this.joint, this.bodyA.position);
+    vec2.sub(ra, this.joint, this.bodyA.position);
+    out[0] = -tangent[0];
+    out[1] = -tangent[1];
+    out[2] = -cross(ra, tangent);
 
-      const bodyAIndex = this.bodyA.bodyIndex;
-      jacobian[bodyAIndex * 3] = -normal[0];
-      jacobian[bodyAIndex * 3 + 1] = -normal[1];
-      jacobian[bodyAIndex * 3 + 2] = -cross(ra, normal);
-    }
-
-    if (!this.bodyB.isStatic) {
-      vec2.sub(rb, this.joint, this.bodyB.position);
-
-      const bodyBIndex = this.bodyB.bodyIndex;
-      jacobian[bodyBIndex * 3] = normal[0];
-      jacobian[bodyBIndex * 3 + 1] = normal[1];
-      jacobian[bodyBIndex * 3 + 2] = cross(rb, normal);
-    }
+    vec2.sub(rb, this.joint, this.bodyB.position);
+    out[3] = tangent[0];
+    out[4] = tangent[1];
+    out[5] = cross(rb, tangent);
   }
 
   getPushFactor(dt: number, strength: number): number {

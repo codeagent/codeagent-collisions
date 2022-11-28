@@ -5,6 +5,11 @@ import { ConstraintBase } from './constraint.base';
 import { Body } from '../body';
 
 export class RevoluteYConstraint extends ConstraintBase {
+  private readonly pa = vec2.create();
+  private readonly pb = vec2.create();
+  private readonly ra = vec2.create();
+  private readonly rb = vec2.create();
+
   constructor(
     public readonly world: World,
     public readonly bodyA: Body,
@@ -15,45 +20,29 @@ export class RevoluteYConstraint extends ConstraintBase {
     super();
   }
 
-  getJacobian(out: Float32Array, offset: number, length: number): void {
-    const jacobian = out.subarray(offset, offset + length);
-    jacobian.fill(0.0);
+  getJacobian(out: Float32Array): void {
+    out.fill(0.0);
 
-    if (!this.bodyA.isStatic) {
-      const pa = vec2.create();
-      vec2.transformMat3(pa, this.jointA, this.bodyA.transform);
+    vec2.transformMat3(this.pa, this.jointA, this.bodyA.transform);
+    vec2.sub(this.ra, this.pa, this.bodyA.position);
 
-      const ra = vec2.create();
-      vec2.sub(ra, pa, this.bodyA.position);
+    out[0] = 0;
+    out[1] = 1;
+    out[2] = this.ra[0];
 
-      const bodyAIndex = this.bodyA.bodyIndex;
-      jacobian[bodyAIndex * 3] = 0;
-      jacobian[bodyAIndex * 3 + 1] = 1;
-      jacobian[bodyAIndex * 3 + 2] = ra[0];
-    }
+    vec2.transformMat3(this.pb, this.jointB, this.bodyB.transform);
+    vec2.sub(this.rb, this.pb, this.bodyB.position);
 
-    if (!this.bodyB.isStatic) {
-      const pb = vec2.create();
-      vec2.transformMat3(pb, this.jointB, this.bodyB.transform);
-
-      const rb = vec2.create();
-      vec2.sub(rb, pb, this.bodyB.position);
-
-      const bodyBIndex = this.bodyB.bodyIndex;
-      jacobian[bodyBIndex * 3] = 0;
-      jacobian[bodyBIndex * 3 + 1] = -1;
-      jacobian[bodyBIndex * 3 + 2] = -rb[0];
-    }
+    out[3] = 0;
+    out[4] = -1;
+    out[5] = -this.rb[0];
   }
 
   getPushFactor(dt: number, strength: number): number {
-    const pa = vec2.create();
-    vec2.transformMat3(pa, this.jointA, this.bodyA.transform);
+    vec2.transformMat3(this.pa, this.jointA, this.bodyA.transform);
+    vec2.transformMat3(this.pb, this.jointB, this.bodyB.transform);
 
-    const pb = vec2.create();
-    vec2.transformMat3(pb, this.jointB, this.bodyB.transform);
-
-    return -((pa[1] - pb[1]) / dt) * strength;
+    return -((this.pa[1] - this.pb[1]) / dt) * strength;
   }
 
   getClamping() {

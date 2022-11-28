@@ -22,7 +22,7 @@ export const world = createWorld({
   uid: 'test',
   broadPhase: 'naive',
   narrowPhase: 'sat',
-  islandGenerator: 'local',
+  islandGenerator: 'sole',
 });
 
 export const createChainScene = (links: number, x = 0.0) => {

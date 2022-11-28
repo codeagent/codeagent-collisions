@@ -6,6 +6,10 @@ import { World } from '../world';
 import { ConstraintBase } from './constraint.base';
 
 export class MouseYConstraint extends ConstraintBase {
+  private readonly pa = vec2.create();
+  private readonly ra = vec2.create();
+  private readonly cursor = vec2.create();
+
   constructor(
     public readonly world: World,
     public readonly bodyA: Body,
@@ -17,28 +21,22 @@ export class MouseYConstraint extends ConstraintBase {
     super();
   }
 
-  getJacobian(out: Float32Array, offset: number, length: number): void {
-    const jacobian = out.subarray(offset, offset + length);
+  getJacobian(out: Float32Array): void {
+    out.fill(0.0);
 
-    if (!this.bodyA.isStatic) {
-      const pa = vec2.create();
-      vec2.transformMat3(pa, this.joint, this.bodyA.transform);
+    vec2.transformMat3(this.pa, this.joint, this.bodyA.transform);
+    vec2.sub(this.ra, this.pa, this.bodyA.position);
 
-      const ra = vec2.create();
-      vec2.sub(ra, pa, this.bodyA.position);
-
-      const bodyAIndex = this.bodyA.bodyIndex;
-      jacobian[bodyAIndex * 3] = 0;
-      jacobian[bodyAIndex * 3 + 1] = 1;
-      jacobian[bodyAIndex * 3 + 2] = ra[0];
-    }
+    out[0] = 0;
+    out[1] = 1;
+    out[2] = this.ra[0];
   }
 
   getPushFactor(dt: number, strength: number): number {
-    const pa = vec2.create();
-    const cursor = this.control.getCursorPosition();
-    vec2.transformMat3(pa, this.joint, this.bodyA.transform);
-    return -((pa[1] - cursor[1]) / dt) * this.stiffness;
+    vec2.copy(this.cursor, this.control.getCursorPosition());
+    vec2.transformMat3(this.pa, this.joint, this.bodyA.transform);
+
+    return -((this.pa[1] - this.cursor[1]) / dt) * this.stiffness;
   }
 
   getClamping() {

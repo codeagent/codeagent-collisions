@@ -54,10 +54,10 @@ export interface Settings {
 export const defaultSettings: Settings = {
   uid: 'default',
   maxBodiesNumber: 512,
-  maxConstraintsNumber: 2048,
+  maxConstraintsNumber: 4096,
   gravity: vec2.fromValues(0.0, -9.8),
-  totalReservedMemory: 64e6,
-  defaultPushFactor: 0.25,
+  totalReservedMemory: 16e6,    // 16mb
+  defaultPushFactor: 0.0125,
   defaultFriction: 0.5,
   defaultRestitution: 0.5,
   defaultDamping: 0.005,

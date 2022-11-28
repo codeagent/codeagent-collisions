@@ -110,7 +110,7 @@ merge(
     map((e) => e.srcElement['id'])
   ),
 
-  of('joint')
+  of('piston')
 )
   .pipe(
     tap((id) => {
@@ -131,9 +131,12 @@ merge(
     control.attach(canvas);
   });
 
-const dt = 1.0 / 60.0;
+let dt = 1.0 / 60.0;
 const profiler = new Profiler();
-animationFrames().subscribe(() => {
+
+let lastFrameTime = performance.now();
+
+animationFrames().subscribe((ts) => {
   profiler.begin('step');
   world.step(dt);
   profiler.end('step');
@@ -153,6 +156,10 @@ animationFrames().subscribe(() => {
   profiler.begin('draw');
   drawWorld(world);
   profiler.end('draw');
+
+  let now = performance.now();
+  // dt = (now - lastFrameTime) * 1.0e-3;
+  lastFrameTime = now;
 });
 
 profiler.listen('draw', 'step').subscribe((e) => {

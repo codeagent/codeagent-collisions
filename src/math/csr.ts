@@ -6,9 +6,9 @@ import { Vector } from './vector';
 export interface Matrix {
   m: number; // rows
   n: number; // columns
-  values: ArrayLike<number>;
-  columns: ArrayLike<number>;
-  rows: ArrayLike<number>;
+  values: Array<number>;
+  columns: Array<number>;
+  rows: Array<number>;
 }
 
 /**

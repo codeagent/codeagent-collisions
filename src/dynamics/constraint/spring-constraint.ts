@@ -3,8 +3,18 @@ import { vec2, vec3 } from 'gl-matrix';
 import { World } from '../world';
 import { ConstraintBase } from './constraint.base';
 import { Body } from '../body';
+import { cross } from '../../math';
 
 export class SpringConstraint extends ConstraintBase {
+  private readonly pa = vec2.create();
+  private readonly pb = vec2.create();
+  private readonly ra = vec2.create();
+  private readonly rb = vec2.create();
+  private readonly va = vec2.create();
+  private readonly vb = vec2.create();
+  private readonly pbpa = vec2.create();
+  private readonly normal = vec2.create();
+
   constructor(
     public readonly world: World,
     public readonly bodyA: Body,
@@ -18,40 +28,26 @@ export class SpringConstraint extends ConstraintBase {
     super();
   }
 
-  getJacobian(out: Float32Array, offset: number, length: number): void {
-    const jacobian = out.subarray(offset, offset + length);
-    jacobian.fill(0.0);
+  getJacobian(out: Float32Array): void {
+    out.fill(0.0);
 
-    const pa = vec2.create();
-    vec2.transformMat3(pa, this.jointA, this.bodyA.transform);
+    vec2.transformMat3(this.pa, this.jointA, this.bodyA.transform);
+    vec2.transformMat3(this.pb, this.jointB, this.bodyB.transform);
 
-    const pb = vec2.create();
-    vec2.transformMat3(pb, this.jointB, this.bodyB.transform);
+    vec2.sub(this.pbpa, this.pb, this.pa);
+    vec2.normalize(this.pbpa, this.pbpa);
 
-    const pbpa = vec2.create();
-    vec2.sub(pbpa, pb, pa);
-    vec2.normalize(pbpa, pbpa);
-    const x = vec3.create();
+    vec2.sub(this.ra, this.pa, this.bodyA.position);
 
-    if (!this.bodyA.isStatic) {
-      const ra = vec2.create();
-      vec2.sub(ra, pa, this.bodyA.position);
+    out[0] = -this.pbpa[0];
+    out[1] = -this.pbpa[1];
+    out[2] = -cross(this.ra, this.pbpa);
 
-      const bodyAIndex = this.bodyA.bodyIndex;
-      jacobian[bodyAIndex * 3] = -pbpa[0];
-      jacobian[bodyAIndex * 3 + 1] = -pbpa[1];
-      jacobian[bodyAIndex * 3 + 2] = -vec2.cross(x, ra, pbpa)[2];
-    }
+    vec2.sub(this.rb, this.pb, this.bodyB.position);
 
-    if (!this.bodyB.isStatic) {
-      const rb = vec2.create();
-      vec2.sub(rb, pb, this.bodyB.position);
-
-      const bodyBIndex = this.bodyB.bodyIndex;
-      jacobian[bodyBIndex * 3] = pbpa[0];
-      jacobian[bodyBIndex * 3 + 1] = pbpa[1];
-      jacobian[bodyBIndex * 3 + 2] = vec2.cross(x, rb, pbpa)[2];
-    }
+    out[3] = this.pbpa[0];
+    out[4] = this.pbpa[1];
+    out[5] = cross(this.rb, this.pbpa);
   }
 
   getPushFactor(dt: number, strength: number): number {
@@ -59,31 +55,29 @@ export class SpringConstraint extends ConstraintBase {
   }
 
   getClamping() {
-    const pa = vec2.create();
-    vec2.transformMat3(pa, this.jointA, this.bodyA.transform);
+    vec2.transformMat3(this.pa, this.jointA, this.bodyA.transform);
+    vec2.transformMat3(this.pb, this.jointB, this.bodyB.transform);
 
-    const pb = vec2.create();
-    vec2.transformMat3(pb, this.jointB, this.bodyB.transform);
+    vec2.sub(this.ra, this.pa, this.bodyA.position);
+    vec2.set(this.ra, -this.ra[1], this.ra[0]);
 
-    const ra = vec2.create();
-    vec2.sub(ra, pa, this.bodyA.position);
+    vec2.sub(this.rb, this.pb, this.bodyB.position);
+    vec2.set(this.rb, -this.rb[1], this.rb[0]);
 
-    const rb = vec2.create();
-    vec2.sub(rb, pb, this.bodyB.position);
+    vec2.sub(this.normal, this.pb, this.pa);
+    const distance = vec2.length(this.normal);
+    vec2.scale(this.normal, this.normal, 1.0 / distance);
 
-    const n = vec2.create();
-    vec2.sub(n, pb, pa);
-    const distance = vec2.length(n);
-    vec2.scale(n, n, 1.0 / distance);
+    vec2.copy(this.va, this.bodyA.velocity);
+    vec2.scaleAndAdd(this.va, this.va, this.ra, this.bodyA.omega);
 
-    const va = vec2.clone(this.bodyA.velocity);
-    vec2.scaleAndAdd(va, va, vec2.fromValues(-ra[1], ra[0]), this.bodyA.omega);
-
-    const vb = vec2.clone(this.bodyB.velocity);
-    vec2.scaleAndAdd(vb, vb, vec2.fromValues(-rb[1], rb[0]), this.bodyB.omega);
+    vec2.copy(this.vb, this.bodyB.velocity);
+    vec2.scaleAndAdd(this.vb, this.vb, this.rb, this.bodyB.omega);
 
     // Damping force
-    const fd = this.extinction * (vec2.dot(n, va) - vec2.dot(n, vb));
+    const fd =
+      this.extinction *
+      (vec2.dot(this.normal, this.va) - vec2.dot(this.normal, this.vb));
 
     // Stiff force
     const fs = this.stiffness * (this.length - distance);

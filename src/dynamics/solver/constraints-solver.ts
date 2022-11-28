@@ -11,11 +11,11 @@ import {
   VpV,
   VpVxS,
   VxSpVxS,
-  compress,
   MtxV,
   MxV,
   MxDxMt,
   LinearEquationsSolverInterface,
+  Matrix,
 } from '../../math';
 
 import { Memory, Stack } from '../../utils';
@@ -41,8 +41,14 @@ export class ConstraintsSolver implements ConstraintsSolverInterface {
   private bt0: Float32Array;
   private bt1: Float32Array;
   private bhat: Float32Array;
-  private J: Float32Array;
-
+  private J: Matrix = {
+    columns: [],
+    rows: [],
+    values: [],
+    m: 0,
+    n: 0,
+  };
+  private jacobian = new Float32Array(6);
   private lookup: Array<number[]> = [];
   private constraints: Readonly<ConstraintInterface>[];
   private stack: Stack;
@@ -57,7 +63,7 @@ export class ConstraintsSolver implements ConstraintsSolverInterface {
   ) {
     this.stack = new Stack(
       this.memory.reserve(
-        this.calcRequiredMemorySize(
+        this.getRequiredMemorySize(
           this.settings.maxBodiesNumber,
           this.settings.maxConstraintsNumber
         )
@@ -76,7 +82,8 @@ export class ConstraintsSolver implements ConstraintsSolverInterface {
 
     this.allocate(constraints.length, bodies.length * 3);
     this.serializeBodies(bodies);
-    this.serializeConstraints(constraints, dt);
+    this.createJacobianMatrix(constraints, dt);
+    this.createConstraintLookup(constraints);
     this.solveConstraintForces(this.cvForces, this.c0Forces, dt);
     this.correctPositions(outPositions, dt);
     this.correctVelocities(outVelocities, dt);
@@ -105,7 +112,6 @@ export class ConstraintsSolver implements ConstraintsSolverInterface {
     this.b = this.stack.pushFloat32(rows);
     this.bt0 = this.stack.pushFloat32(rows);
     this.bt1 = this.stack.pushFloat32(rows);
-    this.J = this.stack.pushFloat32(rows * columns);
   }
 
   private serializeBodies(bodies: Readonly<Body>[]) {
@@ -127,8 +133,8 @@ export class ConstraintsSolver implements ConstraintsSolverInterface {
       this.forces[i + 1] = force[1];
       this.forces[i + 2] = body.torque;
 
-      this.invMasses[i] = this.invMasses[i + 1] = 1.0 / body.mass;
-      this.invMasses[i + 2] = 1.0 / body.inertia;
+      this.invMasses[i] = this.invMasses[i + 1] = body.invMass;
+      this.invMasses[i + 2] = body.invInertia;
 
       i += 3;
 
@@ -136,16 +142,21 @@ export class ConstraintsSolver implements ConstraintsSolverInterface {
     }
   }
 
-  private serializeConstraints(
+  private createJacobianMatrix(
     constraints: Readonly<ConstraintInterface>[],
     dt: number
-  ) {
-    this.J.fill(0);
+  ): void {
+    this.J.m = this.rows;
+    this.J.n = this.columns;
+    this.J.columns.length = this.J.rows.length = this.J.values.length = 0;
 
     let j = 0;
-    let i = 0;
+    let values = this.J.values;
+    let columns = this.J.columns;
+    let rows = this.J.rows;
+
     for (const constraint of constraints) {
-      constraint.getJacobian(this.J, i, this.columns);
+      constraint.getJacobian(this.jacobian);
       const { min, max } = constraint.getClamping();
       this.cMin[j] = min;
       this.cMax[j] = max;
@@ -157,18 +168,75 @@ export class ConstraintsSolver implements ConstraintsSolverInterface {
       this.lambdas0[j] = constraint.getCache(0);
       this.lambdas1[j] = constraint.getCache(1);
 
-      if (constraint.bodyA && !constraint.bodyA.isStatic) {
+      rows.push(values.length);
+
+      const bodyA = constraint.bodyA;
+      const bodyB = constraint.bodyB;
+
+      if (bodyA && !bodyA.isStatic && bodyB && !bodyB.isStatic) {
         constraint.bodyA.solverConstraints.push(j);
-      }
-
-      if (constraint.bodyB && !constraint.bodyB.isStatic) {
         constraint.bodyB.solverConstraints.push(j);
+
+        if (bodyA.bodyIndex < bodyB.bodyIndex) {
+          values.push(
+            this.jacobian[0],
+            this.jacobian[1],
+            this.jacobian[2],
+            this.jacobian[3],
+            this.jacobian[4],
+            this.jacobian[5]
+          );
+          columns.push(
+            bodyA.bodyIndex * 3,
+            bodyA.bodyIndex * 3 + 1,
+            bodyA.bodyIndex * 3 + 2,
+            bodyB.bodyIndex * 3,
+            bodyB.bodyIndex * 3 + 1,
+            bodyB.bodyIndex * 3 + 2
+          );
+        } else {
+          values.push(
+            this.jacobian[3],
+            this.jacobian[4],
+            this.jacobian[5],
+            this.jacobian[0],
+            this.jacobian[1],
+            this.jacobian[2]
+          );
+          columns.push(
+            bodyB.bodyIndex * 3,
+            bodyB.bodyIndex * 3 + 1,
+            bodyB.bodyIndex * 3 + 2,
+            bodyA.bodyIndex * 3,
+            bodyA.bodyIndex * 3 + 1,
+            bodyA.bodyIndex * 3 + 2
+          );
+        }
+      } else if (bodyA && !bodyA.isStatic) {
+        constraint.bodyA.solverConstraints.push(j);
+        values.push(this.jacobian[0], this.jacobian[1], this.jacobian[2]);
+        columns.push(
+          bodyA.bodyIndex * 3,
+          bodyA.bodyIndex * 3 + 1,
+          bodyA.bodyIndex * 3 + 2
+        );
+      } else if (bodyB && !bodyB.isStatic) {
+        constraint.bodyB.solverConstraints.push(j);
+        values.push(this.jacobian[3], this.jacobian[4], this.jacobian[5]);
+        columns.push(
+          bodyB.bodyIndex * 3,
+          bodyB.bodyIndex * 3 + 1,
+          bodyB.bodyIndex * 3 + 2
+        );
       }
 
-      i += this.columns;
       j++;
     }
 
+    rows.push(this.J.values.length);
+  }
+
+  private createConstraintLookup(constraints: Readonly<ConstraintInterface>[]) {
     this.lookup.length = this.rows;
 
     let k = 0;
@@ -211,12 +279,11 @@ export class ConstraintsSolver implements ConstraintsSolverInterface {
     // A = J * Minv * Jt
     // b = 1.0 / ∆t * v − J * (1 / ∆t * v1 + Minv * fext)
 
-    const J = compress(this.J, this.rows, this.columns);
-    const A = MxDxMt(J, this.invMasses, this.lookup);
+    const A = MxDxMt(this.J, this.invMasses, this.lookup);
 
     VmV(this.bhat, this.invMasses, this.forces);
     VpVxS(this.bhat, this.bhat, this.velocities, 1.0 / dt);
-    MxV(this.b, J, this.bhat);
+    MxV(this.b, this.J, this.bhat);
     VxSpVxS(this.bt0, this.v0, 1.0 / dt, this.b, -1.0);
     VxSpVxS(this.bt1, this.v1, 1.0 / dt, this.b, -1.0);
 
@@ -240,8 +307,8 @@ export class ConstraintsSolver implements ConstraintsSolverInterface {
       this.cMax
     );
 
-    MtxV(outForces0, J, this.lambdas0);
-    MtxV(outForces1, J, this.lambdas1);
+    MtxV(outForces0, this.J, this.lambdas0);
+    MtxV(outForces1, this.J, this.lambdas1);
 
     for (let j = 0, m = this.constraints.length; j < m; j++) {
       this.constraints[j].setCache(0, this.lambdas0[j]);
@@ -267,9 +334,7 @@ export class ConstraintsSolver implements ConstraintsSolverInterface {
     this.stack.clear();
   }
 
-  private calcRequiredMemorySize(maxBodies: number, maxConstraints: number) {
-    return (
-      120 * maxBodies + 36 * maxConstraints + 12 * maxBodies * maxConstraints
-    );
+  private getRequiredMemorySize(maxBodies: number, maxConstraints: number) {
+    return 120 * maxBodies + 36 * maxConstraints;
   }
 }

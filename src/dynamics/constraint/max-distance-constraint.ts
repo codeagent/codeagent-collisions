@@ -17,13 +17,11 @@ export class MaxDistanceConstraint extends DistanceConstraint {
   }
 
   getPushFactor(dt: number, strength = 1.0): number {
-    const pa = vec2.create();
-    vec2.transformMat3(pa, this.jointA, this.bodyA.transform);
+    vec2.transformMat3(this.pa, this.jointA, this.bodyA.transform);
+    vec2.transformMat3(this.pb, this.jointB, this.bodyB.transform);
 
-    const pb = vec2.create();
-    vec2.transformMat3(pb, this.jointB, this.bodyB.transform);
+    const violation = this.distance - vec2.distance(this.pb, this.pa);
 
-    const violation = this.distance - vec2.distance(pb, pa);
     // violation < 0 means constraint is broken
     return violation > 0 ? violation / dt : (strength * violation) / dt;
   }

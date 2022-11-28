@@ -7,11 +7,10 @@ import { cross, VxV } from '../../math';
 
 const ra = vec2.create();
 const rb = vec2.create();
+const jacobian = new Float32Array(6);
+const velocities = new Float32Array(6);
 
 export class ContactConstraint extends ConstraintBase {
-  private readonly jacobian = new Float32Array(6);
-  private readonly velocities = new Float32Array(6);
-
   constructor(
     public readonly world: World,
     public readonly bodyA: Body,
@@ -23,52 +22,31 @@ export class ContactConstraint extends ConstraintBase {
     super();
   }
 
-  getJacobian(out: Float32Array, offset: number, length: number): void {
-    const jacobian = out.subarray(offset, offset + length);
+  getJacobian(out: Float32Array): void {
     jacobian.fill(0.0);
+    out.fill(0);
 
-    if (!this.bodyA.isStatic) {
-      vec2.sub(ra, this.joint, this.bodyA.position);
+    vec2.sub(ra, this.joint, this.bodyA.position);
 
-      const bodyAIndex = this.bodyA.bodyIndex;
-      this.jacobian[0] = jacobian[bodyAIndex * 3] = -this.normal[0];
-      this.jacobian[1] = jacobian[bodyAIndex * 3 + 1] = -this.normal[1];
-      this.jacobian[2] = jacobian[bodyAIndex * 3 + 2] = -cross(ra, this.normal);
-    }
+    jacobian[0] = out[0] = -this.normal[0];
+    jacobian[1] = out[1] = -this.normal[1];
+    jacobian[2] = out[2] = -cross(ra, this.normal);
 
-    if (!this.bodyB.isStatic) {
-      vec2.sub(rb, this.joint, this.bodyB.position);
+    vec2.sub(rb, this.joint, this.bodyB.position);
 
-      const bodyBIndex = this.bodyB.bodyIndex;
-      this.jacobian[3] = jacobian[bodyBIndex * 3] = this.normal[0];
-      this.jacobian[4] = jacobian[bodyBIndex * 3 + 1] = this.normal[1];
-      this.jacobian[5] = jacobian[bodyBIndex * 3 + 2] = cross(rb, this.normal);
-    }
+    jacobian[3] = out[3] = this.normal[0];
+    jacobian[4] = out[4] = this.normal[1];
+    jacobian[5] = out[5] = cross(rb, this.normal);
   }
 
   getPushFactor(dt: number, strength: number): number {
     if (strength) {
-      return (
-        (Math.max(
-          this.penetration - this.world.settings.contactConstraintSlop,
-          0
-        ) /
-          dt) *
-        strength
-      );
+      let penetration =
+        this.penetration - this.world.settings.contactConstraintSlop;
+      return (Math.max(penetration, 0) / dt) * strength;
     } else {
-      this.velocities.fill(0);
-      this.velocities[0] = this.bodyA.velocity[0];
-      this.velocities[1] = this.bodyA.velocity[1];
-      this.velocities[2] = this.bodyA.omega;
-      this.velocities[3] = this.bodyB.velocity[0];
-      this.velocities[4] = this.bodyB.velocity[1];
-      this.velocities[5] = this.bodyB.omega;
+      return -this.getCDot() * this.world.settings.defaultRestitution;
     }
-    return (
-      -VxV(this.velocities, this.jacobian) *
-      this.world.settings.defaultRestitution
-    );
   }
 
   getClamping() {
@@ -77,5 +55,16 @@ export class ContactConstraint extends ConstraintBase {
 
   setPenetration(penetration: number) {
     this.penetration = penetration;
+  }
+
+  private getCDot(): number {
+    velocities.fill(0);
+    velocities[0] = this.bodyA.velocity[0];
+    velocities[1] = this.bodyA.velocity[1];
+    velocities[2] = this.bodyA.omega;
+    velocities[3] = this.bodyB.velocity[0];
+    velocities[4] = this.bodyB.velocity[1];
+    velocities[5] = this.bodyB.omega;
+    return VxV(velocities, jacobian);
   }
 }

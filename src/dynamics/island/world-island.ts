@@ -124,8 +124,8 @@ export class WorldIsland {
       this.forces[i + 1] = force[1];
       this.forces[i + 2] = body.torque;
 
-      this.invMasses[i] = this.invMasses[i + 1] = 1.0 / body.mass;
-      this.invMasses[i + 2] = 1.0 / body.inertia;
+      this.invMasses[i] = this.invMasses[i + 1] = body.invMass;
+      this.invMasses[i + 2] = body.invInertia;
 
       i += 3;
     }
