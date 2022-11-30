@@ -1,165 +1,87 @@
 /// <reference path="./declarations.d.ts" />
 
-import { animationFrames, fromEvent, merge, of } from 'rxjs';
-import { delay, map, tap } from 'rxjs/operators';
-import { canvas, clear, drawText, drawWorld, projMat } from './draw';
-import {
-  createPendulumScene,
-  createStackScene,
-  createStairsScene,
-  world,
-  createGaussianScene,
-  createChainScene,
-  createJointScene,
-  createSuspensionScene,
-  createHelixScene,
-  pistonScene,
-  createMeshScene,
-  createPinballScene,
-  createGearScene,
-  createGjkScene,
-  createToiScene,
-  createEpaScene,
-  createWarmScene,
-  createManifoldScene,
-} from './scene';
+import { animationFrames, fromEvent } from 'rxjs';
+import { configureContainer, MouseControl, World } from 'js-physics-2d';
+import { map, startWith } from 'rxjs/operators';
 
-import { MouseControl } from 'js-physics-2d';
+import { Profiler, canvas, clear, drawWorld, projMat } from './services';
 
-import { gjkTest } from './gjk-test';
-import { toiTest } from './toi-test';
-import { epaTest } from './epa-test';
-import { manifoldTest } from './manifold-test';
-import { Profiler } from './profiler';
+import { ChainExample } from './chain.example';
+import { ExampleInterface } from './example.interface';
+import { PendulumExample } from './pendulum.example';
+import { StairsExample } from './stairs.example';
+import { StackExample } from './stack.example';
+import { GaussExample } from './gauss.example';
+import { JointExample } from './joint.example';
+import { SuspensionExample } from './suspension.example';
+import { HelixExample } from './helix.example';
+import { PistonExample } from './piston.example';
+import { MeshExample } from './mesh.example';
+import { PinballExample } from './pinball.example';
+import { GearsExample } from './gears.example';
+import { GjkExample } from './gjk.example';
+import { ToiExample } from './toi.example';
+import { EpaExample } from './epa.example';
+import { CcdExample } from './ccd.example';
+import { ManifoldExample } from './manifold.example';
 
-self['world'] = world;
+const container = configureContainer({
+  islandGenerator: 'sole',
+});
+container.set({ id: 'chain', type: ChainExample });
+container.set({ id: 'pendulum', type: PendulumExample });
+container.set({ id: 'stairs', type: StairsExample });
+container.set({ id: 'stack', type: StackExample });
+container.set({ id: 'gauss', type: GaussExample });
+container.set({ id: 'joint', type: JointExample });
+container.set({ id: 'suspension', type: SuspensionExample });
+container.set({ id: 'helix', type: HelixExample });
+container.set({ id: 'piston', type: PistonExample });
+container.set({ id: 'mesh', type: MeshExample });
+container.set({ id: 'pinball', type: PinballExample });
+container.set({ id: 'gears', type: GearsExample });
+container.set({ id: 'gjk', type: GjkExample });
+container.set({ id: 'toi', type: ToiExample });
+container.set({ id: 'epa', type: EpaExample });
+container.set({ id: 'ccd', type: CcdExample });
+container.set({ id: 'manifold', type: ManifoldExample });
 
-const lookup = {
-  chain: () => createChainScene(20),
-  pendulum: () => createPendulumScene(12),
-  stairs: () => createStairsScene(8),
-  stack: () => createStackScene(128),
-  gauss: () => createGaussianScene(),
-  helix: () => createHelixScene(),
-  mesh: () => createMeshScene(),
-  piston: () => pistonScene(),
-  joint: () => createJointScene(),
-  suspension: () => createSuspensionScene(),
-  pinball: () => createPinballScene(),
-  gears: () => createGearScene(),
-  gjk: () => createGjkScene(),
-  toi: () => createToiScene(),
-  epa: () => createEpaScene(),
-  warm: () => createWarmScene(),
-  manifold: () => createManifoldScene(),
-};
+let example: ExampleInterface;
+let profiler = container.get(Profiler);
+let world = container.get(World);
+let control = new MouseControl(world, projMat);
+control.attach(canvas);
 
-let control: MouseControl;
-let sceneId: string = '';
-
-merge(
-  fromEvent(document.getElementById('chain'), 'click').pipe(
-    map((e) => e.srcElement['id'])
-  ),
-  fromEvent(document.getElementById('pendulum'), 'click').pipe(
-    map((e) => e.srcElement['id'])
-  ),
-  fromEvent(document.getElementById('stairs'), 'click').pipe(
-    map((e) => e.srcElement['id'])
-  ),
-  fromEvent(document.getElementById('stack'), 'click').pipe(
-    map((e) => e.srcElement['id'])
-  ),
-  fromEvent(document.getElementById('gauss'), 'click').pipe(
-    map((e) => e.srcElement['id'])
-  ),
-  fromEvent(document.getElementById('joint'), 'click').pipe(
-    map((e) => e.srcElement['id'])
-  ),
-  fromEvent(document.getElementById('suspension'), 'click').pipe(
-    map((e) => e.srcElement['id'])
-  ),
-  fromEvent(document.getElementById('piston'), 'click').pipe(
-    map((e) => e.srcElement['id'])
-  ),
-  fromEvent(document.getElementById('helix'), 'click').pipe(
-    map((e) => e.srcElement['id'])
-  ),
-  fromEvent(document.getElementById('mesh'), 'click').pipe(
-    map((e) => e.srcElement['id'])
-  ),
-  fromEvent(document.getElementById('pinball'), 'click').pipe(
-    map((e) => e.srcElement['id'])
-  ),
-  fromEvent(document.getElementById('gears'), 'click').pipe(
-    map((e) => e.srcElement['id'])
-  ),
-  fromEvent(document.getElementById('gjk'), 'click').pipe(
-    map((e) => e.srcElement['id'])
-  ),
-  fromEvent(document.getElementById('toi'), 'click').pipe(
-    map((e) => e.srcElement['id'])
-  ),
-  fromEvent(document.getElementById('epa'), 'click').pipe(
-    map((e) => e.srcElement['id'])
-  ),
-  fromEvent(document.getElementById('warm'), 'click').pipe(
-    map((e) => e.srcElement['id'])
-  ),
-  fromEvent(document.getElementById('manifold'), 'click').pipe(
-    map((e) => e.srcElement['id'])
-  ),
-
-  of('piston')
-)
+fromEvent(self.document.querySelectorAll('.nav-link'), 'click')
   .pipe(
-    tap((id) => {
-      document
-        .querySelectorAll('.nav-link')
-        .forEach((e) => e.classList.remove('active'));
-
-      document.getElementById(id).classList.add('active');
-    })
+    map((e: MouseEvent) => (e.target as HTMLAnchorElement).id),
+    startWith('joint')
   )
   .subscribe((id) => {
-    if (control) {
-      control.release();
+    document
+      .querySelectorAll('.nav-link')
+      .forEach((e) => e.classList.remove('active'));
+    document.getElementById(id).classList.add('active');
+
+    if (example) {
+      example.uninstall();
     }
-    world.dispose();
-    lookup[(sceneId = id)]();
-    control = new MouseControl(world, projMat);
-    control.attach(canvas);
+    example = container.get(id);
+    example.install();
   });
 
-let dt = 1.0 / 60.0;
-const profiler = new Profiler();
+const dt = 1.0 / 60.0;
 
-let lastFrameTime = performance.now();
+animationFrames().subscribe(() => {
+  clear();
 
-animationFrames().subscribe((ts) => {
   profiler.begin('step');
   world.step(dt);
   profiler.end('step');
 
-  clear();
-
-  if (sceneId === 'gjk') {
-    gjkTest(world);
-  } else if (sceneId === 'toi') {
-    toiTest(world, dt);
-  } else if (sceneId === 'epa') {
-    epaTest(world);
-  } else if (sceneId === 'manifold') {
-    manifoldTest(world, control);
-  }
-
   profiler.begin('draw');
   drawWorld(world);
   profiler.end('draw');
-
-  let now = performance.now();
-  // dt = (now - lastFrameTime) * 1.0e-3;
-  lastFrameTime = now;
 });
 
 profiler.listen('draw', 'step').subscribe((e) => {

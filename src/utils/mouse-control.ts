@@ -28,8 +28,8 @@ export class MouseControl implements MouseControlInterface {
 
   release(): void {
     this.canvas.removeEventListener('mousedown', this.onMouseDownHandler);
-    this.canvas.removeEventListener('mousemove', this.onMouseMoveHandler);
-    this.canvas.removeEventListener('mouseup', this.onMouseUpHandler);
+    self.document.removeEventListener('mousemove', this.onMouseMoveHandler);
+    self.document.removeEventListener('mouseup', this.onMouseUpHandler);
   }
 
   getCursorPosition(): Readonly<vec2> {
@@ -46,8 +46,8 @@ export class MouseControl implements MouseControlInterface {
       return;
     }
 
-    this.canvas.addEventListener('mouseup', this.onMouseUpHandler);
-    this.canvas.addEventListener('mousemove', this.onMouseMoveHandler);
+    self.document.addEventListener('mouseup', this.onMouseUpHandler);
+    self.document.addEventListener('mousemove', this.onMouseMoveHandler);
 
     vec2.copy(this.locked, point);
     vec2.copy(this.cursor, point);
@@ -64,8 +64,8 @@ export class MouseControl implements MouseControlInterface {
   }
 
   private onMouseUp() {
-    this.canvas.removeEventListener('mouseup', this.onMouseUpHandler);
-    this.canvas.removeEventListener('mousemove', this.onMouseMoveHandler);
+    self.document.removeEventListener('mouseup', this.onMouseUpHandler);
+    self.document.removeEventListener('mousemove', this.onMouseMoveHandler);
     this.world.removeJoint(this.joint);
     this.joint = this.body = null;
   }

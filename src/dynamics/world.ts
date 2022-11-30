@@ -327,18 +327,14 @@ export class World {
           this.bodyForce,
           this.bodyForce,
           body.velocity,
-          -this.settings.defaultDamping * vec2.length(body.velocity)
+          -this.settings.defaultDamping
         );
       }
 
       body.force = this.bodyForce;
 
       if (this.settings.defaultAngularDamping) {
-        body.torque -=
-          this.settings.defaultAngularDamping *
-          body.omega *
-          body.omega *
-          Math.sign(body.omega);
+        body.torque -= this.settings.defaultAngularDamping * body.omega;
       }
     }
   }
