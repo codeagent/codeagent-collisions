@@ -1,6 +1,6 @@
 {
   "name": "js-physics-2d",
-  "version": "0.0.0",
+  "version": "0.0.0-alpha",
   "private": false,
   "main": "./dist/cjs/index.js",
   "module": "./dist/esm/index.js",
@@ -27,7 +27,7 @@
     "build:types": "npx tsc -p tsconfig.types.json",
     "build:bundle": "npx rollup -c --bundleConfigAsCjs",
     "start": "npx rollup -c --watch --bundleConfigAsCjs --environment BUILD:development",
-    "test": "jest"
+    "test": "npx jest"
   },
   "devDependencies": {
     "@jest/globals": "^29.3.1",

@@ -19,10 +19,13 @@ type TypedArrayConstructor =
 export class Stack {
   public readonly size: number = 0;
   private readonly stack: StackEntry<ArrayBufferView>[] = [];
+  private readonly end: number = 0;
   private offset: number = 0;
 
   constructor(public readonly buffer: Uint8Array) {
-    this.size = this.buffer.length;
+    this.size = buffer.length;
+    this.offset = buffer.byteOffset;
+    this.end = buffer.byteOffset + buffer.length;
   }
 
   pushInt8(length: number): Int8Array {
@@ -58,11 +61,7 @@ export class Stack {
   }
 
   pop(count: number = 1): void {
-    while (count > 0) {
-      if (this.stack.length === 0) {
-        throw new Error('Stack.pop: Stack is empty');
-      }
-
+    while (count > 0 && this.stack.length > 0) {
       const entry = this.stack.pop();
       this.offset -= entry.size;
       count--;
@@ -71,7 +70,8 @@ export class Stack {
 
   clear(): void {
     this.stack.length = 0;
-    this.offset = 0;
+    this.offset = this.buffer.byteOffset;
+    this.buffer.fill(0);
   }
 
   dump(): StackEntry<ArrayBufferView>[] {
@@ -84,8 +84,8 @@ export class Stack {
   ): T {
     const bytes = length * type.BYTES_PER_ELEMENT;
 
-    if (bytes + this.offset > this.size) {
-      const free = this.size - this.offset;
+    if (bytes + this.offset > this.end) {
+      const free = this.end - this.offset;
       throw new Error(
         `Stack.push: Not enough memory to allocate, requested: ${bytes}, free: ${free} bytes`
       );
