@@ -1,5 +1,5 @@
-import { vec2 } from 'gl-matrix';
 import { World, Settings, Box, Collider, Body, Circle } from 'js-physics-2d';
+import { vec2 } from 'gl-matrix';
 import { Inject, Service } from 'typedi';
 import { ExampleInterface } from './example.interface';
 

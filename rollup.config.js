@@ -44,9 +44,9 @@ export default process.env.BUILD !== 'development'
       context: 'self',
       onwarn,
       output: {
-        file: 'examples/public/bundle.js',
-        format: 'iife',
-        sourcemap: 'inline',
+        dir: 'dist/examples',
+        format: 'es',
+        sourcemap: true,
       },
       plugins: [
         string({
@@ -60,7 +60,7 @@ export default process.env.BUILD !== 'development'
         serve({
           verbose: false,
           open: true,
-          contentBase: ['examples/public'],
+          contentBase: ['examples/public', 'dist/examples'],
         }),
         livereload(),
       ],

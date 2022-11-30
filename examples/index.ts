@@ -1,50 +1,49 @@
 /// <reference path="./declarations.d.ts" />
 
 import { animationFrames, fromEvent } from 'rxjs';
+import { Constructable } from 'typedi';
 import { configureContainer, MouseControl, World } from 'js-physics-2d';
-import { map, startWith } from 'rxjs/operators';
+import { map, startWith, switchMap, tap } from 'rxjs/operators';
 
 import { Profiler, canvas, clear, drawWorld, projMat } from './services';
-
-import { ChainExample } from './chain.example';
 import { ExampleInterface } from './example.interface';
-import { PendulumExample } from './pendulum.example';
-import { StairsExample } from './stairs.example';
-import { StackExample } from './stack.example';
-import { GaussExample } from './gauss.example';
-import { JointExample } from './joint.example';
-import { SuspensionExample } from './suspension.example';
-import { HelixExample } from './helix.example';
-import { PistonExample } from './piston.example';
-import { MeshExample } from './mesh.example';
-import { PinballExample } from './pinball.example';
-import { GearsExample } from './gears.example';
-import { GjkExample } from './gjk.example';
-import { ToiExample } from './toi.example';
-import { EpaExample } from './epa.example';
-import { CcdExample } from './ccd.example';
-import { ManifoldExample } from './manifold.example';
 
-const container = configureContainer({
-  islandGenerator: 'sole',
-});
-container.set({ id: 'chain', type: ChainExample });
-container.set({ id: 'pendulum', type: PendulumExample });
-container.set({ id: 'stairs', type: StairsExample });
-container.set({ id: 'stack', type: StackExample });
-container.set({ id: 'gauss', type: GaussExample });
-container.set({ id: 'joint', type: JointExample });
-container.set({ id: 'suspension', type: SuspensionExample });
-container.set({ id: 'helix', type: HelixExample });
-container.set({ id: 'piston', type: PistonExample });
-container.set({ id: 'mesh', type: MeshExample });
-container.set({ id: 'pinball', type: PinballExample });
-container.set({ id: 'gears', type: GearsExample });
-container.set({ id: 'gjk', type: GjkExample });
-container.set({ id: 'toi', type: ToiExample });
-container.set({ id: 'epa', type: EpaExample });
-container.set({ id: 'ccd', type: CcdExample });
-container.set({ id: 'manifold', type: ManifoldExample });
+const container = configureContainer({});
+
+const examples: Record<string, () => Promise<Constructable<ExampleInterface>>> =
+  {
+    chain: () => import('./chain.example').then((e) => e['ChainExample']),
+    pendulum: () =>
+      import('./pendulum.example').then((e) => e['PendulumExample']),
+    stairs: () => import('./stairs.example').then((e) => e['StairsExample']),
+    stack: () => import('./stack.example').then((e) => e['StackExample']),
+    gauss: () => import('./gauss.example').then((e) => e['GaussExample']),
+    joint: () => import('./joint.example').then((e) => e['JointExample']),
+    suspension: () =>
+      import('./suspension.example').then((e) => e['SuspensionExample']),
+    helix: () => import('./helix.example').then((e) => e['HelixExample']),
+    piston: () => import('./piston.example').then((e) => e['PistonExample']),
+    mesh: () => import('./mesh.example').then((e) => e['MeshExample']),
+    pinball: () => import('./pinball.example').then((e) => e['PinballExample']),
+    gears: () => import('./gears.example').then((e) => e['GearsExample']),
+    gjk: () => import('./gjk.example').then((e) => e['GjkExample']),
+    toi: () => import('./toi.example').then((e) => e['ToiExample']),
+    epa: () => import('./epa.example').then((e) => e['EpaExample']),
+    ccd: () => import('./ccd.example').then((e) => e['CcdExample']),
+    manifold: () =>
+      import('./manifold.example').then((e) => e['ManifoldExample']),
+  };
+
+type ExampleId = keyof typeof examples;
+
+const loadExample = async (id: ExampleId): Promise<ExampleInterface> => {
+  if (container.has(id)) {
+    return Promise.resolve(container.get<ExampleInterface>(id));
+  }
+  return examples[id]().then((type: Constructable<ExampleInterface>) =>
+    container.set({ id, type }).get(type)
+  );
+};
 
 let example: ExampleInterface;
 let profiler = container.get(Profiler);
@@ -55,18 +54,20 @@ control.attach(canvas);
 fromEvent(self.document.querySelectorAll('.nav-link'), 'click')
   .pipe(
     map((e: MouseEvent) => (e.target as HTMLAnchorElement).id),
-    startWith('joint')
+    startWith('joint'),
+    tap((id) => {
+      document
+        .querySelectorAll('.nav-link')
+        .forEach((e) => e.classList.remove('active'));
+      document.getElementById(id).classList.add('active');
+    }),
+    switchMap((id: ExampleId) => loadExample(id))
   )
-  .subscribe((id) => {
-    document
-      .querySelectorAll('.nav-link')
-      .forEach((e) => e.classList.remove('active'));
-    document.getElementById(id).classList.add('active');
-
+  .subscribe((e) => {
     if (example) {
       example.uninstall();
     }
-    example = container.get(id);
+    example = e;
     example.install();
   });
 
