@@ -1,6 +1,6 @@
 {
   "name": "js-physics-2d",
-  "version": "0.0.1-alpha.0",
+  "version": "0.0.1-alpha.1",
   "private": false,
   "main": "./dist/cjs/index.js",
   "module": "./dist/esm/index.js",
@@ -20,7 +20,11 @@
     "url": "https://github.com/codeagent/js-physics-2d.git"
   },
   "files": [
-    "dist/*",
+    "dist/bundle/*",
+    "dist/cjs/*",
+    "dist/esm/*",
+    "dist/esm5/*",
+    "dist/types/*",
     "README.md",
     "LICENSE",
     "package.json"
