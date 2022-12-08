@@ -33,7 +33,7 @@ export class MouseYConstraint extends ConstraintBase {
   }
 
   getPushFactor(dt: number, strength: number): number {
-    vec2.copy(this.cursor, this.control.getCursorPosition());
+    this.control.getCursorPosition(this.cursor);
     vec2.transformMat3(this.pa, this.joint, this.bodyA.transform);
 
     return -((this.pa[1] - this.cursor[1]) / dt) * this.stiffness;

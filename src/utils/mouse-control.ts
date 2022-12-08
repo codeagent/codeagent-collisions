@@ -32,8 +32,8 @@ export class MouseControl implements MouseControlInterface {
     self.document.removeEventListener('mouseup', this.onMouseUpHandler);
   }
 
-  getCursorPosition(): Readonly<vec2> {
-    return this.cursor;
+  getCursorPosition(out: vec2): Readonly<vec2> {
+    return vec2.copy(out, this.cursor);
   }
 
   private onMouseDown(e: MouseEvent) {

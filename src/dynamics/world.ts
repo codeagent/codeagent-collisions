@@ -243,7 +243,7 @@ export class World {
     this.detector.registerCollider(collider);
 
     for (const body of this.bodies) {
-      if (body.collider !== collider) {
+      if (body.collider && body.collider !== collider) {
         this.registry.registerPair(
           new Pair(
             body.collider,

@@ -19,15 +19,10 @@ import {
 } from 'js-physics-2d';
 import { Events } from 'js-physics-2d/events';
 import { Inject, Service } from 'typedi';
-import { drawContact, drawDot } from './services/draw';
+
 import { ExampleInterface } from './example.interface';
 import GEARS from './objects/gears.obj';
-import {
-  BLUISH_COLOR,
-  drawLineSegment,
-  LINE_COLOR,
-  REDISH_COLOR,
-} from './services/draw';
+import { RendererInterface, RENDERER_TOKEN } from './services';
 
 @Service()
 export class ManifoldExample implements ExampleInterface {
@@ -36,6 +31,7 @@ export class ManifoldExample implements ExampleInterface {
   constructor(
     @Inject('SETTINGS') private readonly settings: Settings,
     @Inject('NARROW_PHASE') private readonly narrowPhase: NarrowPhaseInterface,
+    @Inject(RENDERER_TOKEN) private readonly renderer: RendererInterface,
     private readonly world: World
   ) {}
 
@@ -131,8 +127,8 @@ export class ManifoldExample implements ExampleInterface {
       }
     }
 
-    Array.from(this.narrowPhase.detectContacts(pairs as any)).forEach((c) =>
-      drawContact(c)
-    );
+    // Array.from(this.narrowPhase.detectContacts(pairs as any)).forEach((c) =>
+    //   this.renderer.renderJoint(c)
+    // );
   }
 }

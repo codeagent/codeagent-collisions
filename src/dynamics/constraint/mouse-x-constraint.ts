@@ -8,6 +8,7 @@ import { MouseControlInterface } from '../joint';
 export class MouseXConstraint extends ConstraintBase {
   private readonly pa = vec2.create();
   private readonly ra = vec2.create();
+
   private readonly cursor = vec2.create();
 
   constructor(
@@ -33,7 +34,7 @@ export class MouseXConstraint extends ConstraintBase {
   }
 
   getPushFactor(dt: number, strength: number): number {
-    vec2.copy(this.cursor, this.control.getCursorPosition());
+    this.control.getCursorPosition(this.cursor);
     vec2.transformMat3(this.pa, this.joint, this.bodyA.transform);
 
     return -((this.pa[0] - this.cursor[0]) / dt) * this.stiffness;

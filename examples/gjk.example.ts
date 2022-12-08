@@ -15,16 +15,9 @@ import {
 } from 'js-physics-2d';
 import { Events } from 'js-physics-2d/events';
 import { Inject, Service } from 'typedi';
-import { drawDot } from './services/draw';
-import { ExampleInterface } from './example.interface';
 
-import {
-  BLUISH_COLOR,
-  drawLineSegment,
-  drawText,
-  LINE_COLOR,
-  REDISH_COLOR,
-} from './services/draw';
+import { ExampleInterface } from './example.interface';
+import { RendererInterface, RENDERER_TOKEN } from './services';
 
 @Service()
 export class GjkExample implements ExampleInterface {
@@ -43,6 +36,7 @@ export class GjkExample implements ExampleInterface {
 
   constructor(
     @Inject('SETTINGS') private readonly settings: Settings,
+    @Inject(RENDERER_TOKEN) private readonly renderer: RendererInterface,
     private readonly world: World
   ) {}
 
@@ -107,15 +101,15 @@ export class GjkExample implements ExampleInterface {
         this.drawClosestPoints(this.point0, this.point1);
         vec2.add(this.point0, this.point0, this.point1);
         vec2.scale(this.point0, this.point0, 0.5);
-        drawText(`${dist.toFixed(2)}`, this.point0);
+        // drawText(`${dist.toFixed(2)}`, this.point0);
       }
     }
   }
 
   private drawClosestPoints(point0: vec2, point1: vec2) {
-    drawDot(point0, REDISH_COLOR);
-    drawDot(point1, BLUISH_COLOR);
-    drawLineSegment([point0, point1], LINE_COLOR);
+    // drawDot(point0, REDISH_COLOR);
+    // drawDot(point1, BLUISH_COLOR);
+    // drawLineSegment([point0, point1], LINE_COLOR);
   }
 
   private getClosestPoints(

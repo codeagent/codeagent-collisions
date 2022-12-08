@@ -17,15 +17,10 @@ import {
 } from 'js-physics-2d';
 import { Events } from 'js-physics-2d/events';
 import { Inject, Service } from 'typedi';
-import { drawDot } from './services/draw';
+
 import { ExampleInterface } from './example.interface';
 import GEARS from './objects/gears.obj';
-import {
-  BLUISH_COLOR,
-  drawLineSegment,
-  LINE_COLOR,
-  REDISH_COLOR,
-} from './services/draw';
+import { RendererInterface, RENDERER_TOKEN } from './services';
 
 @Service()
 export class EpaExample implements ExampleInterface {
@@ -45,6 +40,7 @@ export class EpaExample implements ExampleInterface {
 
   constructor(
     @Inject('SETTINGS') private readonly settings: Settings,
+    @Inject(RENDERER_TOKEN) private readonly renderer: RendererInterface,
     private readonly world: World
   ) {}
 
@@ -144,9 +140,9 @@ export class EpaExample implements ExampleInterface {
   }
 
   private drawContactPoints(point0: vec2, point1: vec2) {
-    drawDot(point0, REDISH_COLOR);
-    drawDot(point1, BLUISH_COLOR);
-    drawLineSegment([point0, point1], LINE_COLOR);
+    // drawDot(point0, REDISH_COLOR);
+    // drawDot(point1, BLUISH_COLOR);
+    // drawLineSegment([point0, point1], LINE_COLOR);
   }
 
   private getContactPoints(
@@ -203,13 +199,13 @@ export class EpaExample implements ExampleInterface {
   }
 
   private drawSimplex(simplex: Set<vec2>) {
-    const points = [...simplex];
-    for (let i = 0; i < points.length; i++) {
-      const w0 = points[i];
-      const w1 = points[(i + 1) % points.length];
-      drawDot(w0, BLUISH_COLOR);
+    // const points = [...simplex];
+    // for (let i = 0; i < points.length; i++) {
+    //   const w0 = points[i];
+    //   const w1 = points[(i + 1) % points.length];
+    //   drawDot(w0, BLUISH_COLOR);
 
-      drawLineSegment([w0, w1], LINE_COLOR);
-    }
+    //   drawLineSegment([w0, w1], LINE_COLOR);
+    // }
   }
 }

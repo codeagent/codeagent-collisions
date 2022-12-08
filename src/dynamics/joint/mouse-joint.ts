@@ -6,7 +6,7 @@ import { MouseXConstraint, MouseYConstraint } from '../constraint';
 import { Body } from '../body';
 
 export interface MouseControlInterface {
-  getCursorPosition(): Readonly<vec2>;
+  getCursorPosition(out: vec2): Readonly<vec2>;
 }
 
 export class MouseJoint implements JointInterface {

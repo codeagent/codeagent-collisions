@@ -19,6 +19,12 @@
     "type": "git",
     "url": "https://github.com/codeagent/js-physics-2d.git"
   },
+  "files": [
+    "dist/*",
+    "README.md",
+    "LICENSE",
+    "package.json"
+  ],
   "scripts": {
     "build:clean": "npx rimraf dist",
     "build:esm": "npx tsc -p tsconfig.esm.json",
@@ -26,8 +32,9 @@
     "build:cjs": "npx tsc -p tsconfig.cjs.json",
     "build:types": "npx tsc -p tsconfig.types.json",
     "build:bundle": "npx rollup -c --bundleConfigAsCjs",
-    "start": "npx rollup -c --watch --bundleConfigAsCjs --environment BUILD:development",
-    "test": "npx jest"
+    "start": "npm run build:clean && npx rollup -c --watch --bundleConfigAsCjs --environment BUILD:development",
+    "test": "npx jest",
+    "compile:examples": "node ./scripts/compile-examples.js"
   },
   "devDependencies": {
     "@jest/globals": "^29.3.1",

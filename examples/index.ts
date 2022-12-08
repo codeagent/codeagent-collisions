@@ -1,54 +1,43 @@
 /// <reference path="./declarations.d.ts" />
 
-import { animationFrames, fromEvent } from 'rxjs';
-import { Constructable } from 'typedi';
-import { configureContainer, MouseControl, World } from 'js-physics-2d';
+import { animationFrames, fromEvent, interval } from 'rxjs';
+import {
+  configureContainer,
+  defaultSettings,
+  MouseControl,
+  World,
+} from 'js-physics-2d';
 import { map, startWith, switchMap, tap } from 'rxjs/operators';
 
-import { Profiler, canvas, clear, drawWorld, projMat } from './services';
+import {
+  Profiler,
+  ExampleLoader,
+  RendererInterface,
+  Canvas2DRenderer,
+  EXAMPLES_TOKEN,
+  EXAMPLES,
+  RENDERER_TOKEN,
+  CONTAINER_TOKEN,
+  COLORS_TOKEN,
+  COLORS,
+} from './services';
 import { ExampleInterface } from './example.interface';
+import { vec2 } from 'gl-matrix';
 
 const container = configureContainer({});
-
-const examples: Record<string, () => Promise<Constructable<ExampleInterface>>> =
-  {
-    chain: () => import('./chain.example').then((e) => e['ChainExample']),
-    pendulum: () =>
-      import('./pendulum.example').then((e) => e['PendulumExample']),
-    stairs: () => import('./stairs.example').then((e) => e['StairsExample']),
-    stack: () => import('./stack.example').then((e) => e['StackExample']),
-    gauss: () => import('./gauss.example').then((e) => e['GaussExample']),
-    joint: () => import('./joint.example').then((e) => e['JointExample']),
-    suspension: () =>
-      import('./suspension.example').then((e) => e['SuspensionExample']),
-    helix: () => import('./helix.example').then((e) => e['HelixExample']),
-    piston: () => import('./piston.example').then((e) => e['PistonExample']),
-    mesh: () => import('./mesh.example').then((e) => e['MeshExample']),
-    pinball: () => import('./pinball.example').then((e) => e['PinballExample']),
-    gears: () => import('./gears.example').then((e) => e['GearsExample']),
-    gjk: () => import('./gjk.example').then((e) => e['GjkExample']),
-    toi: () => import('./toi.example').then((e) => e['ToiExample']),
-    epa: () => import('./epa.example').then((e) => e['EpaExample']),
-    ccd: () => import('./ccd.example').then((e) => e['CcdExample']),
-    manifold: () =>
-      import('./manifold.example').then((e) => e['ManifoldExample']),
-  };
-
-type ExampleId = keyof typeof examples;
-
-const loadExample = async (id: ExampleId): Promise<ExampleInterface> => {
-  if (container.has(id)) {
-    return Promise.resolve(container.get<ExampleInterface>(id));
-  }
-  return examples[id]().then((type: Constructable<ExampleInterface>) =>
-    container.set({ id, type }).get(type)
-  );
-};
+container.set({ id: EXAMPLES_TOKEN, value: EXAMPLES });
+container.set({ id: RENDERER_TOKEN, type: Canvas2DRenderer });
+container.set({ id: CONTAINER_TOKEN, value: container });
+container.set({ id: COLORS_TOKEN, value: COLORS });
 
 let example: ExampleInterface;
-let profiler = container.get(Profiler);
-let world = container.get(World);
-let control = new MouseControl(world, projMat);
+const canvas = document.getElementById('canvas') as HTMLCanvasElement;
+const profiler = container.get(Profiler);
+const world = container.get(World);
+const loader = container.get(ExampleLoader);
+const renderer = container.get<RendererInterface>(RENDERER_TOKEN);
+renderer.of(canvas);
+const control = new MouseControl(world, renderer.projectionMatrix, 0.95, 1.0e4);
 control.attach(canvas);
 
 fromEvent(self.document.querySelectorAll('.nav-link'), 'click')
@@ -61,7 +50,7 @@ fromEvent(self.document.querySelectorAll('.nav-link'), 'click')
         .forEach((e) => e.classList.remove('active'));
       document.getElementById(id).classList.add('active');
     }),
-    switchMap((id: ExampleId) => loadExample(id))
+    switchMap((id: string) => loader.loadExample(id))
   )
   .subscribe((e) => {
     if (example) {
@@ -69,23 +58,27 @@ fromEvent(self.document.querySelectorAll('.nav-link'), 'click')
     }
     example = e;
     example.install();
+    // Object.assign(world.settings, defaultSettings);
   });
 
 const dt = 1.0 / 60.0;
+let statistics = '';
+const statisitcsPos = vec2.fromValues(-14.7, 9.5);
 
-animationFrames().subscribe(() => {
-  clear();
-
+interval(dt * 1000).subscribe(() => {
   profiler.begin('step');
   world.step(dt);
   profiler.end('step');
+});
 
+animationFrames().subscribe(() => {
   profiler.begin('draw');
-  drawWorld(world);
+  renderer.clear();
+  renderer.renderWorld(world);
+  renderer.renderText(statistics, statisitcsPos);
   profiler.end('draw');
 });
 
 profiler.listen('draw', 'step').subscribe((e) => {
-  document.getElementById('step').innerHTML = `${e.step.toFixed(2)}`;
-  document.getElementById('draw').innerHTML = `${e.draw.toFixed(2)}`;
+  statistics = `Draw: ${e.draw?.toFixed(2)}ms | Step: ${e.step?.toFixed(2)}ms`;
 });

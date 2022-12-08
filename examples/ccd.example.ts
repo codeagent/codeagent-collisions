@@ -30,7 +30,7 @@ export class CcdExample implements ExampleInterface {
       vec2.fromValues(0.0, -9),
       0.0
     );
-    this.world.addCollider(new Collider(body, new Box(20, 1.1)));
+    this.world.addCollider(new Collider(body, new Box(20, 0.1)));
 
     const omega = Math.PI * 1.0;
     const velocity = vec2.fromValues(0.0, -10000.0);

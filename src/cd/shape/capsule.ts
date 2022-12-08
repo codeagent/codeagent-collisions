@@ -20,8 +20,8 @@ export class Capsule extends Polygon {
   testPoint(point: vec2): boolean {
     const bary = vec2.create();
     const closest = vec2.create();
-    const p0 = vec2.fromValues(0, -this.height);
-    const p1 = vec2.fromValues(0, this.height);
+    const p0 = vec2.fromValues(0, -this.height * 0.5);
+    const p1 = vec2.fromValues(0, this.height * 0.5);
     closestPointToLineSegment(bary, p0, p1, point);
     fromBarycentric(closest, bary, p0, p1);
 

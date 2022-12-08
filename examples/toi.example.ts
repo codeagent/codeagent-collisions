@@ -16,10 +16,10 @@ import {
 } from 'js-physics-2d';
 import { Events } from 'js-physics-2d/events';
 import { Inject, Service } from 'typedi';
-import { drawBody, drawCapsuleShape } from './services/draw';
+
 import { ExampleInterface } from './example.interface';
 import GEARS from './objects/gears.obj';
-import { BLUISH_COLOR, LINE_COLOR } from './services/draw';
+import { RendererInterface, RENDERER_TOKEN } from './services';
 
 @Service()
 export class ToiExample implements ExampleInterface {
@@ -31,6 +31,7 @@ export class ToiExample implements ExampleInterface {
 
   constructor(
     @Inject('SETTINGS') private readonly settings: Settings,
+    @Inject(RENDERER_TOKEN) private readonly renderer: RendererInterface,
     private readonly world: World,
     private readonly clock: Clock
   ) {}
@@ -134,13 +135,15 @@ export class ToiExample implements ExampleInterface {
     mat3.fromTranslation(transform, p1);
     mat3.rotate(transform, transform, -angle);
     mat3.translate(transform, transform, vec2.fromValues(0, -extend * 0.5));
-    drawCapsuleShape(
-      body.collider.shape.radius,
-      extend * 0.5,
-      transform,
-      LINE_COLOR,
-      false
-    );
+
+    // this.renderer.renderC
+    // drawCapsuleShape(
+    //   body.collider.shape.radius,
+    //   extend * 0.5,
+    //   transform,
+    //   LINE_COLOR,
+    //   false
+    // );
   }
 
   private drawBodiesImpact(body0: Body, body1: Body, dt: number) {
@@ -164,7 +167,7 @@ export class ToiExample implements ExampleInterface {
     if (toi < 1) {
       const transform = mat3.create();
       this.lerp(transform, body0, dt * toi);
-      drawBody(body0, BLUISH_COLOR, transform);
+      this.renderer.renderBody(body0);
     }
 
     this.drawSweptVolume(body0, dt);
