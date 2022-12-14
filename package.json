@@ -1,11 +1,10 @@
 {
   "name": "js-physics-2d",
-  "version": "0.0.1-alpha.1",
+  "version": "0.0.1-alpha.6",
   "private": false,
   "main": "./dist/cjs/index.js",
   "module": "./dist/esm/index.js",
-  "browser": "./dist/bundle/js-physics-2d.js",
-  "typings": "./dist/typings/index.d.ts",
+  "typings": "./dist/types/index.d.ts",
   "author": "i.aleksey.yakovlev@gmail.com",
   "description": "2D rigid body physics for JavaScript and Typescript",
   "license": "MIT",
