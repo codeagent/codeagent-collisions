@@ -11,6 +11,7 @@ export * from './math';
 export * from './utils';
 export * from './settings';
 export * from './di';
+export * from './events';
 
 export const createWorld = (settings: Partial<Settings> = {}): World => {
   return configureContainer(settings).get(World);
