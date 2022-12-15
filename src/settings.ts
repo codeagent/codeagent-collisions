@@ -17,9 +17,7 @@ export interface Settings {
   defaultAngularDamping: number; // todo:
 
   // Solver
-  solverPositionIterations: number;
-  solverVelocityIterations: number;
-  solverMaxIterations: number; // do not use this setting. It will be changed by other parts during simulation
+  solverIterations: number;
 
   // Island
   islandGenerator: 'local' | 'sole';
@@ -56,15 +54,13 @@ export const defaultSettings: Settings = {
   maxBodiesNumber: 512,
   maxConstraintsNumber: 4096,
   gravity: vec2.fromValues(0.0, -9.8),
-  totalReservedMemory: 16e6,    // 16mb
+  totalReservedMemory: 16e6, // 16mb
   defaultPushFactor: 0.0125,
   defaultFriction: 0.5,
   defaultRestitution: 0.5,
   defaultDamping: 0.005,
   defaultAngularDamping: 0.05,
-  solverPositionIterations: 10,
-  solverVelocityIterations: 10,
-  solverMaxIterations: 10,
+  solverIterations: 10,
   islandGenerator: 'local',
   contactProximityThreshold: 5e-3, // 5mm
   contactConstraintSlop: 5.0e-3, // 5 mm

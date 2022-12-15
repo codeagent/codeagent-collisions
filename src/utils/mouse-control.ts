@@ -67,6 +67,7 @@ export class MouseControl implements MouseControlInterface {
     self.document.removeEventListener('mouseup', this.onMouseUpHandler);
     self.document.removeEventListener('mousemove', this.onMouseMoveHandler);
     this.world.removeJoint(this.joint);
+
     this.joint = this.body = null;
   }
 

@@ -1,12 +1,7 @@
 /// <reference path="./declarations.d.ts" />
 
 import { animationFrames, fromEvent, interval } from 'rxjs';
-import {
-  configureContainer,
-  defaultSettings,
-  MouseControl,
-  World,
-} from 'js-physics-2d';
+import { configureContainer, MouseControl, World } from 'js-physics-2d';
 import { map, startWith, switchMap, tap } from 'rxjs/operators';
 
 import {
@@ -37,7 +32,7 @@ const world = container.get(World);
 const loader = container.get(ExampleLoader);
 const renderer = container.get<RendererInterface>(RENDERER_TOKEN);
 renderer.of(canvas);
-const control = new MouseControl(world, renderer.projectionMatrix, 0.95, 1.0e4);
+const control = new MouseControl(world, renderer.projectionMatrix, 1.0, 1.0e3);
 control.attach(canvas);
 
 fromEvent(self.document.querySelectorAll('.nav-link'), 'click')

@@ -22,10 +22,6 @@ export class JointExample implements ExampleInterface {
     this.settings.defaultRestitution = 0.35;
     this.settings.defaultPushFactor = 0.65;
     this.settings.defaultFriction = 0.05;
-    // this.settings.defaultDamping = 1.0;
-    // this.settings.defaultAngularDamping = 1.0;
-    this.settings.solverPositionIterations = 10;
-    this.settings.solverVelocityIterations = 10;
 
     this.createJoints();
   }

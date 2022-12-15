@@ -288,7 +288,6 @@ export class ConstraintsSolver implements ConstraintsSolverInterface {
     VxSpVxS(this.bt1, this.v1, 1.0 / dt, this.b, -1.0);
 
     // positions
-    this.settings.solverMaxIterations = this.settings.solverPositionIterations;
     this.linearEquationsSolver.solve(
       this.lambdas0,
       A,
@@ -298,7 +297,6 @@ export class ConstraintsSolver implements ConstraintsSolverInterface {
     );
 
     // velocities
-    this.settings.solverMaxIterations = this.settings.solverVelocityIterations;
     this.linearEquationsSolver.solve(
       this.lambdas1,
       A,
@@ -310,7 +308,7 @@ export class ConstraintsSolver implements ConstraintsSolverInterface {
     MtxV(outForces0, this.J, this.lambdas0);
     MtxV(outForces1, this.J, this.lambdas1);
 
-    for (let j = 0, m = this.constraints.length; j < m; j++) {
+    for (let j = 0; j < this.rows; j++) {
       this.constraints[j].setCache(0, this.lambdas0[j]);
       this.constraints[j].setCache(1, this.lambdas1[j]);
     }

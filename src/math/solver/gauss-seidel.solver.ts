@@ -16,13 +16,6 @@ export class GaussSeidelSolver implements LinearEquationsSolverInterface {
     min: Readonly<Float32Array>,
     max: Readonly<Float32Array>
   ): void {
-    projectedGaussSeidel(
-      out,
-      A,
-      b,
-      min,
-      max,
-      this.settings.solverMaxIterations
-    );
+    projectedGaussSeidel(out, A, b, min, max, this.settings.solverIterations);
   }
 }
