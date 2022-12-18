@@ -38,7 +38,7 @@ control.attach(canvas);
 fromEvent(self.document.querySelectorAll('.nav-link'), 'click')
   .pipe(
     map((e: MouseEvent) => (e.target as HTMLAnchorElement).id),
-    startWith('joint'),
+    startWith('chain'),
     tap((id) => {
       document
         .querySelectorAll('.nav-link')

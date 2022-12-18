@@ -16,30 +16,29 @@ import {
   MxDxMt,
   LinearEquationsSolverInterface,
   Matrix,
+  negate,
 } from '../../math';
 
 import { Memory, Stack } from '../../utils';
 
+const KS = 15.0;
+const KD = 15.0;
+
 @Service()
-export class ConstraintsSolver implements ConstraintsSolverInterface {
+export class ConstraintsSolver2 implements ConstraintsSolverInterface {
   private positions: Float32Array;
   private velocities: Float32Array;
   private forces: Float32Array;
   private invMasses: Float32Array;
   private accelerations: Float32Array;
-  private c0Forces: Float32Array;
-  private cvForces: Float32Array;
-  private tmpForces: Float32Array;
-  private tmpVelocities: Float32Array;
-  private v0: Float32Array;
-  private v1: Float32Array;
+  private cForces: Float32Array;
   private cMin: Float32Array;
   private cMax: Float32Array;
-  private lambdas0: Float32Array;
-  private lambdas1: Float32Array;
+  private C: Float32Array;
+  private dotC: Float32Array;
+  private lambdas: Float32Array;
   private b: Float32Array;
-  private bt0: Float32Array;
-  private bt1: Float32Array;
+  private bt: Float32Array;
   private bhat: Float32Array;
   private J: Matrix = {
     columns: [],
@@ -48,9 +47,15 @@ export class ConstraintsSolver implements ConstraintsSolverInterface {
     m: 0,
     n: 0,
   };
+  private dotJ: Matrix = {
+    columns: [],
+    rows: [],
+    values: [],
+    m: 0,
+    n: 0,
+  };
   private jacobian = new Float32Array(6);
   private lookup: Array<number[]> = [];
-  private constraints: Readonly<ConstraintInterface>[];
   private stack: Stack;
   private rows: number;
   private columns: number;
@@ -78,16 +83,15 @@ export class ConstraintsSolver implements ConstraintsSolverInterface {
     constraints: Readonly<ConstraintInterface>[],
     dt: number
   ): void {
-    this.constraints = constraints;
-
     this.allocate(constraints.length, bodies.length * 3);
     this.serializeBodies(bodies);
-    this.serializeConstraints(constraints, dt);
+    this.serializeConstraints(constraints);
     this.createJacobianMatrix(constraints);
+    this.createDotJacobianMatrix(constraints);
     this.createConstraintLookup(constraints);
-    this.solveConstraintForces(this.cvForces, this.c0Forces, dt);
-    this.correctPositions(outPositions, dt);
-    this.correctVelocities(outVelocities, dt);
+    this.solveConstraintForces(this.cForces);
+    this.setConstraintsCache(constraints);
+    this.integrate(outPositions, outVelocities, dt);
     this.deallocate();
   }
 
@@ -99,20 +103,15 @@ export class ConstraintsSolver implements ConstraintsSolverInterface {
     this.forces = this.stack.pushFloat32(columns);
     this.invMasses = this.stack.pushFloat32(columns);
     this.accelerations = this.stack.pushFloat32(columns);
-    this.c0Forces = this.stack.pushFloat32(columns);
-    this.cvForces = this.stack.pushFloat32(columns);
-    this.tmpForces = this.stack.pushFloat32(columns);
-    this.tmpVelocities = this.stack.pushFloat32(columns);
+    this.cForces = this.stack.pushFloat32(columns);
     this.bhat = this.stack.pushFloat32(columns);
-    this.v0 = this.stack.pushFloat32(rows);
-    this.v1 = this.stack.pushFloat32(rows);
     this.cMin = this.stack.pushFloat32(rows);
     this.cMax = this.stack.pushFloat32(rows);
-    this.lambdas0 = this.stack.pushFloat32(rows);
-    this.lambdas1 = this.stack.pushFloat32(rows);
+    this.C = this.stack.pushFloat32(rows);
+    this.dotC = this.stack.pushFloat32(rows);
+    this.lambdas = this.stack.pushFloat32(rows);
     this.b = this.stack.pushFloat32(rows);
-    this.bt0 = this.stack.pushFloat32(rows);
-    this.bt1 = this.stack.pushFloat32(rows);
+    this.bt = this.stack.pushFloat32(rows);
   }
 
   private serializeBodies(bodies: Readonly<Body>[]) {
@@ -144,23 +143,17 @@ export class ConstraintsSolver implements ConstraintsSolverInterface {
   }
 
   private serializeConstraints(
-    constraints: Readonly<ConstraintInterface>[],
-    dt: number
+    constraints: Readonly<ConstraintInterface>[]
   ): void {
     let j = 0;
 
     for (const constraint of constraints) {
-      constraint.getJacobian(this.jacobian); /// !<WARNING
       const { min, max } = constraint.getClamping();
       this.cMin[j] = min;
       this.cMax[j] = max;
-      this.v0[j] = constraint.getPushFactor(
-        dt,
-        this.settings.defaultPushFactor
-      );
-      this.v1[j] = constraint.getPushFactor(dt, 0);
-      this.lambdas0[j] = constraint.getCache(0);
-      this.lambdas1[j] = constraint.getCache(1);
+      this.C[j] = constraint.getValue();
+      this.dotC[j] = constraint.getSpeed();
+      this.lambdas[j] = constraint.getCache(0);
 
       if (constraint.bodyA && !constraint.bodyA.isStatic) {
         constraint.bodyA.solverConstraints.push(j);
@@ -179,7 +172,9 @@ export class ConstraintsSolver implements ConstraintsSolverInterface {
   ): void {
     this.J.m = this.rows;
     this.J.n = this.columns;
-    this.J.columns.length = this.J.rows.length = this.J.values.length = 0;
+    this.J.columns.length = 0;
+    this.J.rows.length = 0;
+    this.J.values.length = 0;
 
     let values = this.J.values;
     let columns = this.J.columns;
@@ -189,6 +184,83 @@ export class ConstraintsSolver implements ConstraintsSolverInterface {
       rows.push(values.length);
 
       constraint.getJacobian(this.jacobian);
+
+      const bodyA = constraint.bodyA;
+      const bodyB = constraint.bodyB;
+
+      if (bodyA && !bodyA.isStatic && bodyB && !bodyB.isStatic) {
+        if (bodyA.bodyIndex < bodyB.bodyIndex) {
+          values.push(
+            this.jacobian[0],
+            this.jacobian[1],
+            this.jacobian[2],
+            this.jacobian[3],
+            this.jacobian[4],
+            this.jacobian[5]
+          );
+          columns.push(
+            bodyA.bodyIndex * 3,
+            bodyA.bodyIndex * 3 + 1,
+            bodyA.bodyIndex * 3 + 2,
+            bodyB.bodyIndex * 3,
+            bodyB.bodyIndex * 3 + 1,
+            bodyB.bodyIndex * 3 + 2
+          );
+        } else {
+          values.push(
+            this.jacobian[3],
+            this.jacobian[4],
+            this.jacobian[5],
+            this.jacobian[0],
+            this.jacobian[1],
+            this.jacobian[2]
+          );
+          columns.push(
+            bodyB.bodyIndex * 3,
+            bodyB.bodyIndex * 3 + 1,
+            bodyB.bodyIndex * 3 + 2,
+            bodyA.bodyIndex * 3,
+            bodyA.bodyIndex * 3 + 1,
+            bodyA.bodyIndex * 3 + 2
+          );
+        }
+      } else if (bodyA && !bodyA.isStatic) {
+        values.push(this.jacobian[0], this.jacobian[1], this.jacobian[2]);
+        columns.push(
+          bodyA.bodyIndex * 3,
+          bodyA.bodyIndex * 3 + 1,
+          bodyA.bodyIndex * 3 + 2
+        );
+      } else if (bodyB && !bodyB.isStatic) {
+        values.push(this.jacobian[3], this.jacobian[4], this.jacobian[5]);
+        columns.push(
+          bodyB.bodyIndex * 3,
+          bodyB.bodyIndex * 3 + 1,
+          bodyB.bodyIndex * 3 + 2
+        );
+      }
+    }
+
+    rows.push(values.length);
+  }
+
+  private createDotJacobianMatrix(
+    constraints: Readonly<ConstraintInterface>[]
+  ): void {
+    this.dotJ.m = this.rows;
+    this.dotJ.n = this.columns;
+    this.dotJ.columns.length = 0;
+    this.dotJ.rows.length = 0;
+    this.dotJ.values.length = 0;
+
+    let values = this.dotJ.values;
+    let columns = this.dotJ.columns;
+    let rows = this.dotJ.rows;
+
+    for (const constraint of constraints) {
+      rows.push(values.length);
+
+      constraint.getDotJacobian(this.jacobian);
 
       const bodyA = constraint.bodyA;
       const bodyB = constraint.bodyB;
@@ -284,61 +356,48 @@ export class ConstraintsSolver implements ConstraintsSolverInterface {
     }
   }
 
-  private solveConstraintForces(
-    outForces0: Float32Array,
-    outForces1: Float32Array,
-    dt: number
-  ) {
+  private solveConstraintForces(outForces: Float32Array) {
     // A = J * Minv * Jt
-    // b = 1.0 / ∆t * v − J * (1 / ∆t * v1 + Minv * fext)
+    // b = −dotJ * v − J * Minv * F − ks * C − kd * dotC
 
     const A = MxDxMt(this.J, this.invMasses, this.lookup);
 
     VmV(this.bhat, this.invMasses, this.forces);
-    VpVxS(this.bhat, this.bhat, this.velocities, 1.0 / dt);
-    MxV(this.b, this.J, this.bhat);
-    VxSpVxS(this.bt0, this.v0, 1.0 / dt, this.b, -1.0);
-    VxSpVxS(this.bt1, this.v1, 1.0 / dt, this.b, -1.0);
+    MxV(this.bt, this.J, this.bhat);
+    MxV(this.b, this.dotJ, this.velocities);
+    VpV(this.b, this.b, this.bt);
+    VpVxS(this.b, this.b, this.C, KS);
+    VpVxS(this.b, this.b, this.dotC, KD);
+    negate(this.b, this.b);
 
-    // positions
     this.linearEquationsSolver.solve(
-      this.lambdas0,
+      this.lambdas,
       A,
-      this.bt0,
+      this.b,
       this.cMin,
       this.cMax
     );
 
-    // velocities
-    this.linearEquationsSolver.solve(
-      this.lambdas1,
-      A,
-      this.bt1,
-      this.cMin,
-      this.cMax
-    );
+    MtxV(outForces, this.J, this.lambdas);
+  }
 
-    MtxV(outForces0, this.J, this.lambdas0);
-    MtxV(outForces1, this.J, this.lambdas1);
-
+  private setConstraintsCache(
+    constraints: Readonly<ConstraintInterface>[]
+  ): void {
     for (let j = 0; j < this.rows; j++) {
-      this.constraints[j].setCache(0, this.lambdas0[j]);
-      this.constraints[j].setCache(1, this.lambdas1[j]);
+      constraints[j].setCache(0, this.lambdas[j]);
     }
   }
 
-  private correctPositions(outPositions: Float32Array, dt: number) {
-    VpV(this.tmpForces, this.forces, this.cvForces);
-    VcV(this.tmpVelocities, this.velocities);
-    VmV(this.accelerations, this.tmpForces, this.invMasses);
-    VpVxS(this.tmpVelocities, this.tmpVelocities, this.accelerations, dt);
-    VpVxS(outPositions, this.positions, this.tmpVelocities, dt);
-  }
-
-  private correctVelocities(outVelocities: Float32Array, dt: number) {
-    VpV(this.tmpForces, this.forces, this.c0Forces);
-    VmV(this.accelerations, this.tmpForces, this.invMasses);
+  private integrate(
+    outPositions: Float32Array,
+    outVelocities: Float32Array,
+    dt: number
+  ) {
+    VpV(this.forces, this.forces, this.cForces);
+    VmV(this.accelerations, this.forces, this.invMasses);
     VpVxS(outVelocities, this.velocities, this.accelerations, dt);
+    VpVxS(outPositions, this.positions, outVelocities, dt);
   }
 
   private deallocate() {
@@ -346,6 +405,6 @@ export class ConstraintsSolver implements ConstraintsSolverInterface {
   }
 
   private getRequiredMemorySize(maxBodies: number, maxConstraints: number) {
-    return 120 * maxBodies + 36 * maxConstraints;
+    return 120 * maxBodies + 46 * maxConstraints;
   }
 }

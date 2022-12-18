@@ -19,6 +19,19 @@ export abstract class ConstraintBase implements ConstraintInterface {
   }
 
   abstract getJacobian(out: Float32Array): void;
+
+  getDotJacobian(out: Float32Array): void {
+    out.fill(0.0);
+  }
+
+  getValue(): number {
+    return 0;
+  }
+
+  getSpeed(): number {
+    return 0;
+  }
+
   abstract getPushFactor(dt: number, strength: number): number;
   abstract getClamping(): ConstraintClamping;
 }

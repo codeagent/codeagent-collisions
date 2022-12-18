@@ -13,9 +13,9 @@ export class ChainExample implements ExampleInterface {
   install(): void {
     this.settings.defaultRestitution = 0.5;
     this.settings.defaultPushFactor = 0.25;
-    this.settings.solverIterations = 10;
+    this.settings.solverIterations = 50;
 
-    this.createChain(20);
+    this.createChain(16);
   }
 
   uninstall(): void {
@@ -29,15 +29,18 @@ export class ChainExample implements ExampleInterface {
     let offset = Math.SQRT2 * size;
     const m = 1.0;
     let x = 0.0;
+    let shape = new Box(size, size);
 
     for (let i = 0; i < links; i++) {
       const body = this.world.createBody(
         i === 0 || i === links - 1 ? Number.POSITIVE_INFINITY : m,
-        i === 0 || i === links - 1 ? Number.POSITIVE_INFINITY : m * 0.1,
+        i === 0 || i === links - 1
+          ? Number.POSITIVE_INFINITY
+          : shape.inetria(m) ,
         vec2.fromValues(offset - Math.SQRT2 * size + x - 11, 10),
         -Math.PI * 0.25
       );
-      this.world.addCollider(new Collider(body, new Box(size, size)));
+      this.world.addCollider(new Collider(body, shape));
 
       if (i > 0) {
         const bodyA = chain[i - 1];

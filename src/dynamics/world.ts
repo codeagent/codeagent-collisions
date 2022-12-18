@@ -322,20 +322,20 @@ export class World {
         );
       }
 
-      if (this.settings.defaultDamping) {
-        vec2.scaleAndAdd(
-          this.bodyForce,
-          this.bodyForce,
-          body.velocity,
-          -this.settings.defaultDamping
-        );
-      }
+      // if (this.settings.defaultDamping) {
+      //   vec2.scaleAndAdd(
+      //     this.bodyForce,
+      //     this.bodyForce,
+      //     body.velocity,
+      //     -this.settings.defaultDamping
+      //   );
+      // }
 
       body.force = this.bodyForce;
 
-      if (this.settings.defaultAngularDamping) {
-        body.torque -= this.settings.defaultAngularDamping * body.omega;
-      }
+      // if (this.settings.defaultAngularDamping) {
+      //   body.torque -= this.settings.defaultAngularDamping * body.omega;
+      // }
     }
   }
 

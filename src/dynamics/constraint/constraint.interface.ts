@@ -9,6 +9,9 @@ export interface ConstraintInterface {
   readonly bodyA: Body | null;
   readonly bodyB: Body | null;
   getJacobian(out: Float32Array): void;
+  getDotJacobian(out: Float32Array): void;
+  getValue(): number;
+  getSpeed(): number;
   getPushFactor(dt: number, strength: number): number;
   getClamping(): ConstraintClamping;
   getCache(id: 0 | 1): number;

@@ -5,6 +5,7 @@ import {
   LocalIslandsGenerator,
   SoleIslandGenerator,
   ConstraintsSolver,
+  ConstraintsSolver2,
 } from './dynamics';
 
 import {
@@ -25,7 +26,7 @@ export const configureContainer = (
 
   container.set({ id: 'SETTINGS', value: settings });
   container.set({ id: 'MID_PHASE', type: MidPhase });
-  container.set({ id: 'CONSTRAINTS_SOLVER', type: ConstraintsSolver });
+  container.set({ id: 'CONSTRAINTS_SOLVER', type: ConstraintsSolver2 });
   container.set({ id: 'LINEAR_EQUATIONS_SOLVER', type: GaussSeidelSolver });
 
   if (settings.narrowPhase === 'sat') {

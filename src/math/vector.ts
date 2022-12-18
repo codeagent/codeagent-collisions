@@ -26,6 +26,12 @@ export const VpV = (out: Vector, V1: Vector, V2: Vector) => {
   }
 };
 
+export const negate = (out: Vector, V: Vector) => {
+  for (let i = 0, length = out.length; i < length; i++) {
+    out[i] = -V[i];
+  }
+};
+
 export const VxSpVxS = (
   out: Vector,
   V1: Vector,
