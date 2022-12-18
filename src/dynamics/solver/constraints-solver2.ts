@@ -21,8 +21,8 @@ import {
 
 import { Memory, Stack } from '../../utils';
 
-const KS = 15.0;
-const KD = 15.0;
+const KS = 1.0;
+const KD = 1.0;
 
 @Service()
 export class ConstraintsSolver2 implements ConstraintsSolverInterface {
