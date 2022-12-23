@@ -1,6 +1,6 @@
 import { mat3, vec2 } from 'gl-matrix';
 import {
-  World,
+  WorldInterface,
   Settings,
   Box,
   Collider,
@@ -12,6 +12,7 @@ import {
   mdv,
   distance,
   defaultSettings,
+  ColliderInterface,
 } from 'js-physics-2d';
 import { Events } from 'js-physics-2d/events';
 import { Inject, Service } from 'typedi';
@@ -37,7 +38,7 @@ export class GjkExample implements ExampleInterface {
   constructor(
     @Inject('SETTINGS') private readonly settings: Settings,
     @Inject(RENDERER_TOKEN) private readonly renderer: RendererInterface,
-    private readonly world: World
+    @Inject('WORLD') private readonly world: WorldInterface
   ) {}
 
   install(): void {
@@ -65,25 +66,59 @@ export class GjkExample implements ExampleInterface {
     };
 
     // Scene
-    let body = this.world.createBody(1.0, 1.0, vec2.fromValues(-4, -6), 0.0);
-    this.world.addCollider(new Collider(body, new Box(1, 1), 0x01));
+    let body = this.world.createBody({
+      mass: 1.0,
+      inertia: 1.0,
+      position: vec2.fromValues(-4, -6),
+      angle: 0.0,
+    });
+    this.world.addCollider({ body: body, shape: new Box(1, 1), mask: 0x01 });
 
-    body = this.world.createBody(1.0, 1.0, vec2.fromValues(4, -6), 0.0);
-    this.world.addCollider(new Collider(body, createTriangleShape(3), 0x02));
+    body = this.world.createBody({
+      mass: 1.0,
+      inertia: 1.0,
+      position: vec2.fromValues(4, -6),
+      angle: 0.0,
+    });
+    this.world.addCollider({
+      body: body,
+      shape: createTriangleShape(3),
+      mask: 0x02,
+    });
 
-    body = this.world.createBody(1.0, 1.0, vec2.fromValues(4, 6), 0.0);
-    this.world.addCollider(new Collider(body, new Capsule(1, 4), 0x04));
+    body = this.world.createBody({
+      mass: 1.0,
+      inertia: 1.0,
+      position: vec2.fromValues(4, 6),
+      angle: 0.0,
+    });
+    this.world.addCollider({
+      body: body,
+      shape: new Capsule(1, 4),
+      mask: 0x04,
+    });
 
-    body = this.world.createBody(1.0, 1.0, vec2.fromValues(-4, 6), 0.0);
-    this.world.addCollider(new Collider(body, new Ellipse(3, 2), 0x08));
+    body = this.world.createBody({
+      mass: 1.0,
+      inertia: 1.0,
+      position: vec2.fromValues(-4, 6),
+      angle: 0.0,
+    });
+    this.world.addCollider({
+      body: body,
+      shape: new Ellipse(3, 2),
+      mask: 0x08,
+    });
   }
 
   private onPostStep(): void {
+    const worldBodies = Array.from(this.world);
+
     const bodies = [
-      this.world.bodies[0],
-      this.world.bodies[1],
-      this.world.bodies[2],
-      this.world.bodies[3],
+      worldBodies[0],
+      worldBodies[1],
+      worldBodies[2],
+      worldBodies[3],
     ];
 
     for (let i = 0; i < bodies.length; i++) {
@@ -115,8 +150,8 @@ export class GjkExample implements ExampleInterface {
   private getClosestPoints(
     point0: vec2,
     point1: vec2,
-    collider0: Readonly<Collider>,
-    collider1: Readonly<Collider>
+    collider0: Readonly<ColliderInterface>,
+    collider1: Readonly<ColliderInterface>
   ): number {
     this.spacesMapping.update(collider0.transform, collider1.transform);
     this.simplex.clear();

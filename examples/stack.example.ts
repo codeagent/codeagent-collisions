@@ -1,5 +1,12 @@
 import { vec2 } from 'gl-matrix';
-import { World, Settings, Box, Collider, Capsule, Circle } from 'js-physics-2d';
+import {
+  WorldInterface,
+  Settings,
+  Box,
+  Collider,
+  Capsule,
+  Circle,
+} from 'js-physics-2d';
 import { Inject, Service } from 'typedi';
 import { ExampleInterface } from './example.interface';
 
@@ -7,7 +14,7 @@ import { ExampleInterface } from './example.interface';
 export class StackExample implements ExampleInterface {
   constructor(
     @Inject('SETTINGS') private readonly settings: Settings,
-    private readonly world: World
+    @Inject('WORLD') private readonly world: WorldInterface
   ) {}
 
   install(): void {
@@ -24,43 +31,34 @@ export class StackExample implements ExampleInterface {
 
   private createStacks() {
     // floor
-    this.world.addCollider(
-      new Collider(
-        this.world.createBody(
-          Number.POSITIVE_INFINITY,
-          Number.POSITIVE_INFINITY,
-          vec2.fromValues(0.0, -9),
-          0.0
-        ),
-        new Box(26, 1)
-      )
-    );
+    this.world.addCollider({
+      body: this.world.createBody({
+        mass: Number.POSITIVE_INFINITY,
+        inertia: Number.POSITIVE_INFINITY,
+        position: vec2.fromValues(0.0, -9),
+      }),
+      shape: new Box(26, 1),
+    });
 
     // left wall
-    this.world.addCollider(
-      new Collider(
-        this.world.createBody(
-          Number.POSITIVE_INFINITY,
-          Number.POSITIVE_INFINITY,
-          vec2.fromValues(-14, 0),
-          0.0
-        ),
-        new Box(1, 16)
-      )
-    );
+    this.world.addCollider({
+      body: this.world.createBody({
+        mass: Number.POSITIVE_INFINITY,
+        inertia: Number.POSITIVE_INFINITY,
+        position: vec2.fromValues(-14, 0),
+      }),
+      shape: new Box(1, 16),
+    });
 
     // right wall
-    this.world.addCollider(
-      new Collider(
-        this.world.createBody(
-          Number.POSITIVE_INFINITY,
-          Number.POSITIVE_INFINITY,
-          vec2.fromValues(14, 0),
-          0.0
-        ),
-        new Box(1, 16)
-      )
-    );
+    this.world.addCollider({
+      body: this.world.createBody({
+        mass: Number.POSITIVE_INFINITY,
+        inertia: Number.POSITIVE_INFINITY,
+        position: vec2.fromValues(14, 0),
+      }),
+      shape: new Box(1, 16),
+    });
 
     let box = new Box(1, 1);
     let girder = new Box(3, 1);
@@ -71,57 +69,48 @@ export class StackExample implements ExampleInterface {
 
     // boxes
     for (let y = -8.0; y <= 8; y += 1.0) {
-      this.world.addCollider(
-        new Collider(
-          this.world.createBody(
-            mass,
-            box.inetria(mass),
-            vec2.fromValues(-12, y),
-            0.0
-          ),
-          box
-        )
-      );
+      this.world.addCollider({
+        body: this.world.createBody({
+          mass: mass,
+          inertia: box.inetria(mass),
+          position: vec2.fromValues(-12, y),
+        }),
+        shape: box,
+      });
     }
 
     // box/girder
     for (let y = -8.0; y <= 9; y += 1.0) {
       if (i % 2 === 0) {
-        this.world.addCollider(
-          new Collider(
-            this.world.createBody(
-              mass,
-              box.inetria(mass),
-              vec2.fromValues(-9.5, y),
-              0
-            ),
-            box
-          )
-        );
+        this.world.addCollider({
+          body: this.world.createBody({
+            mass: mass,
+            inertia: box.inetria(mass),
+            position: vec2.fromValues(-9.5, y),
+            angle: 0,
+          }),
+          shape: box,
+        });
 
-        this.world.addCollider(
-          new Collider(
-            this.world.createBody(
-              mass,
-              box.inetria(mass),
-              vec2.fromValues(-6.5, y),
-              0
-            ),
-            box
-          )
-        );
+        this.world.addCollider({
+          body: this.world.createBody({
+            mass: mass,
+            inertia: box.inetria(mass),
+            position: vec2.fromValues(-6.5, y),
+            angle: 0,
+          }),
+          shape: box,
+        });
       } else {
-        this.world.addCollider(
-          new Collider(
-            this.world.createBody(
-              mass,
-              girder.inetria(mass),
-              vec2.fromValues(-8, y),
-              0
-            ),
-            girder
-          )
-        );
+        this.world.addCollider({
+          body: this.world.createBody({
+            mass: mass,
+            inertia: girder.inetria(mass),
+            position: vec2.fromValues(-8, y),
+            angle: 0,
+          }),
+          shape: girder,
+        });
       }
 
       i++;
@@ -130,26 +119,35 @@ export class StackExample implements ExampleInterface {
     // circle/girder
     for (let y = -8.0; y <= 9; y += 1.0) {
       if (i % 2 === 0) {
-        this.world.addCollider(
-          new Collider(
-            this.world.createBody(mass, mass * 20, vec2.fromValues(-5, y), 0),
-            circle
-          )
-        );
+        this.world.addCollider({
+          body: this.world.createBody({
+            mass: mass,
+            inertia: mass * 20,
+            position: vec2.fromValues(-5, y),
+            angle: 0,
+          }),
+          shape: circle,
+        });
 
-        this.world.addCollider(
-          new Collider(
-            this.world.createBody(mass, mass * 20, vec2.fromValues(-3, y), 0),
-            circle
-          )
-        );
+        this.world.addCollider({
+          body: this.world.createBody({
+            mass: mass,
+            inertia: mass * 20,
+            position: vec2.fromValues(-3, y),
+            angle: 0,
+          }),
+          shape: circle,
+        });
       } else {
-        this.world.addCollider(
-          new Collider(
-            this.world.createBody(mass, mass * 20, vec2.fromValues(-4, y), 0),
-            girder
-          )
-        );
+        this.world.addCollider({
+          body: this.world.createBody({
+            mass: mass,
+            inertia: mass * 20,
+            position: vec2.fromValues(-4, y),
+            angle: 0,
+          }),
+          shape: girder,
+        });
       }
 
       i++;
@@ -158,31 +156,35 @@ export class StackExample implements ExampleInterface {
     // box/capsule
     for (let y = -8.0; y <= 8; y += 1.0) {
       if (i % 2 === 0) {
-        this.world.addCollider(
-          new Collider(
-            this.world.createBody(1.0, 2.0, vec2.fromValues(-1.0, y), 0),
-            box
-          )
-        );
+        this.world.addCollider({
+          body: this.world.createBody({
+            mass: 1.0,
+            inertia: 2.0,
+            position: vec2.fromValues(-1.0, y),
+            angle: 0,
+          }),
+          shape: box,
+        });
 
-        this.world.addCollider(
-          new Collider(
-            this.world.createBody(1.0, 2.0, vec2.fromValues(1.0, y), 0),
-            box
-          )
-        );
+        this.world.addCollider({
+          body: this.world.createBody({
+            mass: 1.0,
+            inertia: 2.0,
+            position: vec2.fromValues(1.0, y),
+            angle: 0,
+          }),
+          shape: box,
+        });
       } else {
-        this.world.addCollider(
-          new Collider(
-            this.world.createBody(
-              1.0,
-              2.0,
-              vec2.fromValues(0, y),
-              Math.PI * 0.5
-            ),
-            capsule
-          )
-        );
+        this.world.addCollider({
+          body: this.world.createBody({
+            mass: 1.0,
+            inertia: 2.0,
+            position: vec2.fromValues(0, y),
+            angle: Math.PI * 0.5,
+          }),
+          shape: capsule,
+        });
       }
 
       i++;
@@ -190,62 +192,61 @@ export class StackExample implements ExampleInterface {
 
     // circles
     for (let y = -8.0; y <= 8; y += 1.0) {
-      this.world.addCollider(
-        new Collider(
-          this.world.createBody(
-            mass,
-            circle.inetria(mass) * 4,
-            vec2.fromValues(3, y),
-            0.0
-          ),
-          circle
-        )
-      );
+      this.world.addCollider({
+        body: this.world.createBody({
+          mass: mass,
+          inertia: circle.inetria(mass) * 4,
+          position: vec2.fromValues(3, y),
+        }),
+        shape: circle,
+      });
     }
 
     // capsules
     for (let y = -8.0; y <= 8; y += 1.0) {
-      this.world.addCollider(
-        new Collider(
-          this.world.createBody(
-            mass,
-            mass * 2,
-            vec2.fromValues(6, y),
-            Math.PI * 0.5
-          ),
-          capsule
-        )
-      );
+      this.world.addCollider({
+        body: this.world.createBody({
+          mass: mass,
+          inertia: mass * 2,
+          position: vec2.fromValues(6, y),
+          angle: Math.PI * 0.5,
+        }),
+        shape: capsule,
+      });
     }
 
     //capsule/circle
     for (let y = -8.0; y <= 2; y += 1.0) {
       if (i % 2 === 0) {
-        this.world.addCollider(
-          new Collider(
-            this.world.createBody(mass, mass * 20, vec2.fromValues(10.0, y), 0),
-            circle
-          )
-        );
+        this.world.addCollider({
+          body: this.world.createBody({
+            mass: mass,
+            inertia: mass * 20,
+            position: vec2.fromValues(10.0, y),
+            angle: 0,
+          }),
+          shape: circle,
+        });
 
-        this.world.addCollider(
-          new Collider(
-            this.world.createBody(mass, mass * 20, vec2.fromValues(12.0, y), 0),
-            circle
-          )
-        );
+        this.world.addCollider({
+          body: this.world.createBody({
+            mass: mass,
+            inertia: mass * 20,
+            position: vec2.fromValues(12.0, y),
+            angle: 0,
+          }),
+          shape: circle,
+        });
       } else {
-        this.world.addCollider(
-          new Collider(
-            this.world.createBody(
-              mass,
-              mass * 1,
-              vec2.fromValues(11, y),
-              Math.PI * 0.5
-            ),
-            capsule
-          )
-        );
+        this.world.addCollider({
+          body: this.world.createBody({
+            mass: mass,
+            inertia: mass * 1,
+            position: vec2.fromValues(11, y),
+            angle: Math.PI * 0.5,
+          }),
+          shape: capsule,
+        });
       }
 
       i++;

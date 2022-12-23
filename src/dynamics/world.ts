@@ -2,7 +2,12 @@ import { vec2 } from 'gl-matrix';
 import { Inject, Service } from 'typedi';
 
 import { Body } from './body';
-import { CollisionDetector, Collider } from '../cd';
+import {
+  CollisionDetector,
+  Collider,
+  ColliderDef,
+  ColliderInterface,
+} from '../cd';
 import { Clock, EventDispatcher, IdManager, Memory, pairId } from '../utils';
 import {
   DistanceJoint,
@@ -14,16 +19,25 @@ import {
   WeldJoint,
   WheelJoint,
   MotorJoint,
-  MouseControlInterface,
+  DistanceJointDef,
+  PrismaticJointDef,
+  RevoluteJointDef,
+  WeldJointDef,
+  WheelJointDef,
+  SpringDef,
+  MouseJointDef,
+  MotorDef,
 } from './joint';
 import { Pair, PairsRegistry } from './pairs-registry';
 import { IslandsGeneratorInterface } from './island';
 
 import { Settings } from '../settings';
 import { Events } from '../events';
+import { BodyDef, BodyInterface } from './body.interface';
+import { WorldInterface } from './world.interface';
 
 @Service()
-export class World {
+export class World implements WorldInterface {
   public readonly bodies: Body[] = [];
 
   private readonly bodyForce = vec2.create();
@@ -40,24 +54,22 @@ export class World {
     private readonly memory: Memory
   ) {}
 
-  createBody(
-    mass: number,
-    intertia: number,
-    position: vec2,
-    angle: number,
-    continuous = false
-  ) {
+  createBody(bodyDef: BodyDef): BodyInterface {
     if (this.bodies.length === this.settings.maxBodiesNumber) {
       throw new Error(
         `World.createBody: Failed to create body: maximum namber of bodies attained: ${this.settings.maxBodiesNumber}`
       );
     }
 
-    const body = new Body(this.idManager.getUniqueId(), this, continuous);
-    body.mass = mass;
-    body.inertia = intertia;
-    body.position = position;
-    body.angle = angle;
+    const body = new Body(
+      this.idManager.getUniqueId(),
+      this,
+      bodyDef.isContinuos ?? false
+    );
+    body.mass = bodyDef.mass ?? 1.0;
+    body.inertia = bodyDef?.inertia ?? 1.0;
+    body.position = bodyDef.position ?? vec2.create();
+    body.angle = bodyDef.angle ?? 0.0;
 
     this.bodies.push(body);
     body.updateTransform();
@@ -67,8 +79,10 @@ export class World {
     return body;
   }
 
-  destroyBody(body: Body) {
-    const bodyIndex = this.bodies.indexOf(body);
+  destroyBody(body: BodyInterface) {
+    const bodyIndex = this.bodies.findIndex(
+      (b) => b.id === body.id && body.world === this
+    );
     if (bodyIndex === -1) {
       return;
     }
@@ -82,164 +96,163 @@ export class World {
     this.dispatch(Events.BodyDestroyed, body);
   }
 
-  addDistanceJoint(
-    bodyA: Body,
-    positionA: vec2,
-    bodyB: Body,
-    positionB: vec2,
-    distance: number
-  ) {
+  addDistanceJoint(jointDef: DistanceJointDef): JointInterface {
     const joint = new DistanceJoint(
       this,
-      bodyA,
-      positionA,
-      bodyB,
-      positionB,
-      distance
+      jointDef.bodyA,
+      jointDef.jointA,
+      jointDef.bodyB,
+      jointDef.jointB,
+      jointDef.distance
     );
-    bodyA.addJoint(joint);
-    bodyB.addJoint(joint);
+    jointDef.bodyA.addJoint(joint);
+    jointDef.bodyB.addJoint(joint);
 
     this.dispatch(Events.JointAdded, joint);
 
     return joint;
   }
 
-  addPrismaticJoint(
-    bodyA: Body,
-    jointA: vec2,
-    bodyB: Body,
-    jointB: vec2,
-    localAxis: vec2,
-    refAngle = 0,
-    minDistance = 0,
-    maxDistance = Number.POSITIVE_INFINITY
-  ) {
+  addPrismaticJoint(jointDef: PrismaticJointDef): JointInterface {
     const joint = new PrismaticJoint(
       this,
-      bodyA,
-      jointA,
-      bodyB,
-      jointB,
-      localAxis,
-      refAngle,
-      minDistance,
-      maxDistance
+      jointDef.bodyA,
+      jointDef.pivotA ?? vec2.create(),
+      jointDef.bodyB,
+      jointDef.pivotB ?? vec2.create(),
+      jointDef.localAxis ?? vec2.fromValues(1.0, 0.0),
+      jointDef.refAngle ?? 0,
+      jointDef.minDistance ?? 0,
+      jointDef.maxDistance ?? Number.POSITIVE_INFINITY
     );
-    bodyA.addJoint(joint);
-    bodyB.addJoint(joint);
+
+    jointDef.bodyA.addJoint(joint);
+    jointDef.bodyB.addJoint(joint);
 
     this.dispatch(Events.JointAdded, joint);
 
     return joint;
   }
 
-  addRevoluteJoint(bodyA: Body, jointA: vec2, bodyB: Body, jointB: vec2) {
-    const joint = new RevoluteJoint(this, bodyA, jointA, bodyB, jointB);
-    bodyA.addJoint(joint);
-    bodyB.addJoint(joint);
+  addRevoluteJoint(jointDef: RevoluteJointDef): JointInterface {
+    const joint = new RevoluteJoint(
+      this,
+      jointDef.bodyA,
+      jointDef.pivotA ?? vec2.create(),
+      jointDef.bodyB,
+      jointDef.pivotB ?? vec2.create(),
+      jointDef.minAngle ?? Number.NEGATIVE_INFINITY,
+      jointDef.maxAngle ?? Number.POSITIVE_INFINITY,
+      jointDef.stiffness ?? 0,
+      jointDef.damping ?? 0
+    );
+
+    jointDef.bodyA.addJoint(joint);
+    jointDef.bodyB.addJoint(joint);
 
     this.dispatch(Events.JointAdded, joint);
 
     return joint;
   }
 
-  addWeldJoint(
-    bodyA: Body,
-    jointA: vec2,
-    bodyB: Body,
-    jointB: vec2,
-    refAngle = 0
-  ) {
-    const joint = new WeldJoint(this, bodyA, jointA, bodyB, jointB, refAngle);
-    bodyA.addJoint(joint);
-    bodyB.addJoint(joint);
+  addWeldJoint(jointDef: WeldJointDef): JointInterface {
+    const joint = new WeldJoint(
+      this,
+      jointDef.bodyA,
+      jointDef.pivotA ?? vec2.create(),
+      jointDef.bodyB,
+      jointDef.pivotB ?? vec2.create(),
+      jointDef.refAngle ?? 0
+    );
+
+    jointDef.bodyA.addJoint(joint);
+    jointDef.bodyB.addJoint(joint);
 
     this.dispatch(Events.JointAdded, joint);
 
     return joint;
   }
 
-  addWheelJonit(
-    bodyA: Body,
-    jointA: vec2,
-    bodyB: Body,
-    jointB: vec2,
-    localAxis: vec2,
-    minDistance = 0,
-    maxDistance = Number.POSITIVE_INFINITY
-  ) {
+  addWheelJonit(jointDef: WheelJointDef): JointInterface {
     const joint = new WheelJoint(
       this,
-      bodyA,
-      jointA,
-      bodyB,
-      jointB,
-      localAxis,
-      minDistance,
-      maxDistance
+      jointDef.bodyA,
+      jointDef.pivotA ?? vec2.create(),
+      jointDef.bodyB,
+      jointDef.pivotB ?? vec2.create(),
+      jointDef.localAxis ?? vec2.fromValues(1.0, 0.0),
+      jointDef.minDistance ?? 0,
+      jointDef.maxDistance ?? Number.POSITIVE_INFINITY
     );
-    bodyA.addJoint(joint);
-    bodyB.addJoint(joint);
+
+    jointDef.bodyA.addJoint(joint);
+    jointDef.bodyB.addJoint(joint);
 
     this.dispatch(Events.JointAdded, joint);
 
     return joint;
   }
 
-  addSpring(
-    bodyA: Body,
-    positionA: vec2,
-    bodyB: Body,
-    positionB: vec2,
-    distance: number,
-    stiffness: number,
-    extinction: number
-  ) {
+  addSpring(springDef: SpringDef): JointInterface {
     const joint = new SpringJoint(
       this,
-      bodyA,
-      positionA,
-      bodyB,
-      positionB,
-      distance,
-      stiffness,
-      extinction
+      springDef.bodyA,
+      springDef.pivotA ?? vec2.create(),
+      springDef.bodyB,
+      springDef.pivotB ?? vec2.create(),
+      springDef.distance ?? 0.5,
+      springDef.stiffness ?? 1.0,
+      springDef.extinction ?? 1.0
     );
-    bodyA.addJoint(joint);
-    bodyB.addJoint(joint);
+
+    springDef.bodyA.addJoint(joint);
+    springDef.bodyB.addJoint(joint);
 
     this.dispatch(Events.JointAdded, joint);
 
     return joint;
   }
 
-  addMouseJoint(
-    control: MouseControlInterface,
-    body: Body,
-    pos: vec2,
-    stiffness: number,
-    maxForce: number
-  ) {
-    const joint = new MouseJoint(this, control, body, pos, stiffness, maxForce);
-    body.addJoint(joint);
+  addMouseJoint(jointDef: MouseJointDef): JointInterface {
+    const joint = new MouseJoint(
+      this,
+      jointDef.control,
+      jointDef.body,
+      jointDef.joint,
+      jointDef.stiffness ?? 1.0,
+      jointDef.maxForce ?? 1.0e4
+    );
+
+    jointDef.body.addJoint(joint);
 
     this.dispatch(Events.JointAdded, joint);
 
     return joint;
   }
 
-  addMotor(body: Body, speed: number, torque: number) {
-    const joint = new MotorJoint(this, body, speed, torque);
-    body.addJoint(joint);
+  addMotor(motorDef: MotorDef): JointInterface {
+    const joint = new MotorJoint(
+      this,
+      motorDef.body,
+      motorDef.speed,
+      motorDef.torque
+    );
+    motorDef.body.addJoint(joint);
 
     this.dispatch(Events.JointAdded, joint);
 
     return joint;
   }
 
-  addCollider(collider: Collider) {
-    collider.body.collider = collider;
+  addCollider(colliderDef: ColliderDef): ColliderInterface {
+    const collider = new Collider(
+      colliderDef.body,
+      colliderDef.shape,
+      colliderDef.mask ?? 0xffffffff,
+      colliderDef.isVirtual ?? false
+    );
+    Object.assign(collider.body, { collider });
+
     this.detector.registerCollider(collider);
 
     for (const body of this.bodies) {
@@ -255,11 +268,13 @@ export class World {
     }
 
     this.dispatch(Events.ColliderAdded, collider, collider.body);
+
+    return collider;
   }
 
-  removeCollider(collider: Collider) {
-    this.detector.unregisterCollider(collider);
-    collider.body.collider = null;
+  removeCollider(collider: ColliderInterface): void {
+    this.detector.unregisterCollider(collider as Collider);
+    Object.assign(collider.body, { collider: null });
 
     for (const body of this.bodies) {
       const id = pairId(body.collider.id, collider.id);
@@ -269,7 +284,7 @@ export class World {
     this.dispatch(Events.ColliderRemoved, collider, collider.body);
   }
 
-  removeJoint(joint: JointInterface) {
+  removeJoint(joint: JointInterface): void {
     if (joint.bodyA) {
       joint.bodyA.removeJoint(joint);
     }
@@ -281,7 +296,7 @@ export class World {
     this.dispatch(Events.JointRemoved, joint);
   }
 
-  dispose() {
+  dispose(): void {
     this.registry.clear();
     this.idManager.reset();
     this.memory.clear();
@@ -297,16 +312,20 @@ export class World {
     this.dispatch(Events.WorldDestroyed, this);
   }
 
-  on<T extends Function>(eventName: keyof typeof Events, handler: T) {
+  on<T extends Function>(eventName: keyof typeof Events, handler: T): void {
     this.dispatcher.addEventListener(eventName, handler);
   }
 
-  off<T extends Function>(eventName: keyof typeof Events, handler: T) {
+  off<T extends Function>(eventName: keyof typeof Events, handler: T): void {
     this.dispatcher.removeEventListener(eventName, handler);
   }
 
-  dispatch(eventName: keyof typeof Events, ...payload: unknown[]) {
+  dispatch(eventName: keyof typeof Events, ...payload: unknown[]): void {
     this.dispatcher.dispatch(eventName, ...payload);
+  }
+
+  *[Symbol.iterator](): Iterator<BodyInterface> {
+    yield* this.bodies;
   }
 
   private applyGlobalForces() {
@@ -339,13 +358,7 @@ export class World {
     }
   }
 
-  private clearForces() {
-    for (const body of this.bodies) {
-      body.clearForces();
-    }
-  }
-
-  public step(dt: number) {
+  step(dt: number) {
     this.clock.tick(dt);
     this.dispatch(Events.PreStep, this.clock.frame, this.clock.time);
 
@@ -377,6 +390,12 @@ export class World {
     }
 
     this.dispatch(Events.PostStep, this.clock.frame, this.clock.time);
+  }
+
+  private clearForces() {
+    for (const body of this.bodies) {
+      body.clearForces();
+    }
   }
 
   private advance(dt: number) {

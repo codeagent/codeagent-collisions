@@ -1,10 +1,9 @@
 import { mat3, vec2 } from 'gl-matrix';
 import {
-  World,
+  WorldInterface,
   Settings,
   Box,
   Collider,
-  Body,
   Capsule,
   Ellipse,
   SpaceMapping,
@@ -14,8 +13,10 @@ import {
   Circle,
   MeshShape,
   epa,
+  BodyInterface,
+  Events,
+  ColliderInterface,
 } from 'js-physics-2d';
-import { Events } from 'js-physics-2d/events';
 import { Inject, Service } from 'typedi';
 
 import { ExampleInterface } from './example.interface';
@@ -41,7 +42,7 @@ export class EpaExample implements ExampleInterface {
   constructor(
     @Inject('SETTINGS') private readonly settings: Settings,
     @Inject(RENDERER_TOKEN) private readonly renderer: RendererInterface,
-    private readonly world: World
+    @Inject('WORLD') private readonly world: WorldInterface
   ) {}
 
   install(): void {
@@ -62,73 +63,100 @@ export class EpaExample implements ExampleInterface {
   private createObjects() {
     const objects = loadObj(GEARS);
 
-    let body: Body = null;
+    let body: BodyInterface = null;
 
-    body = this.world.createBody(
-      1.0,
-      1.0,
-      vec2.fromValues(-2.1968839168548584, 6.876863956451416),
-      Math.PI * 0.75
-    );
-    this.world.addCollider(new Collider(body, new Box(2, 1), 0));
+    body = this.world.createBody({
+      mass: 1.0,
+      inertia: 1.0,
+      position: vec2.fromValues(-2.1968839168548584, 6.876863956451416),
+      angle: Math.PI * 0.75,
+    });
+    this.world.addCollider({ body: body, shape: new Box(2, 1), mask: 0 });
 
-    body = this.world.createBody(
-      1.0,
-      1.0,
-      vec2.fromValues(4, 4),
-      Math.PI * 0.0
-    );
-    this.world.addCollider(new Collider(body, new Capsule(0.5, 1.5), 0));
+    body = this.world.createBody({
+      mass: 1.0,
+      inertia: 1.0,
+      position: vec2.fromValues(4, 4),
+      angle: Math.PI * 0.0,
+    });
+    this.world.addCollider({ body: body, shape: new Capsule(0.5, 1.5), mask: 0 });
 
-    body = this.world.createBody(
-      1.0,
-      1.0,
-      vec2.fromValues(4, 0),
-      Math.PI * 0.0
-    );
-    this.world.addCollider(new Collider(body, new Circle(1), 0));
+    body = this.world.createBody({
+      mass: 1.0,
+      inertia: 1.0,
+      position: vec2.fromValues(4, 0),
+      angle: Math.PI * 0.0,
+    });
+    this.world.addCollider({ body: body, shape: new Circle(1), mask: 0 });
 
-    body = this.world.createBody(
-      1.0,
-      1.0,
-      vec2.fromValues(4, -4),
-      Math.PI * 0.75
-    );
-    this.world.addCollider(new Collider(body, new Ellipse(1.0, 0.5), 0));
+    body = this.world.createBody({
+      mass: 1.0,
+      inertia: 1.0,
+      position: vec2.fromValues(4, -4),
+      angle: Math.PI * 0.75,
+    });
+    this.world.addCollider({ body: body, shape: new Ellipse(1.0, 0.5), mask: 0 });
 
-    body = this.world.createBody(1, 1, vec2.fromValues(4, -8), Math.PI * 0.75);
+    body = this.world.createBody({
+      mass: 1,
+      inertia: 1,
+      position: vec2.fromValues(4, -8),
+      angle: Math.PI * 0.75,
+    });
     this.world.addCollider(
-      new Collider(body, new MeshShape(objects['gear_o_049']), 0)
+      { body: body, shape: new MeshShape(objects['gear_o_049']), mask: 0 }
     );
 
-    body = this.world.createBody(
-      1.0,
-      1.0,
-      vec2.fromValues(-4, 7.983665943145752),
-      0
-    );
-    this.world.addCollider(new Collider(body, new Box(2, 1), 0x01));
+    body = this.world.createBody({
+      mass: 1.0,
+      inertia: 1.0,
+      position: vec2.fromValues(-4, 7.983665943145752),
+      angle: 0,
+    });
+    this.world.addCollider({ body: body, shape: new Box(2, 1), mask: 0x01 });
 
-    body = this.world.createBody(1.0, 1.0, vec2.fromValues(-4, 4), 0);
-    this.world.addCollider(new Collider(body, new Capsule(0.5, 1.5), 0));
+    body = this.world.createBody({
+      mass: 1.0,
+      inertia: 1.0,
+      position: vec2.fromValues(-4, 4),
+      angle: 0,
+    });
+    this.world.addCollider({ body: body, shape: new Capsule(0.5, 1.5), mask: 0 });
 
-    body = this.world.createBody(1.0, 1.0, vec2.fromValues(-4, -0), 0);
-    this.world.addCollider(new Collider(body, new Circle(1), 0x04));
+    body = this.world.createBody({
+      mass: 1.0,
+      inertia: 1.0,
+      position: vec2.fromValues(-4, -0),
+      angle: 0,
+    });
+    this.world.addCollider({ body: body, shape: new Circle(1), mask: 0x04 });
 
-    body = this.world.createBody(1.0, 1.0, vec2.fromValues(-4, -4), 0);
-    this.world.addCollider(new Collider(body, new Ellipse(1.0, 0.5), 0));
+    body = this.world.createBody({
+      mass: 1.0,
+      inertia: 1.0,
+      position: vec2.fromValues(-4, -4),
+      angle: 0,
+    });
+    this.world.addCollider({ body: body, shape: new Ellipse(1.0, 0.5), mask: 0 });
 
-    body = this.world.createBody(1, 1, vec2.fromValues(-4, -8), 0);
+    body = this.world.createBody({
+      mass: 1,
+      inertia: 1,
+      position: vec2.fromValues(-4, -8),
+      angle: 0,
+    });
     this.world.addCollider(
-      new Collider(body, new MeshShape(objects['gear_o_049']), 0)
+      { body: body, shape: new MeshShape(objects['gear_o_049']), mask: 0 }
     );
   }
 
   private onPostStep(): void {
-    for (let i = 0; i < this.world.bodies.length; i++) {
-      for (let j = i + 1; j < this.world.bodies.length; j++) {
-        const collider0 = this.world.bodies[i].collider;
-        const collider1 = this.world.bodies[j].collider;
+    let bodies = Array.from(this.world);
+
+    for (let i = 0; i < bodies.length; i++) {
+      for (let j = i + 1; j < length; j++) {
+        const collider0 = bodies[i].collider;
+        const collider1 = bodies[j].collider;
 
         if (
           this.getContactPoints(this.point0, this.point1, collider0, collider1)
@@ -148,8 +176,8 @@ export class EpaExample implements ExampleInterface {
   private getContactPoints(
     point0: vec2,
     point1: vec2,
-    collider0: Readonly<Collider>,
-    collider1: Readonly<Collider>
+    collider0: Readonly<ColliderInterface>,
+    collider1: Readonly<ColliderInterface>
   ): boolean {
     this.spacesMapping.update(collider0.transform, collider1.transform);
     this.simplex.clear();
@@ -204,7 +232,6 @@ export class EpaExample implements ExampleInterface {
     //   const w0 = points[i];
     //   const w1 = points[(i + 1) % points.length];
     //   drawDot(w0, BLUISH_COLOR);
-
     //   drawLineSegment([w0, w1], LINE_COLOR);
     // }
   }

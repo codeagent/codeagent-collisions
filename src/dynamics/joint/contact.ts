@@ -2,15 +2,15 @@ import { vec2 } from 'gl-matrix';
 
 import { JointInterface } from './joint.interface';
 import { ContactConstraint, FrictionConstraint } from '../constraint';
-import { Body } from '../body';
 import { ContactInfo } from '../../cd';
+import { BodyInterface } from '../body.interface';
 
 export class Contact implements JointInterface {
-  get bodyA(): Body {
+  get bodyA(): BodyInterface {
     return this.contactInfo.collider0.body;
   }
 
-  get bodyB(): Body {
+  get bodyB(): BodyInterface {
     return this.contactInfo.collider1.body;
   }
 

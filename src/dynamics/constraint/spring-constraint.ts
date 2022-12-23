@@ -1,8 +1,8 @@
-import { vec2, vec3 } from 'gl-matrix';
+import { vec2 } from 'gl-matrix';
 
-import { World } from '../world';
 import { ConstraintBase } from './constraint.base';
-import { Body } from '../body';
+import { WorldInterface } from '../world.interface';
+import { BodyInterface } from '../body.interface';
 import { cross } from '../../math';
 
 export class SpringConstraint extends ConstraintBase {
@@ -16,10 +16,10 @@ export class SpringConstraint extends ConstraintBase {
   private readonly normal = vec2.create();
 
   constructor(
-    public readonly world: World,
-    public readonly bodyA: Body,
+    public readonly world: WorldInterface,
+    public readonly bodyA: BodyInterface,
     public readonly jointA: vec2,
-    public readonly bodyB: Body,
+    public readonly bodyB: BodyInterface,
     public readonly jointB: vec2,
     public readonly length: number,
     public readonly stiffness: number,

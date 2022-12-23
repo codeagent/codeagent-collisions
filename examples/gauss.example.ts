@@ -1,5 +1,5 @@
 import { vec2 } from 'gl-matrix';
-import { World, Settings, Box, Collider, Body, Circle } from 'js-physics-2d';
+import { WorldInterface, Settings, Box, Collider, Circle } from 'js-physics-2d';
 import { Inject, Service } from 'typedi';
 import { ExampleInterface } from './example.interface';
 
@@ -7,7 +7,7 @@ import { ExampleInterface } from './example.interface';
 export class GaussExample implements ExampleInterface {
   constructor(
     @Inject('SETTINGS') private readonly settings: Settings,
-    private readonly world: World
+    @Inject('WORLD') private readonly world: WorldInterface
   ) {}
 
   install(): void {
@@ -35,43 +35,34 @@ export class GaussExample implements ExampleInterface {
     let ballR = 0.2;
 
     // floor
-    this.world.addCollider(
-      new Collider(
-        this.world.createBody(
-          Number.POSITIVE_INFINITY,
-          Number.POSITIVE_INFINITY,
-          vec2.fromValues(0.0, -10),
-          0.0
-        ),
-        new Box(20, 1)
-      )
-    );
+    this.world.addCollider({
+      body: this.world.createBody({
+        mass: Number.POSITIVE_INFINITY,
+        inertia: Number.POSITIVE_INFINITY,
+        position: vec2.fromValues(0.0, -10),
+      }),
+      shape: new Box(20, 1),
+    });
 
     // left wall
-    this.world.addCollider(
-      new Collider(
-        this.world.createBody(
-          Number.POSITIVE_INFINITY,
-          Number.POSITIVE_INFINITY,
-          vec2.fromValues(-10, -3.5),
-          0.0
-        ),
-        new Box(0.5, 12)
-      )
-    );
+    this.world.addCollider({
+      body: this.world.createBody({
+        mass: Number.POSITIVE_INFINITY,
+        inertia: Number.POSITIVE_INFINITY,
+        position: vec2.fromValues(-10, -3.5),
+      }),
+      shape: new Box(0.5, 12),
+    });
 
     // right wall
-    this.world.addCollider(
-      new Collider(
-        this.world.createBody(
-          Number.POSITIVE_INFINITY,
-          Number.POSITIVE_INFINITY,
-          vec2.fromValues(10, -3.5),
-          0.0
-        ),
-        new Box(0.5, 12)
-      )
-    );
+    this.world.addCollider({
+      body: this.world.createBody({
+        mass: Number.POSITIVE_INFINITY,
+        inertia: Number.POSITIVE_INFINITY,
+        position: vec2.fromValues(10, -3.5),
+      }),
+      shape: new Box(0.5, 12),
+    });
 
     // columns
     let x = 0.0;
@@ -79,43 +70,36 @@ export class GaussExample implements ExampleInterface {
       if (columns % 2 == 1) {
         x += band + 0.0;
       }
-      this.world.addCollider(
-        new Collider(
-          this.world.createBody(
-            Number.POSITIVE_INFINITY,
-            Number.POSITIVE_INFINITY,
-            vec2.fromValues(columns % 2 ? x : -x, -6.0),
-            0.0
-          ),
-          new Box(colW, 7)
-        )
-      );
+      this.world.addCollider({
+        body: this.world.createBody({
+          mass: Number.POSITIVE_INFINITY,
+          inertia: Number.POSITIVE_INFINITY,
+          position: vec2.fromValues(columns % 2 ? x : -x, -6.0),
+        }),
+        shape: new Box(colW, 7),
+      });
     }
 
     // sink
-    this.world.addCollider(
-      new Collider(
-        this.world.createBody(
-          Number.POSITIVE_INFINITY,
-          Number.POSITIVE_INFINITY,
-          vec2.fromValues(3, 10),
-          sinkSlope
-        ),
-        new Box(10, 0.5)
-      )
-    );
+    this.world.addCollider({
+      body: this.world.createBody({
+        mass: Number.POSITIVE_INFINITY,
+        inertia: Number.POSITIVE_INFINITY,
+        position: vec2.fromValues(3, 10),
+        angle: sinkSlope,
+      }),
+      shape: new Box(10, 0.5),
+    });
 
-    this.world.addCollider(
-      new Collider(
-        this.world.createBody(
-          Number.POSITIVE_INFINITY,
-          Number.POSITIVE_INFINITY,
-          vec2.fromValues(-3, 10),
-          -sinkSlope
-        ),
-        new Box(10, 0.5)
-      )
-    );
+    this.world.addCollider({
+      body: this.world.createBody({
+        mass: Number.POSITIVE_INFINITY,
+        inertia: Number.POSITIVE_INFINITY,
+        position: vec2.fromValues(-3, 10),
+        angle: -sinkSlope,
+      }),
+      shape: new Box(10, 0.5),
+    });
 
     // obstacles
     let u = 0.0;
@@ -125,17 +109,15 @@ export class GaussExample implements ExampleInterface {
       u = -i * obstacleMarginX * 0.5;
 
       for (let j = 0; j <= i; j++) {
-        this.world.addCollider(
-          new Collider(
-            this.world.createBody(
-              Number.POSITIVE_INFINITY,
-              Number.POSITIVE_INFINITY,
-              vec2.fromValues(u, v),
-              Math.PI * 0.25
-            ),
-            new Box(obstacleSize, obstacleSize)
-          )
-        );
+        this.world.addCollider({
+          body: this.world.createBody({
+            mass: Number.POSITIVE_INFINITY,
+            inertia: Number.POSITIVE_INFINITY,
+            position: vec2.fromValues(u, v),
+            angle: Math.PI * 0.25,
+          }),
+          shape: new Box(obstacleSize, obstacleSize),
+        });
 
         u += obstacleMarginX;
       }
@@ -153,12 +135,14 @@ export class GaussExample implements ExampleInterface {
       u = -i * ballR;
 
       for (let j = i; j >= 0; j--) {
-        this.world.addCollider(
-          new Collider(
-            this.world.createBody(1.0, 1.0, vec2.fromValues(u, v), 0.0),
-            new Circle(ballR)
-          )
-        );
+        this.world.addCollider({
+          body: this.world.createBody({
+            mass: 1.0,
+            inertia: 1.0,
+            position: vec2.fromValues(u, v),
+          }),
+          shape: new Circle(ballR),
+        });
 
         u += 2.0 * ballR;
       }

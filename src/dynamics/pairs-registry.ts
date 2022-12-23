@@ -6,6 +6,7 @@ import { EventDispatcher, pairId } from '../utils';
 import { Collider, ContactInfo } from '../cd';
 import { Contact } from './joint';
 import { Events } from '../events';
+import { Body } from './body';
 
 const a = vec2.create();
 const b = vec2.create();
@@ -42,8 +43,8 @@ export class ContactManifold {
       // not penetrating
       if (vec2.dot(ab, contact.contactInfo.normal) < 0) {
         this.contacts.delete(contact);
-        contact.bodyA.removeContact(contact);
-        contact.bodyB.removeContact(contact);
+        (contact.bodyA as Body).removeContact(contact);
+        (contact.bodyB as Body).removeContact(contact);
         continue;
       }
 
@@ -55,8 +56,8 @@ export class ContactManifold {
         vec2.sqrLen(db) >= this.threshold
       ) {
         this.contacts.delete(contact);
-        contact.bodyA.removeContact(contact);
-        contact.bodyB.removeContact(contact);
+        (contact.bodyA as Body).removeContact(contact);
+        (contact.bodyB as Body).removeContact(contact);
         continue;
       }
     }
@@ -119,8 +120,8 @@ export class ContactManifold {
       // remove all that are not either deepest or most distant
       for (const contact of this.contacts) {
         this.contacts.delete(contact);
-        newContact.bodyA.removeContact(contact);
-        newContact.bodyB.removeContact(contact);
+        (newContact.bodyA as Body).removeContact(contact);
+        (newContact.bodyB as Body).removeContact(contact);
       }
 
       this.contacts.add(deepest);
@@ -128,8 +129,8 @@ export class ContactManifold {
     }
 
     if (this.contacts.has(newContact)) {
-      newContact.bodyA.addContact(newContact);
-      newContact.bodyB.addContact(newContact);
+      (newContact.bodyA as Body).addContact(newContact);
+      (newContact.bodyB as Body).addContact(newContact);
     }
   }
 }

@@ -1,6 +1,6 @@
 import { vec2 } from 'gl-matrix';
 import {
-  World,
+  WorldInterface,
   Settings,
   Collider,
   Circle,
@@ -15,7 +15,7 @@ import PINTBALL from './objects/pintball.obj';
 export class PinballExample implements ExampleInterface {
   constructor(
     @Inject('SETTINGS') private readonly settings: Settings,
-    private readonly world: World
+    @Inject('WORLD') private readonly world: WorldInterface
   ) {}
 
   install(): void {
@@ -31,27 +31,28 @@ export class PinballExample implements ExampleInterface {
   }
 
   private createPinball() {
-    this.world.addCollider(
-      new Collider(
-        this.world.createBody(10, 1, vec2.fromValues(0.0, 6.5), Math.PI * 0.25),
-        new Circle(0.25)
-      )
-    );
+    this.world.addCollider({
+      body: this.world.createBody({
+        mass: 10,
+        inertia: 1,
+        position: vec2.fromValues(0.0, 6.5),
+        angle: Math.PI * 0.25,
+      }),
+      shape: new Circle(0.25),
+    });
 
     const collection = loadObj(PINTBALL);
 
     for (const object in collection) {
-      this.world.addCollider(
-        new Collider(
-          this.world.createBody(
-            Number.POSITIVE_INFINITY,
-            Number.POSITIVE_INFINITY,
-            vec2.fromValues(0, 0),
-            0
-          ),
-          new MeshShape(collection[object])
-        )
-      );
+      this.world.addCollider({
+        body: this.world.createBody({
+          mass: Number.POSITIVE_INFINITY,
+          inertia: Number.POSITIVE_INFINITY,
+          position: vec2.fromValues(0, 0),
+          angle: 0,
+        }),
+        shape: new MeshShape(collection[object]),
+      });
     }
   }
 }

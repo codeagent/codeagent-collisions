@@ -1,7 +1,11 @@
 /// <reference path="./declarations.d.ts" />
 
 import { animationFrames, fromEvent, interval } from 'rxjs';
-import { configureContainer, MouseControl, World } from 'js-physics-2d';
+import {
+  configureContainer,
+  MouseControl,
+  WorldInterface,
+} from 'js-physics-2d';
 import { map, startWith, switchMap, tap } from 'rxjs/operators';
 
 import {
@@ -28,7 +32,7 @@ container.set({ id: COLORS_TOKEN, value: COLORS });
 let example: ExampleInterface;
 const canvas = document.getElementById('canvas') as HTMLCanvasElement;
 const profiler = container.get(Profiler);
-const world = container.get(World);
+const world = container.get<WorldInterface>('WORLD');
 const loader = container.get(ExampleLoader);
 const renderer = container.get<RendererInterface>(RENDERER_TOKEN);
 renderer.of(canvas);

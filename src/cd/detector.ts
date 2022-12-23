@@ -7,7 +7,7 @@ import { Collider } from './collider';
 import { ContactInfo } from './contact';
 import { BroadPhaseInterface, testCapsuleCapsule } from './broad-phase';
 import { MidPhaseInterface } from './mid-phase';
-
+import { Body } from '../dynamics';
 import { getToi } from './toi';
 import { MeshShape } from './shape';
 import { Settings } from '../settings';

@@ -1,11 +1,11 @@
-import { World } from '../world';
 import { ConstraintBase } from './constraint.base';
-import { Body } from '../body';
+import { WorldInterface } from '../world.interface';
+import { BodyInterface } from '../body.interface';
 
 export class AngularMotorConstraint extends ConstraintBase {
   constructor(
-    public readonly world: World,
-    public readonly bodyA: Body,
+    public readonly world: WorldInterface,
+    public readonly bodyA: BodyInterface,
     public readonly speed: number,
     public readonly torque: number
   ) {

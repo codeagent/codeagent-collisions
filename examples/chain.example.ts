@@ -1,5 +1,11 @@
 import { vec2 } from 'gl-matrix';
-import { World, Settings, Box, Collider, Body } from 'js-physics-2d';
+import {
+  Settings,
+  Box,
+  Collider,
+  BodyInterface,
+  WorldInterface,
+} from 'js-physics-2d';
 import { Inject, Service } from 'typedi';
 import { ExampleInterface } from './example.interface';
 
@@ -7,7 +13,7 @@ import { ExampleInterface } from './example.interface';
 export class ChainExample implements ExampleInterface {
   constructor(
     @Inject('SETTINGS') private readonly settings: Settings,
-    private readonly world: World
+    @Inject('WORLD') private readonly world: WorldInterface
   ) {}
 
   install(): void {
@@ -23,7 +29,7 @@ export class ChainExample implements ExampleInterface {
   }
 
   private createChain(links: number) {
-    const chain = new Array<Body>(links);
+    const chain = new Array<BodyInterface>(links);
     const size = 0.5;
     const distance = 1.0;
     let offset = Math.SQRT2 * size;
@@ -31,19 +37,26 @@ export class ChainExample implements ExampleInterface {
     let x = 0.0;
 
     for (let i = 0; i < links; i++) {
-      const body = this.world.createBody(
-        i === 0 || i === links - 1 ? Number.POSITIVE_INFINITY : m,
-        i === 0 || i === links - 1 ? Number.POSITIVE_INFINITY : m * 0.1,
-        vec2.fromValues(offset - Math.SQRT2 * size + x - 11, 10),
-        -Math.PI * 0.25
-      );
-      this.world.addCollider(new Collider(body, new Box(size, size)));
+      const body = this.world.createBody({
+        mass: i === 0 || i === links - 1 ? Number.POSITIVE_INFINITY : m,
+        inertia:
+          i === 0 || i === links - 1 ? Number.POSITIVE_INFINITY : m * 0.1,
+        position: vec2.fromValues(offset - Math.SQRT2 * size + x - 11, 10),
+        angle: -Math.PI * 0.25,
+      });
+      this.world.addCollider({ body: body, shape: new Box(size, size) });
 
       if (i > 0) {
         const bodyA = chain[i - 1];
         const pointA = vec2.fromValues(size * 0.5, size * 0.5);
         const pointB = vec2.fromValues(-size * 0.5, -size * 0.5);
-        this.world.addDistanceJoint(bodyA, pointA, body, pointB, distance);
+        this.world.addDistanceJoint({
+          bodyA,
+          jointA: pointA,
+          bodyB: body,
+          jointB: pointB,
+          distance,
+        });
       }
 
       chain[i] = body;

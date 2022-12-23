@@ -71,7 +71,9 @@ export class LocalIslandsGenerator implements IslandsGeneratorInterface {
           this.island.addJoint(joint);
           this.joints.add(joint);
 
-          const second = joint.bodyA === body ? joint.bodyB : joint.bodyA;
+          const second = (
+            joint.bodyA === body ? joint.bodyB : joint.bodyA
+          ) as Body;
           if (second && !this.bodies.has(second)) {
             this.stack.push(second);
           }
@@ -95,7 +97,9 @@ export class LocalIslandsGenerator implements IslandsGeneratorInterface {
 
           this.island.addJoint(contact);
 
-          const second = contact.bodyA === body ? contact.bodyB : contact.bodyA;
+          const second = (
+            contact.bodyA === body ? contact.bodyB : contact.bodyA
+          ) as Body;
           if (second && !this.bodies.has(second)) {
             this.stack.push(second);
           }

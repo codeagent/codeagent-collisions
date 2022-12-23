@@ -2,7 +2,7 @@ import 'reflect-metadata';
 import { Container } from 'typedi';
 
 import { configureContainer } from './di';
-import { World } from './dynamics';
+import { WorldInterface } from './dynamics';
 import { Settings } from './settings';
 
 export * from './cd';
@@ -13,11 +13,13 @@ export * from './settings';
 export * from './di';
 export * from './events';
 
-export const createWorld = (settings: Partial<Settings> = {}): World => {
-  return configureContainer(settings).get(World);
+export const createWorld = (
+  settings: Partial<Settings> = {}
+): WorldInterface => {
+  return configureContainer(settings).get('WORLD');
 };
 
-export const destroyWorld = (world: World) => {
+export const destroyWorld = (world: WorldInterface) => {
   world.dispose();
   Container.reset(world.settings.uid);
 };

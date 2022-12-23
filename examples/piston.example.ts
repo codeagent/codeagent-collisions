@@ -1,6 +1,6 @@
 import { vec2 } from 'gl-matrix';
 import {
-  World,
+  WorldInterface,
   Settings,
   Collider,
   Circle,
@@ -15,7 +15,7 @@ import PISTON from './objects/piston.obj';
 export class PistonExample implements ExampleInterface {
   constructor(
     @Inject('SETTINGS') private readonly settings: Settings,
-    private readonly world: World
+    @Inject('WORLD') private readonly world: WorldInterface
   ) {}
 
   install(): void {
@@ -31,54 +31,54 @@ export class PistonExample implements ExampleInterface {
   }
 
   private createPiston() {
-    this.world.addCollider(
-      new Collider(
-        this.world.createBody(
-          1,
-          0.1,
-          vec2.fromValues(0.0, 10.0),
-          Math.PI * 0.25
-        ),
-        new Circle(1.5)
-      )
-    );
+    this.world.addCollider({
+      body: this.world.createBody({
+        mass: 1,
+        inertia: 0.1,
+        position: vec2.fromValues(0.0, 10.0),
+        angle: Math.PI * 0.25,
+      }),
+      shape: new Circle(1.5),
+    });
 
     const collection = loadObj(PISTON);
 
-    const cylinder = this.world.createBody(
-      Number.POSITIVE_INFINITY,
-      Number.POSITIVE_INFINITY,
-      vec2.fromValues(0, 0),
-      0
-    );
-    this.world.addCollider(
-      new Collider(cylinder, new MeshShape(collection['cylinder']))
-    );
+    const cylinder = this.world.createBody({
+      mass: Number.POSITIVE_INFINITY,
+      inertia: Number.POSITIVE_INFINITY,
+      position: vec2.fromValues(0, 0),
+      angle: 0,
+    });
+    this.world.addCollider({
+      body: cylinder,
+      shape: new MeshShape(collection['cylinder']),
+    });
 
-    const piston = this.world.createBody(1, 1, vec2.fromValues(0, -1), 0);
-    this.world.addCollider(
-      new Collider(piston, new MeshShape(collection['piston']))
-    );
+    const piston = this.world.createBody({
+      mass: 1,
+      inertia: 1,
+      position: vec2.fromValues(0, -1),
+      angle: 0,
+    });
+    this.world.addCollider({
+      body: piston,
+      shape: new MeshShape(collection['piston']),
+    });
 
-    this.world.addPrismaticJoint(
-      cylinder,
-      vec2.create(),
-      piston,
-      vec2.create(),
-      vec2.fromValues(0.0, 1.0),
-      0,
-      0.05,
-      4
-    );
+    this.world.addPrismaticJoint({
+      bodyA: cylinder,
+      bodyB: piston,
+      localAxis: vec2.fromValues(0.0, 1.0),
+      minDistance: 0.05,
+      maxDistance: 4,
+    });
 
-    this.world.addSpring(
-      cylinder,
-      vec2.create(),
-      piston,
-      vec2.create(),
-      1.0,
-      1000.0,
-      10.0
-    );
+    this.world.addSpring({
+      bodyA: cylinder,
+      bodyB: piston,
+      distance: 1.0,
+      extinction: 10,
+      stiffness: 1000,
+    });
   }
 }

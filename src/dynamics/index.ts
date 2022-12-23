@@ -1,4 +1,6 @@
+export * from './body.interface';
 export * from './body';
+export * from './world.interface';
 export * from './world';
 export * from './island';
 export * from './constraint';

@@ -1,5 +1,11 @@
 import { vec2 } from 'gl-matrix';
-import { World, Settings, Box, Collider, Polygon } from 'js-physics-2d';
+import {
+  Settings,
+  Box,
+  Collider,
+  Polygon,
+  WorldInterface,
+} from 'js-physics-2d';
 import { Inject, Service } from 'typedi';
 import { ExampleInterface } from './example.interface';
 
@@ -7,7 +13,7 @@ import { ExampleInterface } from './example.interface';
 export class CcdExample implements ExampleInterface {
   constructor(
     @Inject('SETTINGS') private readonly settings: Settings,
-    private readonly world: World
+    @Inject('WORLD') private readonly world: WorldInterface
   ) {}
 
   install(): void {
@@ -24,47 +30,43 @@ export class CcdExample implements ExampleInterface {
 
   private createObjects() {
     // floor
-    let body = this.world.createBody(
-      Number.POSITIVE_INFINITY,
-      Number.POSITIVE_INFINITY,
-      vec2.fromValues(0.0, -9),
-      0.0
-    );
-    this.world.addCollider(new Collider(body, new Box(20, 0.1)));
+    let body = this.world.createBody({
+      mass: Number.POSITIVE_INFINITY,
+      inertia: Number.POSITIVE_INFINITY,
+      position: vec2.fromValues(0.0, -9),
+    });
+    this.world.addCollider({ body: body, shape: new Box(20, 0.1) });
 
     const omega = Math.PI * 1.0;
     const velocity = vec2.fromValues(0.0, -10000.0);
 
-    let box1 = this.world.createBody(
-      1.0,
-      1.0,
-      vec2.fromValues(-2, 0),
-      Math.PI,
-      true
-    );
+    let box1 = this.world.createBody({
+      mass: 1.0,
+      inertia: 1.0,
+      position: vec2.fromValues(-2, 0),
+      angle: Math.PI,
+      isContinuos: true,
+    });
     box1.omega = omega;
     box1.velocity = velocity;
-    this.world.addCollider(
-      new Collider(
-        box1,
-        new Polygon([
-          vec2.fromValues(0.5, -0.5),
-          vec2.fromValues(0.5, 0.5),
-          vec2.fromValues(-0.5, 0.5),
-          vec2.fromValues(-1.5, 0.0),
-        ])
-      )
-    );
+    this.world.addCollider({
+      body: box1,
+      shape: new Polygon([
+        vec2.fromValues(0.5, -0.5),
+        vec2.fromValues(0.5, 0.5),
+        vec2.fromValues(-0.5, 0.5),
+        vec2.fromValues(-1.5, 0.0),
+      ]),
+    });
 
-    let box2 = this.world.createBody(
-      1.0,
-      1.0,
-      vec2.fromValues(2, 0),
-      Math.PI * 0.25,
-      false
-    );
+    let box2 = this.world.createBody({
+      mass: 1.0,
+      inertia: 1.0,
+      position: vec2.fromValues(2, 0),
+      angle: Math.PI * 0.25,
+    });
     box2.omega = omega;
     box2.velocity = velocity;
-    this.world.addCollider(new Collider(box2, new Box(1, 1)));
+    this.world.addCollider({ body: box2, shape: new Box(1, 1) });
   }
 }

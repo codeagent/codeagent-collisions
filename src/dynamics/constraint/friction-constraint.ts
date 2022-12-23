@@ -1,9 +1,9 @@
 import { vec2 } from 'gl-matrix';
 
-import { Body } from '../body';
-import { World } from '../world';
 import { ConstraintBase } from './constraint.base';
 import { cross } from '../../math';
+import { WorldInterface } from '../world.interface';
+import { BodyInterface } from '../body.interface';
 
 const tangent = vec2.create();
 const ra = vec2.create();
@@ -11,9 +11,9 @@ const rb = vec2.create();
 
 export class FrictionConstraint extends ConstraintBase {
   constructor(
-    public readonly world: World,
-    public readonly bodyA: Body,
-    public readonly bodyB: Body,
+    public readonly world: WorldInterface,
+    public readonly bodyA: BodyInterface,
+    public readonly bodyB: BodyInterface,
     public readonly joint: vec2,
     public readonly normal: vec2, // normal at bodyA
     public readonly mu: number

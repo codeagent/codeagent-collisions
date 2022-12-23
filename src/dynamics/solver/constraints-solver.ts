@@ -170,12 +170,12 @@ export class ConstraintsSolver implements ConstraintsSolverInterface {
 
       rows.push(values.length);
 
-      const bodyA = constraint.bodyA;
-      const bodyB = constraint.bodyB;
+      const bodyA = constraint.bodyA as Body;
+      const bodyB = constraint.bodyB as Body;
 
       if (bodyA && !bodyA.isStatic && bodyB && !bodyB.isStatic) {
-        constraint.bodyA.solverConstraints.push(j);
-        constraint.bodyB.solverConstraints.push(j);
+        bodyA.solverConstraints.push(j);
+        bodyB.solverConstraints.push(j);
 
         if (bodyA.bodyIndex < bodyB.bodyIndex) {
           values.push(
@@ -213,7 +213,7 @@ export class ConstraintsSolver implements ConstraintsSolverInterface {
           );
         }
       } else if (bodyA && !bodyA.isStatic) {
-        constraint.bodyA.solverConstraints.push(j);
+        bodyA.solverConstraints.push(j);
         values.push(this.jacobian[0], this.jacobian[1], this.jacobian[2]);
         columns.push(
           bodyA.bodyIndex * 3,
@@ -221,7 +221,7 @@ export class ConstraintsSolver implements ConstraintsSolverInterface {
           bodyA.bodyIndex * 3 + 2
         );
       } else if (bodyB && !bodyB.isStatic) {
-        constraint.bodyB.solverConstraints.push(j);
+        bodyB.solverConstraints.push(j);
         values.push(this.jacobian[3], this.jacobian[4], this.jacobian[5]);
         columns.push(
           bodyB.bodyIndex * 3,
@@ -241,8 +241,11 @@ export class ConstraintsSolver implements ConstraintsSolverInterface {
 
     let k = 0;
     for (const constraint of constraints) {
-      const ca = constraint.bodyA ? constraint.bodyA.solverConstraints : [];
-      const cb = constraint.bodyB ? constraint.bodyB.solverConstraints : [];
+      const bodyA = constraint.bodyA as Body;
+      const bodyB = constraint.bodyB as Body;
+
+      const ca = bodyA ? bodyA.solverConstraints : [];
+      const cb = bodyB ? bodyB.solverConstraints : [];
 
       let i = 0;
       let j = 0;

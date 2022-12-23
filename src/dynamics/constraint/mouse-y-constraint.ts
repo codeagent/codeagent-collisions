@@ -1,9 +1,9 @@
 import { vec2 } from 'gl-matrix';
 
-import { Body } from '../body';
 import { MouseControlInterface } from '../joint';
-import { World } from '../world';
 import { ConstraintBase } from './constraint.base';
+import { WorldInterface } from '../world.interface';
+import { BodyInterface } from '../body.interface';
 
 export class MouseYConstraint extends ConstraintBase {
   private readonly pa = vec2.create();
@@ -11,9 +11,9 @@ export class MouseYConstraint extends ConstraintBase {
   private readonly cursor = vec2.create();
 
   constructor(
-    public readonly world: World,
-    public readonly bodyA: Body,
-    public readonly joint: vec2,
+    public readonly world: WorldInterface,
+    public readonly bodyA: BodyInterface,
+    public readonly joint: Readonly<vec2>,
     public readonly control: MouseControlInterface,
     public readonly stiffness: number,
     public readonly maxForce: number = Number.POSITIVE_INFINITY

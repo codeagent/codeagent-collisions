@@ -2,11 +2,11 @@ import {
   ConstraintInterface,
   ConstraintClamping,
 } from './constraint.interface';
-import { Body } from '../body';
+import { BodyInterface } from '../body.interface';
 
 export abstract class ConstraintBase implements ConstraintInterface {
-  readonly bodyA: Body | null = null;
-  readonly bodyB: Body | null = null;
+  readonly bodyA: Readonly<BodyInterface> = null;
+  readonly bodyB: Readonly<BodyInterface> = null;
 
   private readonly cache: number[] = [0.0, 0.0];
 

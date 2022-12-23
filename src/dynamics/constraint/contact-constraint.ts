@@ -1,9 +1,9 @@
 import { vec2 } from 'gl-matrix';
 
-import { World } from '../world';
 import { ConstraintBase } from './constraint.base';
-import { Body } from '../body';
 import { cross, VxV } from '../../math';
+import { BodyInterface } from '../body.interface';
+import { WorldInterface } from '../world.interface';
 
 const ra = vec2.create();
 const rb = vec2.create();
@@ -12,11 +12,11 @@ const velocities = new Float32Array(6);
 
 export class ContactConstraint extends ConstraintBase {
   constructor(
-    public readonly world: World,
-    public readonly bodyA: Body,
-    public readonly bodyB: Body,
-    public readonly joint: vec2,
-    public readonly normal: vec2, // normal at bodyA
+    public readonly world: WorldInterface,
+    public readonly bodyA: Readonly<BodyInterface>,
+    public readonly bodyB: Readonly<BodyInterface>,
+    public readonly joint: Readonly<vec2>,
+    public readonly normal: Readonly<vec2>, // normal at bodyA
     public penetration: number
   ) {
     super();

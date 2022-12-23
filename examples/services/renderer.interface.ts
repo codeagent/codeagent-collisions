@@ -1,14 +1,12 @@
 import { mat3, vec2 } from 'gl-matrix';
 import {
   AABB,
-  Shape,
-  World,
-  Body,
   JointInterface,
-  ConstraintInterface,
   OBB,
   Collider,
   OBBNode,
+  WorldInterface,
+  BodyInterface,
 } from 'js-physics-2d';
 
 export interface StylePresetInterface {
@@ -54,8 +52,8 @@ export interface RendererInterface {
   viewport(xmin: number, xmax: number, ymin: number, ymax: number): void;
   renderText(text: string, pos: Readonly<vec2>): void;
   renderGrid(lines: number, step: number): void;
-  renderWorld(world: Readonly<World>): void;
-  renderBody(body: Readonly<Body>): void;
+  renderWorld(world: Readonly<WorldInterface>): void;
+  renderBody(body: Readonly<BodyInterface>): void;
   renderJoint(joint: JointInterface): void;
   renderAABB(aabb: Readonly<AABB>): void;
   renderOBB(obb: Readonly<OBB>): void;

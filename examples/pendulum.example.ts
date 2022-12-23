@@ -1,5 +1,12 @@
 import { vec2 } from 'gl-matrix';
-import { World, Settings, Box, Collider, Body, Circle } from 'js-physics-2d';
+import {
+  Settings,
+  Box,
+  Collider,
+  Circle,
+  BodyInterface,
+  WorldInterface,
+} from 'js-physics-2d';
 import { Inject, Service } from 'typedi';
 import { ExampleInterface } from './example.interface';
 
@@ -7,7 +14,7 @@ import { ExampleInterface } from './example.interface';
 export class PendulumExample implements ExampleInterface {
   constructor(
     @Inject('SETTINGS') private readonly settings: Settings,
-    private readonly world: World
+    @Inject('WORLD') private readonly world: WorldInterface
   ) {}
 
   install(): void {
@@ -28,46 +35,49 @@ export class PendulumExample implements ExampleInterface {
     const m = 1.0;
 
     // ceil
-    const ceil = this.world.createBody(
-      Number.POSITIVE_INFINITY,
-      Number.POSITIVE_INFINITY,
-      vec2.fromValues(0.0, 10),
-      0.0
-    );
-    this.world.addCollider(new Collider(ceil, new Box(20, 1)));
+    const ceil = this.world.createBody({
+      mass: Number.POSITIVE_INFINITY,
+      inertia: Number.POSITIVE_INFINITY,
+      position: vec2.fromValues(0.0, 10),
+    });
+    this.world.addCollider({ body: ceil, shape: new Box(20, 1) });
 
     let offset = 0;
 
     while (n--) {
-      let pendulum: Body;
+      let pendulum: BodyInterface;
       if (n === 1) {
-        pendulum = this.world.createBody(
-          m,
-          m,
-          vec2.fromValues(
+        pendulum = this.world.createBody({
+          mass: m,
+          inertia: m,
+          position: vec2.fromValues(
             (n % 2 ? offset : -offset) + length * Math.sin(Math.PI * 0.25),
             length * Math.cos(Math.PI * 0.25)
           ),
-          0.0
-        );
-        this.world.addCollider(new Collider(pendulum, new Circle(step * 0.5)));
+        });
+        this.world.addCollider({
+          body: pendulum,
+          shape: new Circle(step * 0.5),
+        });
       } else {
-        pendulum = this.world.createBody(
-          m,
-          m,
-          vec2.fromValues(n % 2 ? offset : -offset, 0),
-          0.0
-        );
-        this.world.addCollider(new Collider(pendulum, new Circle(step * 0.5)));
+        pendulum = this.world.createBody({
+          mass: m,
+          inertia: m,
+          position: vec2.fromValues(n % 2 ? offset : -offset, 0),
+        });
+        this.world.addCollider({
+          body: pendulum,
+          shape: new Circle(step * 0.5),
+        });
       }
 
-      this.world.addDistanceJoint(
-        ceil,
-        vec2.fromValues(n % 2 ? offset : -offset, 0.0),
-        pendulum,
-        vec2.fromValues(0.0, 0.0),
-        length
-      );
+      this.world.addDistanceJoint({
+        bodyA: ceil,
+        bodyB: pendulum,
+        jointA: vec2.fromValues(n % 2 ? offset : -offset, 0.0),
+        jointB: vec2.fromValues(0.0, 0.0),
+        distance: length,
+      });
 
       if (n % 2) {
         offset += step;

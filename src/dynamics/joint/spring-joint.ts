@@ -4,16 +4,27 @@ import { World } from '../world';
 import { JointInterface } from './joint.interface';
 import { SpringConstraint } from '../constraint';
 import { Body } from '../body';
+import { BodyInterface } from '../body.interface';
+
+export interface SpringDef {
+  bodyA: Readonly<BodyInterface>;
+  pivotA?: Readonly<vec2>;
+  bodyB: Readonly<BodyInterface>;
+  pivotB?: Readonly<vec2>;
+  distance: number;
+  stiffness?: number;
+  extinction?: number;
+}
 
 export class SpringJoint implements JointInterface {
   private readonly springConstraint: SpringConstraint;
 
   constructor(
-    public readonly world: World,
-    public readonly bodyA: Body,
-    public readonly pivotA: vec2,
-    public readonly bodyB: Body,
-    public readonly pivotB: vec2,
+    readonly world: World,
+    public readonly bodyA: Readonly<BodyInterface>,
+    public readonly pivotA: Readonly<vec2>,
+    public readonly bodyB: Readonly<BodyInterface>,
+    public readonly pivotB: Readonly<vec2>,
     public readonly distance: number,
     public readonly stiffness: number,
     public readonly extinction: number

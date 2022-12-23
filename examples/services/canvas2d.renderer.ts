@@ -1,9 +1,7 @@
-import { mat2, mat3, vec2, vec3, vec4 } from 'gl-matrix';
+import { mat3, vec2 } from 'gl-matrix';
 import { Inject, Service } from 'typedi';
 
 import {
-  World,
-  Body,
   JointInterface,
   AABB,
   Collider,
@@ -11,7 +9,6 @@ import {
   OBB,
   OBBNode,
   Circle,
-  centroid,
   Polygon,
   Ellipse,
   Capsule,
@@ -24,7 +21,9 @@ import {
   SpringJoint,
   WeldJoint,
   WheelJoint,
-  transformMat3Vec,
+  WorldInterface,
+  BodyInterface,
+  ColliderInterface,
 } from 'js-physics-2d';
 
 import {
@@ -154,13 +153,13 @@ export class Canvas2DRenderer implements RendererInterface {
     }
   }
 
-  renderWorld(world: Readonly<World>): void {
+  renderWorld(world: Readonly<WorldInterface>): void {
     if (this.renderMask & RenderMask.Axes) {
       this.renderGrid(20, 1.0);
     }
 
     if (this.renderMask & RenderMask.Body) {
-      for (const body of world.bodies) {
+      for (const body of world) {
         this.renderBody(body);
       }
     }
@@ -168,8 +167,8 @@ export class Canvas2DRenderer implements RendererInterface {
     if (this.renderMask & RenderMask.Contact) {
       this.joints.clear();
 
-      for (const body of world.bodies) {
-        for (const contact of body.contacts) {
+      for (const body of world) {
+        for (const contact of body['contacts']) {
           if (this.joints.has(contact)) {
             continue;
           }
@@ -183,7 +182,7 @@ export class Canvas2DRenderer implements RendererInterface {
     if (this.renderMask & RenderMask.Joint) {
       this.joints.clear();
 
-      for (const body of world.bodies) {
+      for (const body of world) {
         for (const contact of body.joints) {
           if (this.joints.has(contact)) {
             continue;
@@ -196,13 +195,13 @@ export class Canvas2DRenderer implements RendererInterface {
     }
 
     if (this.renderMask & RenderMask.AABB) {
-      for (const body of world.bodies) {
+      for (const body of world) {
         this.renderAABB(body.collider.aabb);
       }
     }
 
     if (this.renderMask & RenderMask.OBB) {
-      for (const body of world.bodies) {
+      for (const body of world) {
         if (body.collider.shape instanceof MeshShape) {
           this.renderOBBTree(body.collider.shape.obbTree);
         }
@@ -210,7 +209,7 @@ export class Canvas2DRenderer implements RendererInterface {
     }
   }
 
-  renderBody(body: Readonly<Body>): void {
+  renderBody(body: Readonly<BodyInterface>): void {
     const color = body.isStatic
       ? this.styling.staticBodyColor
       : body.isSleeping
@@ -332,7 +331,7 @@ export class Canvas2DRenderer implements RendererInterface {
     }
   }
 
-  renderCollider(collider: Readonly<Collider>): void {
+  renderCollider(collider: Readonly<ColliderInterface>): void {
     this.context.setLineDash(collider.body.isSleeping ? [3, 3] : []);
 
     if (collider.shape instanceof Circle) {

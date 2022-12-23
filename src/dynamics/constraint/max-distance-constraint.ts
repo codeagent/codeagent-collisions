@@ -1,15 +1,15 @@
 import { vec2 } from 'gl-matrix';
 
-import { World } from '../world';
 import { DistanceConstraint } from '../constraint';
-import { Body } from '../body';
+import { WorldInterface } from '../world.interface';
+import { BodyInterface } from '../body.interface';
 
 export class MaxDistanceConstraint extends DistanceConstraint {
   constructor(
-    world: World,
-    bodyA: Body,
+    world: WorldInterface,
+    bodyA: BodyInterface,
     jointA: vec2,
-    bodyB: Body,
+    bodyB: BodyInterface,
     jointB: vec2,
     distance: number
   ) {

@@ -1,13 +1,15 @@
 import { ConstraintBase } from './constraint.base';
-import { BodyInterface } from '../body.interface';
 import { WorldInterface } from '../world.interface';
+import { BodyInterface } from '../body.interface';
 
-export class AngleConstraint extends ConstraintBase {
+export class SpiralSpringConstraint extends ConstraintBase {
   constructor(
     public readonly world: WorldInterface,
     public readonly bodyA: BodyInterface,
     public readonly bodyB: BodyInterface,
-    public readonly angle: number
+    public readonly angle: number,
+    public readonly stiffness: number,
+    public readonly extinction: number
   ) {
     super();
   }
@@ -29,12 +31,19 @@ export class AngleConstraint extends ConstraintBase {
   }
 
   getPushFactor(dt: number, strength: number): number {
-    return (
-      ((this.angle - (this.bodyB.angle - this.bodyA.angle)) / dt) * strength
-    );
+    return 0.0;
   }
 
   getClamping() {
-    return { min: Number.NEGATIVE_INFINITY, max: Number.POSITIVE_INFINITY };
+    // Damping force
+    const fd = -this.extinction * (this.bodyB.omega - this.bodyA.omega);
+
+    // Stiff force
+    const fs =
+      this.stiffness * (this.angle - (this.bodyB.angle - this.bodyA.angle));
+
+    const c = fs + fd;
+
+    return { min: c, max: c };
   }
 }

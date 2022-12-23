@@ -1,6 +1,6 @@
 import { mat3, vec2 } from 'gl-matrix';
 import {
-  World,
+  WorldInterface,
   Settings,
   Box,
   Collider,
@@ -13,6 +13,7 @@ import {
   Circle,
   MeshShape,
   defaultSettings,
+  BodyInterface,
 } from 'js-physics-2d';
 import { Events } from 'js-physics-2d/events';
 import { Inject, Service } from 'typedi';
@@ -32,7 +33,7 @@ export class ToiExample implements ExampleInterface {
   constructor(
     @Inject('SETTINGS') private readonly settings: Settings,
     @Inject(RENDERER_TOKEN) private readonly renderer: RendererInterface,
-    private readonly world: World,
+    @Inject('WORLD') private readonly world: WorldInterface,
     private readonly clock: Clock
   ) {}
 
@@ -55,63 +56,93 @@ export class ToiExample implements ExampleInterface {
     const objects = loadObj(GEARS);
 
     // "continued - moving" objects
-    let body = this.world.createBody(
-      1.0,
-      1.0,
-      vec2.fromValues(6, 8),
-      Math.PI * 0.75
-    );
-    this.world.addCollider(new Collider(body, new Box(2, 1), 0));
+    let body = this.world.createBody({
+      mass: 1.0,
+      inertia: 1.0,
+      position: vec2.fromValues(6, 8),
+      angle: Math.PI * 0.75,
+    });
+    this.world.addCollider({ body: body, shape: new Box(2, 1), mask: 0 });
 
-    body = this.world.createBody(
-      1.0,
-      1.0,
-      vec2.fromValues(6, 4),
-      Math.PI * 0.75
-    );
-    this.world.addCollider(new Collider(body, new Capsule(0.5, 1.5), 0));
+    body = this.world.createBody({
+      mass: 1.0,
+      inertia: 1.0,
+      position: vec2.fromValues(6, 4),
+      angle: Math.PI * 0.75,
+    });
+    this.world.addCollider({ body: body, shape: new Capsule(0.5, 1.5), mask: 0 });
 
-    body = this.world.createBody(
-      1.0,
-      1.0,
-      vec2.fromValues(6, -0),
-      Math.PI * 0.75
-    );
-    this.world.addCollider(new Collider(body, new Circle(1), 0));
+    body = this.world.createBody({
+      mass: 1.0,
+      inertia: 1.0,
+      position: vec2.fromValues(6, -0),
+      angle: Math.PI * 0.75,
+    });
+    this.world.addCollider({ body: body, shape: new Circle(1), mask: 0 });
 
-    body = this.world.createBody(
-      1.0,
-      1.0,
-      vec2.fromValues(6, -4),
-      Math.PI * 0.75
-    );
-    this.world.addCollider(new Collider(body, new Ellipse(1.0, 0.5), 0));
+    body = this.world.createBody({
+      mass: 1.0,
+      inertia: 1.0,
+      position: vec2.fromValues(6, -4),
+      angle: Math.PI * 0.75,
+    });
+    this.world.addCollider({ body: body, shape: new Ellipse(1.0, 0.5), mask: 0 });
 
-    body = this.world.createBody(1, 1, vec2.fromValues(6, -8), Math.PI * 0.75);
+    body = this.world.createBody({
+      mass: 1,
+      inertia: 1,
+      position: vec2.fromValues(6, -8),
+      angle: Math.PI * 0.75,
+    });
     this.world.addCollider(
-      new Collider(body, new MeshShape(objects['gear_o_049']), 0)
+      { body: body, shape: new MeshShape(objects['gear_o_049']), mask: 0 }
     );
 
     // "descrete" objects
-    body = this.world.createBody(1.0, 1.0, vec2.fromValues(-6, 8), 0);
-    this.world.addCollider(new Collider(body, new Box(2, 1), 0));
+    body = this.world.createBody({
+      mass: 1.0,
+      inertia: 1.0,
+      position: vec2.fromValues(-6, 8),
+      angle: 0,
+    });
+    this.world.addCollider({ body: body, shape: new Box(2, 1), mask: 0 });
 
-    body = this.world.createBody(1.0, 1.0, vec2.fromValues(-6, 4), 0);
-    this.world.addCollider(new Collider(body, new Capsule(0.5, 1.5), 0));
+    body = this.world.createBody({
+      mass: 1.0,
+      inertia: 1.0,
+      position: vec2.fromValues(-6, 4),
+      angle: 0,
+    });
+    this.world.addCollider({ body: body, shape: new Capsule(0.5, 1.5), mask: 0 });
 
-    body = this.world.createBody(1.0, 1.0, vec2.fromValues(-6, -0), 0);
-    this.world.addCollider(new Collider(body, new Circle(1), 0));
+    body = this.world.createBody({
+      mass: 1.0,
+      inertia: 1.0,
+      position: vec2.fromValues(-6, -0),
+      angle: 0,
+    });
+    this.world.addCollider({ body: body, shape: new Circle(1), mask: 0 });
 
-    body = this.world.createBody(1.0, 1.0, vec2.fromValues(-6, -4), 0);
-    this.world.addCollider(new Collider(body, new Ellipse(1.0, 0.5), 0));
+    body = this.world.createBody({
+      mass: 1.0,
+      inertia: 1.0,
+      position: vec2.fromValues(-6, -4),
+      angle: 0,
+    });
+    this.world.addCollider({ body: body, shape: new Ellipse(1.0, 0.5), mask: 0 });
 
-    body = this.world.createBody(1, 1, vec2.fromValues(-6, -8), 0);
+    body = this.world.createBody({
+      mass: 1,
+      inertia: 1,
+      position: vec2.fromValues(-6, -8),
+      angle: 0,
+    });
     this.world.addCollider(
-      new Collider(body, new MeshShape(objects['gear_o_049']), 0)
+      { body: body, shape: new MeshShape(objects['gear_o_049']), mask: 0 }
     );
   }
 
-  private lerp(transform: mat3, body: Readonly<Body>, dt: number) {
+  private lerp(transform: mat3, body: Readonly<BodyInterface>, dt: number) {
     const position = vec2.clone(body.position);
     const velocity = vec2.clone(body.velocity);
 
@@ -122,7 +153,7 @@ export class ToiExample implements ExampleInterface {
     mat3.rotate(transform, transform, angle);
   }
 
-  private drawSweptVolume(body: Body, dt: number) {
+  private drawSweptVolume(body: BodyInterface, dt: number) {
     const p0 = vec2.create();
     const p1 = vec2.create();
 
@@ -146,7 +177,11 @@ export class ToiExample implements ExampleInterface {
     // );
   }
 
-  private drawBodiesImpact(body0: Body, body1: Body, dt: number) {
+  private drawBodiesImpact(
+    body0: BodyInterface,
+    body1: BodyInterface,
+    dt: number
+  ) {
     let currVelocity = vec2.clone(body0.velocity);
     let currOmega = body0.omega;
 
@@ -177,20 +212,22 @@ export class ToiExample implements ExampleInterface {
   }
 
   private onPostStep(): void {
+    const worldBodies = Array.from(this.world);
+
     const continued = [
-      this.world.bodies[0],
-      this.world.bodies[1],
-      this.world.bodies[2],
-      this.world.bodies[3],
-      this.world.bodies[4],
+      worldBodies[0],
+      worldBodies[1],
+      worldBodies[2],
+      worldBodies[3],
+      worldBodies[4],
     ];
 
     const discreet = [
-      this.world.bodies[5],
-      this.world.bodies[6],
-      this.world.bodies[7],
-      this.world.bodies[8],
-      this.world.bodies[9],
+      worldBodies[5],
+      worldBodies[6],
+      worldBodies[7],
+      worldBodies[8],
+      worldBodies[9],
     ];
 
     for (const c of continued) {

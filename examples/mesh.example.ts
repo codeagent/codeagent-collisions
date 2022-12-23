@@ -1,6 +1,6 @@
 import { vec2 } from 'gl-matrix';
 import {
-  World,
+  WorldInterface,
   Settings,
   Box,
   Collider,
@@ -16,7 +16,7 @@ import MESH from './objects/mesh.obj';
 export class MeshExample implements ExampleInterface {
   constructor(
     @Inject('SETTINGS') private readonly settings: Settings,
-    private readonly world: World
+    @Inject('WORLD') private readonly world: WorldInterface
   ) {}
 
   install(): void {
@@ -32,61 +32,58 @@ export class MeshExample implements ExampleInterface {
   }
 
   private createMesh() {
-    this.world.addCollider(
-      new Collider(
-        this.world.createBody(10, 1, vec2.fromValues(0.0, 6.5), Math.PI * 0.25),
-        new Circle(0.5)
-      )
-    );
+    this.world.addCollider({
+      body: this.world.createBody({
+        mass: 10,
+        inertia: 1,
+        position: vec2.fromValues(0.0, 6.5),
+        angle: Math.PI * 0.25,
+      }),
+      shape: new Circle(0.5),
+    });
 
     const collection = loadObj(MESH);
 
     for (const object in collection) {
-      this.world.addCollider(
-        new Collider(
-          this.world.createBody(10, 100, vec2.fromValues(0, 0), 0),
-          new MeshShape(collection[object])
-        )
-      );
+      this.world.addCollider({
+        body: this.world.createBody({
+          mass: 10,
+          inertia: 100,
+          position: vec2.fromValues(0, 0),
+          angle: 0,
+        }),
+        shape: new MeshShape(collection[object]),
+      });
     }
 
     // left wall
-    this.world.addCollider(
-      new Collider(
-        this.world.createBody(
-          Number.POSITIVE_INFINITY,
-          Number.POSITIVE_INFINITY,
-          vec2.fromValues(-14, 0),
-          0.0
-        ),
-        new Box(0.25, 16)
-      )
-    );
+    this.world.addCollider({
+      body: this.world.createBody({
+        mass: Number.POSITIVE_INFINITY,
+        inertia: Number.POSITIVE_INFINITY,
+        position: vec2.fromValues(-14, 0),
+      }),
+      shape: new Box(0.25, 16),
+    });
 
     // right wall
-    this.world.addCollider(
-      new Collider(
-        this.world.createBody(
-          Number.POSITIVE_INFINITY,
-          Number.POSITIVE_INFINITY,
-          vec2.fromValues(14, 0),
-          0.0
-        ),
-        new Box(0.25, 16)
-      )
-    );
+    this.world.addCollider({
+      body: this.world.createBody({
+        mass: Number.POSITIVE_INFINITY,
+        inertia: Number.POSITIVE_INFINITY,
+        position: vec2.fromValues(14, 0),
+      }),
+      shape: new Box(0.25, 16),
+    });
 
     // floor
-    this.world.addCollider(
-      new Collider(
-        this.world.createBody(
-          Number.POSITIVE_INFINITY,
-          Number.POSITIVE_INFINITY,
-          vec2.fromValues(0.0, -9),
-          0.0
-        ),
-        new Box(30, 1)
-      )
-    );
+    this.world.addCollider({
+      body: this.world.createBody({
+        mass: Number.POSITIVE_INFINITY,
+        inertia: Number.POSITIVE_INFINITY,
+        position: vec2.fromValues(0.0, -9),
+      }),
+      shape: new Box(30, 1),
+    });
   }
 }

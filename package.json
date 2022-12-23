@@ -22,7 +22,6 @@
     "dist/bundle/*",
     "dist/cjs/*",
     "dist/esm/*",
-    "dist/esm5/*",
     "dist/types/*",
     "README.md",
     "LICENSE",
@@ -31,7 +30,6 @@
   "scripts": {
     "build:clean": "npx rimraf dist",
     "build:esm": "npx tsc -p tsconfig.esm.json",
-    "build:esm5": "npx tsc -p tsconfig.esm5.json",
     "build:cjs": "npx tsc -p tsconfig.cjs.json",
     "build:types": "npx tsc -p tsconfig.types.json",
     "build:bundle": "npx rollup -c --bundleConfigAsCjs",

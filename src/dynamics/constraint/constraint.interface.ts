@@ -1,4 +1,4 @@
-import { Body } from '../body';
+import { BodyInterface } from '../body.interface';
 
 export interface ConstraintClamping {
   min: number;
@@ -6,8 +6,8 @@ export interface ConstraintClamping {
 }
 
 export interface ConstraintInterface {
-  readonly bodyA: Body | null;
-  readonly bodyB: Body | null;
+  readonly bodyA: BodyInterface | null;
+  readonly bodyB: BodyInterface | null;
   getJacobian(out: Float32Array): void;
   getPushFactor(dt: number, strength: number): number;
   getClamping(): ConstraintClamping;

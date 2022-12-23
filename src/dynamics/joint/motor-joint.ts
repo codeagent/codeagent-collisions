@@ -1,16 +1,22 @@
 import { World } from '../world';
 import { JointInterface } from './joint.interface';
-import { AngularMotorConstraint } from '../constraint';
+import { AngularMotorConstraint, ConstraintInterface } from '../constraint';
 import { Body } from '../body';
+import { BodyInterface } from '../body.interface';
+
+export interface MotorDef {
+  body: Readonly<BodyInterface>;
+  speed?: number;
+  torque?: number;
+}
 
 export class MotorJoint implements JointInterface {
-  public readonly bodyB: Body = null;
-
-  private readonly motorConstraint: AngularMotorConstraint;
+  public readonly bodyB: Readonly<BodyInterface> = null;
+  private readonly motorConstraint: ConstraintInterface;
 
   constructor(
-    public readonly world: World,
-    public readonly bodyA: Body,
+    readonly world: World,
+    public readonly bodyA: Readonly<BodyInterface>,
     public readonly speed: number,
     public readonly torque: number
   ) {

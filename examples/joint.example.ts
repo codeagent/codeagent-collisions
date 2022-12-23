@@ -1,11 +1,12 @@
 import {
-  World,
+  WorldInterface,
   Settings,
   Box,
   Collider,
   Body,
   Circle,
   Capsule,
+  World,
 } from 'js-physics-2d';
 import { vec2 } from 'gl-matrix';
 import { Inject, Service } from 'typedi';
@@ -15,7 +16,7 @@ import { ExampleInterface } from './example.interface';
 export class JointExample implements ExampleInterface {
   constructor(
     @Inject('SETTINGS') private readonly settings: Settings,
-    private readonly world: World
+    @Inject('WORLD') private readonly world: WorldInterface
   ) {}
 
   install(): void {
@@ -36,165 +37,168 @@ export class JointExample implements ExampleInterface {
     this.createWeldJoint();
     this.createPrismaticJoint();
     this.createSprings();
+    this.createFreeBody();
 
     // floor
-    this.world.addCollider(
-      new Collider(
-        this.world.createBody(
-          Number.POSITIVE_INFINITY,
-          Number.POSITIVE_INFINITY,
-          vec2.fromValues(0.0, -9),
-          0.0
-        ),
-        new Box(30, 0.25)
-      )
-    );
+    this.world.addCollider({
+      body: this.world.createBody({
+        mass: Number.POSITIVE_INFINITY,
+        inertia: Number.POSITIVE_INFINITY,
+        position: vec2.fromValues(0.0, -9),
+        angle: 0.0,
+      }),
+      shape: new Box(30, 0.25),
+    });
   }
 
   private createRevoluteJoint() {
     // Revolute joint
-    const hinge = this.world.createBody(
-      Number.POSITIVE_INFINITY,
-      Number.POSITIVE_INFINITY,
-      vec2.fromValues(-9, 2),
-      0
-    );
+    const hinge = this.world.createBody({
+      mass: Number.POSITIVE_INFINITY,
+      inertia: Number.POSITIVE_INFINITY,
+      position: vec2.fromValues(-9, 2),
+      angle: 0,
+    });
 
     const mass = 1.0;
     const capsuleShape = new Capsule(0.5, 4.0);
 
-    const capsule0 = this.world.createBody(
-      mass,
-      capsuleShape.inetria(mass),
-      vec2.fromValues(-1, -7),
-      Math.PI * 0.5
-    );
-    this.world.addCollider(new Collider(capsule0, capsuleShape, 0x01));
+    const capsule0 = this.world.createBody({
+      mass: mass,
+      inertia: capsuleShape.inetria(mass),
+      position: vec2.fromValues(-1, -7),
+      angle: 0,
+    });
+    this.world.addCollider({ body: capsule0, shape: capsuleShape, mask: 0x01 });
 
-    const capsule1 = this.world.createBody(
-      mass,
-      capsuleShape.inetria(mass),
-      vec2.fromValues(1, -7),
-      Math.PI * 0.5
-    );
-    this.world.addCollider(new Collider(capsule1, capsuleShape, 0x02));
+    const capsule1 = this.world.createBody({
+      mass: mass,
+      inertia: capsuleShape.inetria(mass),
+      position: vec2.fromValues(1, -7),
+      angle: 0,
+    });
+    this.world.addCollider({ body: capsule1, shape: capsuleShape, mask: 0x02 });
 
-    this.world.addRevoluteJoint(
-      hinge,
-      vec2.fromValues(0, 0),
-      capsule0,
-      vec2.fromValues(0, 2)
-    );
+    this.world.addRevoluteJoint({
+      bodyA: hinge,
+      bodyB: capsule0,
+      pivotB: vec2.fromValues(0, 2),
+      minAngle: -Math.PI * 0.5,
+      maxAngle: Math.PI * 0.5,
+    });
 
-    this.world.addRevoluteJoint(
-      capsule0,
-      vec2.fromValues(0, -2),
-      capsule1,
-      vec2.fromValues(0, 2)
-    );
+    this.world.addRevoluteJoint({
+      bodyA: capsule0,
+      pivotA: vec2.fromValues(0, -2),
+      bodyB: capsule1,
+      pivotB: vec2.fromValues(0, 2),
+      minAngle: Math.PI * -0.25,
+      maxAngle: Math.PI * 0.25,
+      stiffness: 1000,
+      damping: 10,
+    });
   }
 
   private createDistanceJoint() {
     // Revolute joint
-    const hinge = this.world.createBody(
-      Number.POSITIVE_INFINITY,
-      Number.POSITIVE_INFINITY,
-      vec2.fromValues(-5, 2),
-      0
-    );
+    const hinge = this.world.createBody({
+      mass: Number.POSITIVE_INFINITY,
+      inertia: Number.POSITIVE_INFINITY,
+      position: vec2.fromValues(-5, 2),
+      angle: 0,
+    });
 
     const mass = 1.0;
     const boxShape = new Box(1.0, 1.0);
 
-    const box0 = this.world.createBody(
-      1.0,
-      boxShape.inetria(mass),
-      vec2.fromValues(-5, -2),
-      0
-    );
-    this.world.addCollider(new Collider(box0, boxShape, 0x01));
+    const box0 = this.world.createBody({
+      mass: 1.0,
+      inertia: boxShape.inetria(mass),
+      position: vec2.fromValues(-5, -2),
+      angle: 0,
+    });
+    this.world.addCollider({ body: box0, shape: boxShape, mask: 0x0 });
 
-    const box1 = this.world.createBody(
-      mass,
-      boxShape.inetria(mass),
-      vec2.fromValues(-5, -5),
-      0
-    );
-    this.world.addCollider(new Collider(box1, boxShape, 0x02));
+    const box1 = this.world.createBody({
+      mass: mass,
+      inertia: boxShape.inetria(mass),
+      position: vec2.fromValues(-5, -5),
+      angle: 0,
+    });
+    this.world.addCollider({ body: box1, shape: boxShape, mask: 0x0 });
 
-    this.world.addDistanceJoint(
-      hinge,
-      vec2.fromValues(0, 0),
-      box0,
-      vec2.fromValues(0.5, 0.5),
-      3.0
-    );
+    this.world.addDistanceJoint({
+      bodyA: hinge,
+      bodyB: box0,
+      jointA: vec2.fromValues(0, 0),
+      jointB: vec2.fromValues(0.5, 0.5),
+      distance: 3.0,
+    });
 
-    this.world.addDistanceJoint(
-      box0,
-      vec2.fromValues(-0.5, -0.5),
-      box1,
-      vec2.fromValues(0.5, 0.5),
-      3.0
-    );
+    this.world.addDistanceJoint({
+      bodyA: box0,
+      bodyB: box1,
+      jointA: vec2.fromValues(-0.5, -0.5),
+      jointB: vec2.fromValues(0.5, 0.5),
+      distance: 3.0,
+    });
   }
 
   private createWeldJoint() {
     // Revolute joint
-    const hinge = this.world.createBody(
-      Number.POSITIVE_INFINITY,
-      Number.POSITIVE_INFINITY,
-      vec2.fromValues(0, 2),
-      0
-    );
+    const hinge = this.world.createBody({
+      mass: Number.POSITIVE_INFINITY,
+      inertia: Number.POSITIVE_INFINITY,
+      position: vec2.fromValues(0, 2),
+      angle: 0,
+    });
 
     const mass = 1.0;
     const capsuleShape = new Capsule(0.5, 4.0);
 
-    const capsule0 = this.world.createBody(
-      mass,
-      capsuleShape.inetria(mass),
-      vec2.fromValues(-1, -7),
-      Math.PI * 0.5
-    );
-    this.world.addCollider(new Collider(capsule0, capsuleShape, 0x01));
+    const capsule0 = this.world.createBody({
+      mass: mass,
+      inertia: capsuleShape.inetria(mass),
+      position: vec2.fromValues(-1, -7),
+      angle: Math.PI * 0.5,
+    });
+    this.world.addCollider({ body: capsule0, shape: capsuleShape, mask: 0x01 });
 
-    const capsule1 = this.world.createBody(
-      mass,
-      capsuleShape.inetria(mass),
-      vec2.fromValues(1, -7),
-      0
-    );
-    this.world.addCollider(new Collider(capsule1, capsuleShape, 0x02));
+    const capsule1 = this.world.createBody({
+      mass: mass,
+      inertia: capsuleShape.inetria(mass),
+      position: vec2.fromValues(1, -7),
+      angle: 0,
+    });
+    this.world.addCollider({ body: capsule1, shape: capsuleShape, mask: 0x02 });
 
-    const capsule2 = this.world.createBody(
-      mass,
-      capsuleShape.inetria(mass),
-      vec2.fromValues(1, -7),
-      Math.PI * 0.5
-    );
-    this.world.addCollider(new Collider(capsule2, capsuleShape, 0x00));
+    const capsule2 = this.world.createBody({
+      mass: mass,
+      inertia: capsuleShape.inetria(mass),
+      position: vec2.fromValues(1, -7),
+      angle: Math.PI * 0.5,
+    });
+    this.world.addCollider({ body: capsule2, shape: capsuleShape, mask: 0x00 });
 
-    this.world.addRevoluteJoint(
-      hinge,
-      vec2.fromValues(0, 0),
-      capsule0,
-      vec2.fromValues(0, 2)
-    );
+    this.world.addRevoluteJoint({
+      bodyA: hinge,
+      bodyB: capsule0,
+      pivotB: vec2.fromValues(0, 2),
+    });
 
-    this.world.addWeldJoint(
-      capsule0,
-      vec2.fromValues(0, -1.5),
-      capsule1,
-      vec2.fromValues(0, -1.5)
-    );
+    this.world.addWeldJoint({
+      bodyA: capsule0,
+      pivotA: vec2.fromValues(0, -1.5),
+      bodyB: capsule1,
+      pivotB: vec2.fromValues(0, -1.5),
+    });
 
-    this.world.addWeldJoint(
-      capsule1,
-      vec2.fromValues(0, 1.5),
-      capsule2,
-      vec2.fromValues(0, 1.5)
-    );
+    this.world.addWeldJoint({
+      bodyA: capsule1,
+      pivotA: vec2.fromValues(0, 1.5),
+      bodyB: capsule2,
+      pivotB: vec2.fromValues(0, 1.5),
+    });
   }
 
   private createPrismaticJoint() {
@@ -204,102 +208,105 @@ export class JointExample implements ExampleInterface {
     const boxShape = new Box(1.0, 1.0);
     const rectShape = new Box(1.0, 0.25);
 
-    const box0 = this.world.createBody(
-      Number.POSITIVE_INFINITY,
-      boxShape.inetria(mass),
-      vec2.fromValues(5, 2),
-      0
-    );
-    this.world.addCollider(new Collider(box0, boxShape, 0x01));
+    const box0 = this.world.createBody({
+      mass: Number.POSITIVE_INFINITY,
+      inertia: boxShape.inetria(mass),
+      position: vec2.fromValues(5, 2),
+      angle: 0,
+    });
+    this.world.addCollider({ body: box0, shape: boxShape, mask: 0x01 });
 
-    const box1 = this.world.createBody(
-      mass,
-      boxShape.inetria(mass),
-      vec2.fromValues(4, 2),
-      0
-    );
-    this.world.addCollider(new Collider(box1, rectShape, 0x02));
+    const box1 = this.world.createBody({
+      mass: mass,
+      inertia: boxShape.inetria(mass),
+      position: vec2.fromValues(4, 2),
+      angle: 0,
+    });
+    this.world.addCollider({ body: box1, shape: rectShape, mask: 0x02 });
 
-    const box2 = this.world.createBody(
-      mass,
-      boxShape.inetria(mass),
-      vec2.fromValues(6, 2),
-      0
-    );
-    this.world.addCollider(new Collider(box2, rectShape, 0x02));
-    this.world.addMotor(box0, 1.0, 50.0);
+    const box2 = this.world.createBody({
+      mass: mass,
+      inertia: boxShape.inetria(mass),
+      position: vec2.fromValues(6, 2),
+      angle: 0,
+    });
+    this.world.addCollider({ body: box2, shape: rectShape, mask: 0x02 });
+    this.world.addMotor({ body: box0, speed: 1.0, torque: 50.0 });
 
-    this.world.addPrismaticJoint(
-      box0,
-      vec2.fromValues(-0.5, 0),
-      box1,
-      vec2.fromValues(0.0, 0.0),
-      vec2.fromValues(1.0, 0.0),
-      0.0,
-      1.0,
-      3.0
-    );
+    this.world.addPrismaticJoint({
+      bodyA: box0,
+      pivotA: vec2.fromValues(-0.5, 0),
+      bodyB: box1,
+      minDistance: 1.0,
+      maxDistance: 3.0,
+    });
 
-    this.world.addPrismaticJoint(
-      box0,
-      vec2.fromValues(0.5, 0),
-      box2,
-      vec2.fromValues(0.0, 0.0),
-      vec2.fromValues(1.0, 0.0),
-      0.0,
-      1.0,
-      3.0
-    );
+    this.world.addPrismaticJoint({
+      bodyA: box0,
+      pivotA: vec2.fromValues(0.5, 0),
+      bodyB: box2,
+      minDistance: 1.0,
+      maxDistance: 3.0,
+    });
   }
 
   private createSprings() {
     // Revolute joint
-    const hinge = this.world.createBody(
-      Number.POSITIVE_INFINITY,
-      Number.POSITIVE_INFINITY,
-      vec2.fromValues(10, 2),
-      0
-    );
+    const hinge = this.world.createBody({
+      mass: Number.POSITIVE_INFINITY,
+      inertia: Number.POSITIVE_INFINITY,
+      position: vec2.fromValues(10, 2),
+      angle: 0,
+    });
 
     const mass = 1.0;
     const stiffness = 45.0;
     const extinction = 1;
     const circleShape = new Circle(0.5);
 
-    const circle0 = this.world.createBody(
-      1.0,
-      circleShape.inetria(mass),
-      vec2.fromValues(10, -2),
-      0
-    );
-    this.world.addCollider(new Collider(circle0, circleShape, 0x01));
+    const circle0 = this.world.createBody({
+      mass: 1.0,
+      inertia: circleShape.inetria(mass),
+      position: vec2.fromValues(10, -2),
+      angle: 0,
+    });
+    this.world.addCollider({ body: circle0, shape: circleShape, mask: 0x01 });
 
-    const circle1 = this.world.createBody(
-      mass,
-      circleShape.inetria(mass),
-      vec2.fromValues(10, -5),
-      0
-    );
-    this.world.addCollider(new Collider(circle1, circleShape, 0x02));
+    const circle1 = this.world.createBody({
+      mass: mass,
+      inertia: circleShape.inetria(mass),
+      position: vec2.fromValues(10, -5),
+      angle: 0,
+    });
+    this.world.addCollider({ body: circle1, shape: circleShape, mask: 0x02 });
 
-    this.world.addSpring(
-      hinge,
-      vec2.fromValues(0, 0),
-      circle0,
-      vec2.fromValues(0, 0),
-      3.0,
+    this.world.addSpring({
+      bodyA: hinge,
+      bodyB: circle0,
+      distance: 3.0,
       stiffness,
-      extinction
-    );
+      extinction,
+    });
 
-    this.world.addSpring(
-      circle0,
-      vec2.fromValues(0, 0),
-      circle1,
-      vec2.fromValues(0, 0),
-      3.0,
+    this.world.addSpring({
+      bodyA: circle0,
+      bodyB: circle1,
+      distance: 3,
       stiffness,
-      extinction
-    );
+      extinction,
+    });
+  }
+
+  private createFreeBody() {
+    const mass = 1.0;
+    const boxShape = new Box(1.0, 1.0);
+
+    const box = this.world.createBody({
+      mass: 1.0,
+      inertia: boxShape.inetria(mass),
+      position: vec2.fromValues(-12, -6),
+      angle: Math.PI * 0.125,
+    });
+    this.world.addCollider({ body: box, shape: boxShape });
   }
 }

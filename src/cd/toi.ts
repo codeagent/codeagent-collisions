@@ -1,6 +1,6 @@
 import { mat3, vec2 } from 'gl-matrix';
 
-import { Body } from '../dynamics';
+import { Body, BodyInterface } from '../dynamics';
 import { betweenPair } from '../math';
 import * as gjk from './narrow-phase/gjk-epa';
 import { Shape } from './shape';
@@ -19,7 +19,7 @@ class BodyProxy {
     this.updateTransform();
   }
 
-  public wrap(body: Readonly<Body>) {
+  public wrap(body: Readonly<BodyInterface>) {
     this.shape = body.collider.shape;
 
     vec2.copy(this.position, body.position);
@@ -87,9 +87,9 @@ const v = vec2.create();
  * @returns value between [0-1]. 1 indicates no collisions in given interval
  */
 export const getToi = (
-  body0: Body,
+  body0: BodyInterface,
   r0: number,
-  body1: Body,
+  body1: BodyInterface,
   r1: number,
   interval: number,
   epsilon: number,

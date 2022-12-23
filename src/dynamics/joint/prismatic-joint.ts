@@ -10,18 +10,30 @@ import {
   MinDistanceConstraint,
 } from '../constraint';
 
+import { BodyInterface } from '../body.interface';
 import { Body } from '../body';
+
+export interface PrismaticJointDef {
+  bodyA: Readonly<BodyInterface>;
+  pivotA?: Readonly<vec2>;
+  bodyB: Readonly<BodyInterface>;
+  pivotB?: Readonly<vec2>;
+  localAxis?: Readonly<vec2>;
+  refAngle?: number;
+  minDistance?: number;
+  maxDistance?: number;
+}
 
 export class PrismaticJoint implements JointInterface {
   private readonly constraints: ConstraintInterface[] = [];
 
   constructor(
     public readonly world: World,
-    public readonly bodyA: Body,
-    public readonly pivotA: vec2,
-    public readonly bodyB: Body,
-    public readonly pivotB: vec2,
-    public readonly localAxis: vec2,
+    public readonly bodyA: Readonly<BodyInterface>,
+    public readonly pivotA: Readonly<vec2>,
+    public readonly bodyB: Readonly<BodyInterface>,
+    public readonly pivotB: Readonly<vec2>,
+    public readonly localAxis: Readonly<vec2>,
     public readonly refAngle: number,
     public readonly minDistance: number,
     public readonly maxDistance: number

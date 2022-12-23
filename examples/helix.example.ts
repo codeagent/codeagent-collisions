@@ -1,6 +1,6 @@
 import { vec2 } from 'gl-matrix';
 import {
-  World,
+  WorldInterface,
   Settings,
   Collider,
   loadObj,
@@ -15,7 +15,7 @@ import HELIX from './objects/helix.obj';
 export class HelixExample implements ExampleInterface {
   constructor(
     @Inject('SETTINGS') private readonly settings: Settings,
-    private readonly world: World
+    @Inject('WORLD') private readonly world: WorldInterface
   ) {}
 
   install(): void {
@@ -31,32 +31,28 @@ export class HelixExample implements ExampleInterface {
   }
 
   private createHelix() {
-    this.world.addCollider(
-      new Collider(
-        this.world.createBody(
-          10,
-          1.0,
-          vec2.fromValues(0.0, 0.5),
-          Math.PI * 0.25
-        ),
-        new Circle(0.5)
-      )
-    );
+    this.world.addCollider({
+      body: this.world.createBody({
+        mass: 10,
+        inertia: 1.0,
+        position: vec2.fromValues(0.0, 0.5),
+        angle: Math.PI * 0.25,
+      }),
+      shape: new Circle(0.5),
+    });
 
     const collection = loadObj(HELIX);
 
     for (const object in collection) {
-      this.world.addCollider(
-        new Collider(
-          this.world.createBody(
-            Number.POSITIVE_INFINITY,
-            10,
-            vec2.fromValues(0, 0),
-            0
-          ),
-          new MeshShape(collection[object])
-        )
-      );
+      this.world.addCollider({
+        body: this.world.createBody({
+          mass: Number.POSITIVE_INFINITY,
+          inertia: 10,
+          position: vec2.fromValues(0, 0),
+          angle: 0,
+        }),
+        shape: new MeshShape(collection[object]),
+      });
     }
   }
 }

@@ -1,12 +1,12 @@
 import { mat3, vec2, vec3 } from 'gl-matrix';
 import { Events } from '../events';
-import { JointInterface } from '../';
 import { Collider } from '../cd';
 import { affineInverse } from '../math';
-import { Contact } from './joint';
+import { Contact, JointInterface } from './joint';
 import { World } from './world';
+import { BodyInterface } from './body.interface';
 
-export class Body {
+export class Body implements BodyInterface {
   get transform(): Readonly<mat3> {
     return this._transform;
   }
@@ -23,28 +23,12 @@ export class Body {
     vec2.copy(this._position, position);
   }
 
-  get angle(): number {
-    return this._angle;
-  }
-
-  set angle(angle: number) {
-    this._angle = angle;
-  }
-
   get velocity(): Readonly<vec2> {
     return this._velocity;
   }
 
   set velocity(velocity: Readonly<vec2>) {
     vec2.copy(this._velocity, velocity);
-  }
-
-  get omega(): number {
-    return this._omega;
-  }
-
-  set omega(omega: number) {
-    this._omega = omega;
   }
 
   get force(): Readonly<vec2> {
@@ -97,28 +81,23 @@ export class Body {
     return this._isStatic;
   }
 
-  get joints(): Set<JointInterface> {
-    return this._joints;
-  }
-
-  get contacts(): Set<Contact> {
-    return this._contacts;
-  }
-
   get isSleeping(): boolean {
     return this._isSleeping;
   }
 
+  public omega: number = 0;
+  public angle: number = 0;
   public collider: Collider;
   public bodyIndex: number = -1; // index in host island
   public islandId: number = -1; // id of host island
+  public readonly joints = new Set<JointInterface>();
+  public readonly contacts = new Set<Contact>();
   public readonly solverConstraints: number[] = []; // the list of constraints in island with witch given body will be interacted
 
   private readonly _position = vec2.create();
   private readonly _velocity = vec2.create();
   private readonly _force = vec2.create();
-  private _angle = 0.0;
-  private _omega = 0.0;
+
   private _torque = 0.0;
   private _mass = 0.0;
   private _invMass = 0.0;
@@ -130,8 +109,6 @@ export class Body {
 
   private readonly _transform = mat3.create();
   private readonly _invTransform = mat3.create();
-  private readonly _joints = new Set<JointInterface>();
-  private readonly _contacts = new Set<Contact>();
 
   constructor(
     public readonly id: number,
@@ -140,32 +117,32 @@ export class Body {
   ) {}
 
   addJoint(joint: JointInterface) {
-    this._joints.add(joint);
+    this.joints.add(joint);
     this.awake();
   }
 
   removeJoint(joint: JointInterface) {
-    this._joints.delete(joint);
+    this.joints.delete(joint);
     this.awake();
   }
 
   addContact(contact: Contact) {
-    this._contacts.add(contact);
+    this.contacts.add(contact);
     this.awake();
   }
 
   removeContact(contact: Contact) {
-    this._contacts.delete(contact);
+    this.contacts.delete(contact);
     this.awake();
   }
 
   updateTransform() {
     mat3.fromTranslation(this._transform, this._position);
-    mat3.rotate(this._transform, this._transform, this._angle);
+    mat3.rotate(this._transform, this._transform, this.angle);
     affineInverse(this._invTransform, this._transform);
   }
 
-  applyForce(force: vec2, point?: vec2) {
+  applyForce(force: Readonly<vec2>, point?: Readonly<vec2>) {
     vec2.add(this._force, this._force, force);
 
     if (point) {
@@ -184,11 +161,11 @@ export class Body {
     this._torque = 0.0;
   }
 
-  toLocalPoint(out: vec2, global: vec2): vec2 {
+  toLocalPoint(out: vec2, global: Readonly<vec2>): vec2 {
     return vec2.transformMat3(out, global, this._invTransform);
   }
 
-  toGlobalPoint(out: vec2, local: vec2): vec2 {
+  toGlobalPoint(out: vec2, local: Readonly<vec2>): vec2 {
     return vec2.transformMat3(out, local, this._transform);
   }
 

@@ -14,3 +14,4 @@ export * from './angular-motor-constraint';
 export * from './spring-constraint';
 export * from './mouse-x-constraint';
 export * from './mouse-y-constraint';
+export * from './spiral-spring-constraint';

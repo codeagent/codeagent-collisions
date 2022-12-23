@@ -4,6 +4,7 @@ export * from './contact';
 export * from './broad-phase';
 export * from './mid-phase';
 export * from './narrow-phase';
+export * from './collider.interface';
 export * from './collider';
 export * from './toi';
 export * from './aabb';

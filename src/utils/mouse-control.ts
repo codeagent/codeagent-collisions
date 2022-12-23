@@ -1,10 +1,15 @@
 import { mat3, vec2, vec3 } from 'gl-matrix';
-import { World, Body, MouseJoint, MouseControlInterface } from '../dynamics';
+import {
+  MouseControlInterface,
+  JointInterface,
+  WorldInterface,
+  BodyInterface,
+} from '../dynamics';
 
 export class MouseControl implements MouseControlInterface {
   private canvas: HTMLElement;
-  private body: Body | null;
-  private joint: MouseJoint = null;
+  private body: BodyInterface;
+  private joint: JointInterface = null;
   private readonly cursor = vec2.create();
   private readonly origin = vec2.create();
   private readonly locked = vec2.create();
@@ -13,7 +18,7 @@ export class MouseControl implements MouseControlInterface {
   private readonly onMouseMoveHandler = this.onMouseMove.bind(this);
   private readonly onMouseUpHandler = this.onMouseUp.bind(this);
   constructor(
-    public readonly world: Readonly<World>,
+    public readonly world: Readonly<WorldInterface>,
     public readonly projMatrix: Readonly<mat3>,
     public readonly stiffness: number = 0.95,
     public readonly maxForce: number = 1.0e4
@@ -54,13 +59,13 @@ export class MouseControl implements MouseControlInterface {
 
     vec2.transformMat3(point, point, this.body.invTransform);
 
-    this.joint = this.world.addMouseJoint(
-      this,
-      this.body,
-      point,
-      this.stiffness,
-      this.maxForce
-    );
+    this.joint = this.world.addMouseJoint({
+      control: this,
+      body: this.body,
+      joint: point,
+      stiffness: this.stiffness,
+      maxForce: this.maxForce,
+    });
   }
 
   private onMouseUp() {
@@ -82,10 +87,10 @@ export class MouseControl implements MouseControlInterface {
     vec2.add(this.cursor, this.cursor, this.locked);
   }
 
-  private findBody(point: Readonly<vec2>): Body | null {
+  private findBody(point: Readonly<vec2>): BodyInterface {
     const invTransform = mat3.create();
     const p = vec2.create();
-    for (const body of this.world.bodies) {
+    for (const body of this.world) {
       if (body.isStatic) {
         continue;
       }

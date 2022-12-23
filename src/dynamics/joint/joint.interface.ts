@@ -1,7 +1,7 @@
-import { Body } from '../body';
+import { BodyInterface } from '../body.interface';
 import { ConstraintInterface } from '../constraint';
 
 export interface JointInterface extends Iterable<ConstraintInterface> {
-  readonly bodyA: Body;
-  readonly bodyB: Body;
+  readonly bodyA: BodyInterface;
+  readonly bodyB: BodyInterface;
 }

@@ -2,18 +2,27 @@ import { vec2 } from 'gl-matrix';
 
 import { World } from '../world';
 import { JointInterface } from './joint.interface';
-import { DistanceConstraint } from '../constraint';
+import { ConstraintInterface, DistanceConstraint } from '../constraint';
+import { BodyInterface } from '../body.interface';
 import { Body } from '../body';
 
+export interface DistanceJointDef {
+  bodyA: Readonly<BodyInterface>;
+  jointA: Readonly<vec2>;
+  bodyB: Readonly<BodyInterface>;
+  jointB: Readonly<vec2>;
+  distance: number;
+}
+
 export class DistanceJoint implements JointInterface {
-  private readonly distanceConstraint: DistanceConstraint;
+  private readonly distanceConstraint: ConstraintInterface;
 
   constructor(
-    public readonly world: World,
-    public readonly bodyA: Body,
-    public readonly pivotA: vec2,
-    public readonly bodyB: Body,
-    public readonly pivotB: vec2,
+    readonly world: World,
+    public readonly bodyA: Readonly<BodyInterface>,
+    public readonly pivotA: Readonly<vec2>,
+    public readonly bodyB: Readonly<BodyInterface>,
+    public readonly pivotB: Readonly<vec2>,
     public readonly distance: number
   ) {
     this.distanceConstraint = new DistanceConstraint(

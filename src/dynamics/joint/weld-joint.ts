@@ -3,26 +3,34 @@ import { vec2 } from 'gl-matrix';
 import { World } from '../world';
 import { JointInterface } from './joint.interface';
 import {
-  MaxAngleConstraint,
+  AngleConstraint,
   MinAngleConstraint,
   RevoluteXConstraint,
   RevoluteYConstraint,
 } from '../constraint';
 
 import { Body } from '../body';
+import { BodyInterface } from '../body.interface';
+
+export interface WeldJointDef {
+  bodyA: Readonly<BodyInterface>;
+  pivotA: Readonly<vec2>;
+  bodyB: Readonly<BodyInterface>;
+  pivotB: Readonly<vec2>;
+  refAngle?: number;
+}
 
 export class WeldJoint implements JointInterface {
   private readonly revoluteXConstraint: RevoluteXConstraint;
   private readonly revoluteYConstraint: RevoluteYConstraint;
-  private readonly minAngleConstraint: MinAngleConstraint;
-  private readonly maxAngleConstraint: MaxAngleConstraint;
+  private readonly angleConstraint: MinAngleConstraint;
 
   constructor(
-    public readonly world: World,
-    public readonly bodyA: Body,
-    public readonly pivotA: vec2,
-    public readonly bodyB: Body,
-    public readonly pivotB: vec2,
+    readonly world: World,
+    public readonly bodyA: Readonly<BodyInterface>,
+    public readonly pivotA: Readonly<vec2>,
+    public readonly bodyB: Readonly<BodyInterface>,
+    public readonly pivotB: Readonly<vec2>,
     public readonly refAngle: number
   ) {
     this.revoluteXConstraint = new RevoluteXConstraint(
@@ -41,14 +49,7 @@ export class WeldJoint implements JointInterface {
       vec2.clone(pivotB)
     );
 
-    this.minAngleConstraint = new MinAngleConstraint(
-      world,
-      bodyA,
-      bodyB,
-      refAngle ? refAngle : bodyB.angle - bodyA.angle
-    );
-
-    this.maxAngleConstraint = new MaxAngleConstraint(
+    this.angleConstraint = new AngleConstraint(
       world,
       bodyA,
       bodyB,
@@ -59,7 +60,6 @@ export class WeldJoint implements JointInterface {
   *[Symbol.iterator]() {
     yield this.revoluteXConstraint;
     yield this.revoluteYConstraint;
-    yield this.minAngleConstraint;
-    yield this.maxAngleConstraint;
+    yield this.angleConstraint;
   }
 }

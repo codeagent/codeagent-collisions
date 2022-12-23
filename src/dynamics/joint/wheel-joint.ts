@@ -8,18 +8,28 @@ import {
   MaxDistanceConstraint,
   MinDistanceConstraint,
 } from '../constraint';
-import { Body } from '../body';
+import { BodyInterface } from '../body.interface';
+
+export interface WheelJointDef {
+  bodyA: Readonly<BodyInterface>;
+  pivotA?: Readonly<vec2>;
+  bodyB: Readonly<BodyInterface>;
+  pivotB?: Readonly<vec2>;
+  localAxis?: Readonly<vec2>;
+  minDistance?: number;
+  maxDistance?: number;
+}
 
 export class WheelJoint implements JointInterface {
   private readonly constraints: ConstraintInterface[] = [];
 
   constructor(
-    public readonly world: World,
-    public readonly bodyA: Body,
-    public readonly pivotA: vec2,
-    public readonly bodyB: Body,
-    public readonly pivotB: vec2,
-    public readonly localAxis: vec2,
+    readonly world: World,
+    public readonly bodyA: Readonly<BodyInterface>,
+    public readonly pivotA: Readonly<vec2>,
+    public readonly bodyB: Readonly<BodyInterface>,
+    public readonly pivotB: Readonly<vec2>,
+    public readonly localAxis: Readonly<vec2>,
     public readonly minDistance: number,
     public readonly maxDistance: number
   ) {

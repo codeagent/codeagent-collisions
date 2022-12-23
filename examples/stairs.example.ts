@@ -1,5 +1,5 @@
 import { vec2 } from 'gl-matrix';
-import { World, Settings, Box, Collider, Circle } from 'js-physics-2d';
+import { WorldInterface, Settings, Box, Collider, Circle } from 'js-physics-2d';
 import { Inject, Service } from 'typedi';
 import { ExampleInterface } from './example.interface';
 
@@ -7,7 +7,7 @@ import { ExampleInterface } from './example.interface';
 export class StairsExample implements ExampleInterface {
   constructor(
     @Inject('SETTINGS') private readonly settings: Settings,
-    private readonly world: World
+    @Inject('WORLD') private readonly world: WorldInterface
   ) {}
 
   install(): void {
@@ -37,17 +37,16 @@ export class StairsExample implements ExampleInterface {
     let k = 1;
 
     const spawn = () => {
-      this.world.addCollider(
-        new Collider(
-          this.world.createBody(
-            m,
-            m * 0.015,
-            vec2.fromValues(w * 0.5, 12),
-            0.0
-          ),
-          new Circle(0.5)
-        )
-      );
+      this.world.addCollider({
+        body: this.world.createBody({
+          mass: m,
+          inertia: m * 0.015,
+          position: vec2.fromValues(w * 0.5, 12),
+          angle: 0.0,
+        }),
+        shape: new Circle(0.5),
+      });
+
       if (k--) {
         setTimeout(() => spawn(), interval);
       }
@@ -57,56 +56,48 @@ export class StairsExample implements ExampleInterface {
     while (n--) {
       const x = n % 2 ? xDist * 0.5 : -(xDist * 0.5);
 
-      this.world.addCollider(
-        new Collider(
-          this.world.createBody(
-            Number.POSITIVE_INFINITY,
-            Number.POSITIVE_INFINITY,
-            vec2.fromValues(x, y),
-            n % 2 ? Math.PI * 0.125 : -Math.PI * 0.125
-          ),
-          new Box(w, 0.5)
-        )
-      );
+      this.world.addCollider({
+        body: this.world.createBody({
+          mass: Number.POSITIVE_INFINITY,
+          inertia: Number.POSITIVE_INFINITY,
+          position: vec2.fromValues(x, y),
+          angle: n % 2 ? Math.PI * 0.125 : -Math.PI * 0.125,
+        }),
+        shape: new Box(w, 0.5),
+      });
 
       y -= h + yDist;
     }
 
-    this.world.addCollider(
-      new Collider(
-        this.world.createBody(
-          Number.POSITIVE_INFINITY,
-          Number.POSITIVE_INFINITY,
-          vec2.fromValues(0.0, y - 1),
-          0.0
-        ),
-        new Box(20, 1)
-      )
-    );
+    this.world.addCollider({
+      body: this.world.createBody({
+        mass: Number.POSITIVE_INFINITY,
+        inertia: Number.POSITIVE_INFINITY,
+        position: vec2.fromValues(0.0, y - 1),
+        angle: 0.0,
+      }),
+      shape: new Box(20, 1),
+    });
 
-    this.world.addCollider(
-      new Collider(
-        this.world.createBody(
-          Number.POSITIVE_INFINITY,
-          Number.POSITIVE_INFINITY,
-          vec2.fromValues(-8, y),
-          0.0
-        ),
-        new Box(1, 1)
-      )
-    );
+    this.world.addCollider({
+      body: this.world.createBody({
+        mass: Number.POSITIVE_INFINITY,
+        inertia: Number.POSITIVE_INFINITY,
+        position: vec2.fromValues(-8, y),
+        angle: 0.0,
+      }),
+      shape: new Box(1, 1),
+    });
 
-    this.world.addCollider(
-      new Collider(
-        this.world.createBody(
-          Number.POSITIVE_INFINITY,
-          Number.POSITIVE_INFINITY,
-          vec2.fromValues(8, y),
-          0.0
-        ),
-        new Box(1, 1)
-      )
-    );
+    this.world.addCollider({
+      body: this.world.createBody({
+        mass: Number.POSITIVE_INFINITY,
+        inertia: Number.POSITIVE_INFINITY,
+        position: vec2.fromValues(8, y),
+        angle: 0.0,
+      }),
+      shape: new Box(1, 1),
+    });
 
     spawn();
   }
