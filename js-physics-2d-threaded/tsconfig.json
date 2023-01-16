@@ -1,0 +1,21 @@
+{
+  "compilerOptions": {
+    "baseUrl": ".",
+    "module": "commonjs",
+    "moduleResolution": "node",
+    "target": "ES2022",
+    "lib": ["ESNext", "DOM"],
+    "rootDir": "./",
+    "strict": false,
+    "sourceMap": true,
+    "inlineSources": true,
+    "removeComments": false,
+    "esModuleInterop": true,
+    "experimentalDecorators": true,
+    "emitDecoratorMetadata": true,
+    "forceConsistentCasingInFileNames": true,
+    "declaration": false,
+    "allowJs": false
+  },
+  "exclude": ["./node_modules"]
+}

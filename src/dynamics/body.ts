@@ -1,7 +1,7 @@
 import { mat3, vec2, vec3 } from 'gl-matrix';
 import { Events } from '../events';
 import { Collider } from '../cd';
-import { affineInverse } from '../math';
+import { affineInverse, cross } from '../math';
 import { Contact, JointInterface } from './joint';
 import { World } from './world';
 import { BodyInterface } from './body.interface';
@@ -116,48 +116,47 @@ export class Body implements BodyInterface {
     public readonly continuous: boolean
   ) {}
 
-  addJoint(joint: JointInterface) {
+  addJoint(joint: JointInterface): void {
     this.joints.add(joint);
     this.awake();
   }
 
-  removeJoint(joint: JointInterface) {
+  removeJoint(joint: JointInterface): void {
     this.joints.delete(joint);
     this.awake();
   }
 
-  addContact(contact: Contact) {
+  addContact(contact: Contact): void {
     this.contacts.add(contact);
     this.awake();
   }
 
-  removeContact(contact: Contact) {
+  removeContact(contact: Contact): void {
     this.contacts.delete(contact);
     this.awake();
   }
 
-  updateTransform() {
+  updateTransform(): void {
     mat3.fromTranslation(this._transform, this._position);
     mat3.rotate(this._transform, this._transform, this.angle);
     affineInverse(this._invTransform, this._transform);
   }
 
-  applyForce(force: Readonly<vec2>, point?: Readonly<vec2>) {
+  applyForce(force: Readonly<vec2>, point?: Readonly<vec2>): void {
     vec2.add(this._force, this._force, force);
 
     if (point) {
       const r = vec2.create();
-      const x = vec3.create();
       vec2.transformMat3(r, point, this.transform);
       vec2.sub(r, r, this._position);
-      this._torque = vec2.cross(x, r, force)[2];
+      this._torque = cross(r, force);
     }
 
     this.awake();
   }
 
-  clearForces() {
-    vec2.set(this._force, 0.0, 0.0);
+  clearForces(): void {
+    vec2.zero(this._force);
     this._torque = 0.0;
   }
 
@@ -171,11 +170,12 @@ export class Body implements BodyInterface {
 
   tick(dt: number): void {
     if (!this.isStatic) {
+      const speed = vec2.length(this.velocity);
+      const angularSpeed = Math.abs(this.omega);
+
       if (
-        vec2.length(this.velocity) <=
-          this.world.settings.sleepingVelocityThreshold &&
-        Math.abs(this.omega) <=
-          this.world.settings.sleepingAngularVelocityThreshold
+        speed <= this.world.settings.sleepingVelocityThreshold &&
+        angularSpeed <= this.world.settings.sleepingAngularVelocityThreshold
       ) {
         this._sleepTimer -= dt;
 
@@ -189,13 +189,19 @@ export class Body implements BodyInterface {
   }
 
   private awake(): void {
+    if (this._isSleeping) {
+      this.world.dispatch(Events.Awake, this);
+    }
+
     this._isSleeping = false;
     this._sleepTimer = this.world.settings.fallAsleepTimer;
-    this.world.dispatch(Events.Awake, this);
   }
 
   private fallAsleep(): void {
+    if (!this._isSleeping) {
+      this.world.dispatch(Events.FallAsleep, this);
+    }
+
     this._isSleeping = true;
-    this.world.dispatch(Events.FallAsleep, this);
   }
 }

@@ -1,10 +1,9 @@
 import { vec2 } from 'gl-matrix';
 
-import { World } from '../world';
 import { JointInterface } from './joint.interface';
 import { SpringConstraint } from '../constraint';
-import { Body } from '../body';
 import { BodyInterface } from '../body.interface';
+import { WorldInterface } from '../world.interface';
 
 export interface SpringDef {
   bodyA: Readonly<BodyInterface>;
@@ -20,7 +19,7 @@ export class SpringJoint implements JointInterface {
   private readonly springConstraint: SpringConstraint;
 
   constructor(
-    readonly world: World,
+    readonly world: WorldInterface,
     public readonly bodyA: Readonly<BodyInterface>,
     public readonly pivotA: Readonly<vec2>,
     public readonly bodyB: Readonly<BodyInterface>,

@@ -27,7 +27,7 @@ export class PistonExample implements ExampleInterface {
   }
 
   uninstall(): void {
-    this.world.dispose();
+    this.world.clear();
   }
 
   private createPiston() {

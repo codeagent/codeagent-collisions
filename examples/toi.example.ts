@@ -14,8 +14,8 @@ import {
   MeshShape,
   defaultSettings,
   BodyInterface,
+  Events,
 } from 'js-physics-2d';
-import { Events } from 'js-physics-2d/events';
 import { Inject, Service } from 'typedi';
 
 import { ExampleInterface } from './example.interface';
@@ -49,7 +49,7 @@ export class ToiExample implements ExampleInterface {
   uninstall(): void {
     this.world.off(Events.PostStep, this.onPostStepEventListener);
     Object.assign(this.settings, defaultSettings);
-    this.world.dispose();
+    this.world.clear();
   }
 
   private createObjects() {
@@ -70,7 +70,11 @@ export class ToiExample implements ExampleInterface {
       position: vec2.fromValues(6, 4),
       angle: Math.PI * 0.75,
     });
-    this.world.addCollider({ body: body, shape: new Capsule(0.5, 1.5), mask: 0 });
+    this.world.addCollider({
+      body: body,
+      shape: new Capsule(0.5, 1.5),
+      mask: 0,
+    });
 
     body = this.world.createBody({
       mass: 1.0,
@@ -86,7 +90,11 @@ export class ToiExample implements ExampleInterface {
       position: vec2.fromValues(6, -4),
       angle: Math.PI * 0.75,
     });
-    this.world.addCollider({ body: body, shape: new Ellipse(1.0, 0.5), mask: 0 });
+    this.world.addCollider({
+      body: body,
+      shape: new Ellipse(1.0, 0.5),
+      mask: 0,
+    });
 
     body = this.world.createBody({
       mass: 1,
@@ -94,9 +102,11 @@ export class ToiExample implements ExampleInterface {
       position: vec2.fromValues(6, -8),
       angle: Math.PI * 0.75,
     });
-    this.world.addCollider(
-      { body: body, shape: new MeshShape(objects['gear_o_049']), mask: 0 }
-    );
+    this.world.addCollider({
+      body: body,
+      shape: new MeshShape(objects['gear_o_049']),
+      mask: 0,
+    });
 
     // "descrete" objects
     body = this.world.createBody({
@@ -113,7 +123,11 @@ export class ToiExample implements ExampleInterface {
       position: vec2.fromValues(-6, 4),
       angle: 0,
     });
-    this.world.addCollider({ body: body, shape: new Capsule(0.5, 1.5), mask: 0 });
+    this.world.addCollider({
+      body: body,
+      shape: new Capsule(0.5, 1.5),
+      mask: 0,
+    });
 
     body = this.world.createBody({
       mass: 1.0,
@@ -129,7 +143,11 @@ export class ToiExample implements ExampleInterface {
       position: vec2.fromValues(-6, -4),
       angle: 0,
     });
-    this.world.addCollider({ body: body, shape: new Ellipse(1.0, 0.5), mask: 0 });
+    this.world.addCollider({
+      body: body,
+      shape: new Ellipse(1.0, 0.5),
+      mask: 0,
+    });
 
     body = this.world.createBody({
       mass: 1,
@@ -137,9 +155,11 @@ export class ToiExample implements ExampleInterface {
       position: vec2.fromValues(-6, -8),
       angle: 0,
     });
-    this.world.addCollider(
-      { body: body, shape: new MeshShape(objects['gear_o_049']), mask: 0 }
-    );
+    this.world.addCollider({
+      body: body,
+      shape: new MeshShape(objects['gear_o_049']),
+      mask: 0,
+    });
   }
 
   private lerp(transform: mat3, body: Readonly<BodyInterface>, dt: number) {

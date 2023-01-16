@@ -12,6 +12,7 @@ import {
 
 import { BodyInterface } from '../body.interface';
 import { Body } from '../body';
+import { WorldInterface } from '../world.interface';
 
 export interface PrismaticJointDef {
   bodyA: Readonly<BodyInterface>;
@@ -28,7 +29,7 @@ export class PrismaticJoint implements JointInterface {
   private readonly constraints: ConstraintInterface[] = [];
 
   constructor(
-    public readonly world: World,
+    public readonly world: WorldInterface,
     public readonly bodyA: Readonly<BodyInterface>,
     public readonly pivotA: Readonly<vec2>,
     public readonly bodyB: Readonly<BodyInterface>,

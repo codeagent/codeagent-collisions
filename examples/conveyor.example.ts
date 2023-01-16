@@ -27,7 +27,7 @@ export class ConveyorExample implements ExampleInterface {
   }
 
   uninstall(): void {
-    this.world.dispose();
+    this.world.clear();
   }
 
   private createJoints() {
@@ -71,9 +71,9 @@ export class ConveyorExample implements ExampleInterface {
 
     this.world.addDistanceJoint({
       bodyA: wheel,
-      jointA: vec2.fromValues(0, 1.75),
+      pivotA: vec2.fromValues(0, 1.75),
       bodyB: slider,
-      jointB: vec2.fromValues(0, 0),
+      pivotB: vec2.fromValues(0, 0),
       distance: 6.0,
     });
 

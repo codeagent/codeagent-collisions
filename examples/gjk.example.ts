@@ -3,8 +3,6 @@ import {
   WorldInterface,
   Settings,
   Box,
-  Collider,
-  Body,
   Polygon,
   Capsule,
   Ellipse,
@@ -14,7 +12,7 @@ import {
   defaultSettings,
   ColliderInterface,
 } from 'js-physics-2d';
-import { Events } from 'js-physics-2d/events';
+import { Events } from 'js-physics-2d';
 import { Inject, Service } from 'typedi';
 
 import { ExampleInterface } from './example.interface';
@@ -53,7 +51,7 @@ export class GjkExample implements ExampleInterface {
   uninstall(): void {
     this.world.off(Events.PostStep, this.onPostStepEventListener);
     Object.assign(this.settings, defaultSettings);
-    this.world.dispose();
+    this.world.clear();
   }
 
   private createObjects() {

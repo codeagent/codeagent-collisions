@@ -11,7 +11,7 @@ export interface MeshTriangle {
 
 export type Mesh = MeshTriangle[];
 
-const getPoints = (mesh: Mesh): vec2[] =>
+const getPoints = (mesh: Readonly<Mesh>): vec2[] =>
   Array.from(
     mesh.reduce((acc, tri) => {
       acc.add(tri.p0);
@@ -21,7 +21,7 @@ const getPoints = (mesh: Mesh): vec2[] =>
     }, new Set<vec2>())
   );
 
-const getMedian = (mesh: Mesh) => {
+const getMedian = (mesh: Readonly<Mesh>) => {
   const points = getPoints(mesh);
   const median = vec2.create();
   for (let point of points) {
@@ -30,7 +30,7 @@ const getMedian = (mesh: Mesh) => {
   return vec2.scale(median, median, 1.0 / points.length);
 };
 
-const getCovarianceMatrix = (mesh: Mesh) => {
+const getCovarianceMatrix = (mesh: Readonly<Mesh>) => {
   const points = getPoints(mesh);
   const median = getMedian(mesh);
   let c00 = 0.0;
@@ -74,7 +74,7 @@ const getEigenVectors = (m: mat2): vec2[] => {
   return [x0, x1];
 };
 
-export const calculateOBB = (mesh: Mesh): OBB => {
+export const calculateOBB = (mesh: Readonly<Mesh>): OBB => {
   const points = getPoints(mesh);
   const covariance = getCovarianceMatrix(mesh);
   const [e0, e1] = getEigenVectors(covariance);
@@ -155,14 +155,14 @@ export const centroid = (triangle: MeshTriangle) =>
     (triangle.p0[1] + triangle.p1[1] + triangle.p2[1]) / 3.0
   );
 
-export const generateOBBTree = (mesh: Mesh): MeshOBBNode => {
+export const generateOBBTree = (mesh: Readonly<Mesh>): MeshOBBNode => {
   let root: MeshOBBNode = {
     obb: calculateOBB(mesh),
     children: [],
     leaf: false,
   };
 
-  const queue: { node: MeshOBBNode; soup: Mesh }[] = [
+  const queue: { node: MeshOBBNode; soup: Readonly<Mesh> }[] = [
     {
       node: root,
       soup: mesh,
@@ -272,7 +272,7 @@ export const generateOBBTree = (mesh: Mesh): MeshOBBNode => {
   return root;
 };
 
-export const getMeshCentroid = (mesh: Mesh): vec2 => {
+export const getMeshCentroid = (mesh: Readonly<Mesh>): vec2 => {
   const weighted = new Set<vec2>();
   let totalArea = 0.0;
 
@@ -295,7 +295,7 @@ export const getMeshCentroid = (mesh: Mesh): vec2 => {
   return vec2.fromValues(cx, cy);
 };
 
-export const getMeshItertia = (mesh: Mesh, mass: number): number => {
+export const getMeshItertia = (mesh: Readonly<Mesh>, mass: number): number => {
   let totalArea = 0.0;
   let sum = 0.0;
   for (const triangle of mesh) {

@@ -1,11 +1,14 @@
 /// <reference path="./declarations.d.ts" />
+import 'reflect-metadata';
 
+import Container from 'typedi';
+import { vec2 } from 'gl-matrix';
 import { animationFrames, fromEvent, interval } from 'rxjs';
-import {
-  configureContainer,
-  MouseControl,
-  WorldInterface,
-} from 'js-physics-2d';
+import { MouseControl, createWorld } from 'js-physics-2d';
+
+Container.reset();
+
+import { createWorld as createThreadedWorld } from 'js-physics-2d-threaded';
 import { map, startWith, switchMap, tap } from 'rxjs/operators';
 
 import {
@@ -21,23 +24,30 @@ import {
   COLORS,
 } from './services';
 import { ExampleInterface } from './example.interface';
-import { vec2 } from 'gl-matrix';
 
-const container = configureContainer({});
+const world = createThreadedWorld({
+  workerUrl: 'worker.js',
+  // defaultRestitution: 0,
+  // defaultFriction: 0.27
+});
+// const world = createWorld({});
+
+const container = Container.of('examples');
 container.set({ id: EXAMPLES_TOKEN, value: EXAMPLES });
 container.set({ id: RENDERER_TOKEN, type: Canvas2DRenderer });
 container.set({ id: CONTAINER_TOKEN, value: container });
 container.set({ id: COLORS_TOKEN, value: COLORS });
+container.set({ id: 'WORLD', value: world });
+container.set({ id: 'SETTINGS', value: world.settings });
 
 let example: ExampleInterface;
 const canvas = document.getElementById('canvas') as HTMLCanvasElement;
 const profiler = container.get(Profiler);
-const world = container.get<WorldInterface>('WORLD');
 const loader = container.get(ExampleLoader);
 const renderer = container.get<RendererInterface>(RENDERER_TOKEN);
 renderer.of(canvas);
 const control = new MouseControl(world, renderer.projectionMatrix, 1.0, 1.0e3);
-control.attach(canvas);
+control.of(canvas);
 
 fromEvent(self.document.querySelectorAll('.nav-link'), 'click')
   .pipe(
@@ -57,7 +67,6 @@ fromEvent(self.document.querySelectorAll('.nav-link'), 'click')
     }
     example = e;
     example.install();
-    // Object.assign(world.settings, defaultSettings);
   });
 
 const dt = 1.0 / 60.0;

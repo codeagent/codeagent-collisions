@@ -15,6 +15,10 @@ export class EventDispatcher {
   removeEventListener<T extends Function>(eventName: string, handler: T) {
     if (this.lisneters.has(eventName)) {
       this.lisneters.get(eventName).delete(handler);
+
+      if (this.lisneters.get(eventName).size === 0) {
+        this.lisneters.delete(eventName);
+      }
     }
   }
 
@@ -24,6 +28,10 @@ export class EventDispatcher {
         handler(...payload);
       }
     }
+  }
+
+  hasEventListeners(eventName: string): boolean {
+    return this.lisneters.has(eventName);
   }
 
   reset() {

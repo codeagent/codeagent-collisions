@@ -20,7 +20,10 @@ export class MeshShape implements Shape, MassDistribution {
   private readonly triangles = new Array<TestTarget>();
   private readonly hull = new Array<vec2>();
 
-  constructor(readonly mesh: Mesh, transformOrigin: boolean = true) {
+  constructor(
+    public readonly mesh: Readonly<Mesh>,
+    public readonly transformOrigin: boolean = true
+  ) {
     if (transformOrigin) {
       this.mesh = this.transformOriginToCentroid(this.mesh);
     }
@@ -105,7 +108,7 @@ export class MeshShape implements Shape, MassDistribution {
     getConvexHull(this.hull, unique);
   }
 
-  private transformOriginToCentroid(mesh: Mesh): Mesh {
+  private transformOriginToCentroid(mesh: Readonly<Mesh>): Mesh {
     const shift = getMeshCentroid(mesh);
     return mesh.map((triangle) => ({
       p0: vec2.subtract(vec2.create(), triangle.p0, shift),

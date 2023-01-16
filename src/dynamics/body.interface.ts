@@ -15,21 +15,21 @@ export interface BodyDef {
 export interface BodyInterface {
   readonly id: number;
   readonly world: WorldInterface;
-  readonly islandId: number;
+  islandId: number;
   readonly transform: Readonly<mat3>;
   readonly invTransform: Readonly<mat3>;
   position: Readonly<vec2>;
   angle: number;
   velocity: Readonly<vec2>;
   omega: number;
-  readonly force: Readonly<vec2>;
+  force: Readonly<vec2>;
   torque: number;
   mass: number;
   readonly invMass: number;
   inertia: number;
   readonly invInertia: number;
   readonly isStatic: boolean;
-  readonly isSleeping: boolean;
+  isSleeping: boolean;
   readonly collider: ColliderInterface;
   readonly continuous: boolean;
   readonly joints: Set<Readonly<JointInterface>>;

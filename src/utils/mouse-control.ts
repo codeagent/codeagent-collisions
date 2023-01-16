@@ -26,7 +26,7 @@ export class MouseControl implements MouseControlInterface {
     mat3.invert(this.invProjMat, this.projMatrix);
   }
 
-  attach(canvas: HTMLElement): void {
+  of(canvas: HTMLElement): void {
     this.canvas = canvas;
     this.canvas.addEventListener('mousedown', this.onMouseDownHandler);
   }

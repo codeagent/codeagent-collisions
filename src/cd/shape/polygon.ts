@@ -40,7 +40,10 @@ export class Polygon implements Shape, MassDistribution {
    * @param points array of couter-clock wise oriented loop of points
    * @param transformOrigin
    */
-  constructor(points: Readonly<vec2[]>, transformOrigin: boolean = true) {
+  constructor(
+    public readonly points: Readonly<vec2[]>,
+    public readonly transformOrigin: boolean = true
+  ) {
     if (transformOrigin) {
       points = this.transformOriginToCentroid(points);
     }

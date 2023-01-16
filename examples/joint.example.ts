@@ -28,7 +28,7 @@ export class JointExample implements ExampleInterface {
   }
 
   uninstall(): void {
-    this.world.dispose();
+    this.world.clear();
   }
 
   private createJoints() {
@@ -130,16 +130,16 @@ export class JointExample implements ExampleInterface {
     this.world.addDistanceJoint({
       bodyA: hinge,
       bodyB: box0,
-      jointA: vec2.fromValues(0, 0),
-      jointB: vec2.fromValues(0.5, 0.5),
+      pivotA: vec2.fromValues(0, 0),
+      pivotB: vec2.fromValues(0.5, 0.5),
       distance: 3.0,
     });
 
     this.world.addDistanceJoint({
       bodyA: box0,
       bodyB: box1,
-      jointA: vec2.fromValues(-0.5, -0.5),
-      jointB: vec2.fromValues(0.5, 0.5),
+      pivotA: vec2.fromValues(-0.5, -0.5),
+      pivotB: vec2.fromValues(0.5, 0.5),
       distance: 3.0,
     });
   }

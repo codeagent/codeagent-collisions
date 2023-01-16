@@ -20,6 +20,6 @@ export const createWorld = (
 };
 
 export const destroyWorld = (world: WorldInterface) => {
-  world.dispose();
-  Container.reset(world.settings.uid);
+  world.clear();
+  return Container.reset(world.settings.uid);
 };

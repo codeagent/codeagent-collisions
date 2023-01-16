@@ -33,9 +33,9 @@
     "build:cjs": "npx tsc -p tsconfig.cjs.json",
     "build:types": "npx tsc -p tsconfig.types.json",
     "build:bundle": "npx rollup -c --bundleConfigAsCjs",
-    "start": "npm run build:clean && npx rollup -c --watch --bundleConfigAsCjs --environment BUILD:development",
-    "test": "npx jest",
-    "compile:examples": "node ./scripts/compile-examples.js"
+    "compile:examples": "node ./scripts/compile-examples.js",
+    "start": "npx rollup -c --watch --bundleConfigAsCjs --environment BUILD:development",
+    "test": "npx jest"
   },
   "devDependencies": {
     "@jest/globals": "^29.3.1",

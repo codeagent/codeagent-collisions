@@ -1,10 +1,21 @@
 import { vec2 } from 'gl-matrix';
-import { WorldInterface, Settings, Box, Collider, Circle } from 'js-physics-2d';
+import {
+  WorldInterface,
+  Settings,
+  Box,
+  Collider,
+  Circle,
+  ColliderInterface,
+  Events,
+  BodyInterface,
+} from 'js-physics-2d';
 import { Inject, Service } from 'typedi';
 import { ExampleInterface } from './example.interface';
 
 @Service()
 export class StairsExample implements ExampleInterface {
+  private readonly listener = (body: BodyInterface) => this.onEvent(body);
+
   constructor(
     @Inject('SETTINGS') private readonly settings: Settings,
     @Inject('WORLD') private readonly world: WorldInterface
@@ -16,10 +27,13 @@ export class StairsExample implements ExampleInterface {
     this.settings.defaultFriction = 0.2;
 
     this.createStairs(8);
+
+    this.world.on(Events.Awake, this.listener);
   }
 
   uninstall(): void {
-    this.world.dispose();
+    this.world.off(Events.Awake, this.listener);
+    this.world.clear();
   }
 
   private createStairs(n: number) {
@@ -34,7 +48,7 @@ export class StairsExample implements ExampleInterface {
     const m = 10.0;
     const interval = 1000;
 
-    let k = 1;
+    let k = 3;
 
     const spawn = () => {
       this.world.addCollider({
@@ -100,5 +114,9 @@ export class StairsExample implements ExampleInterface {
     });
 
     spawn();
+  }
+
+  private onEvent(body: BodyInterface): void {
+    console.log(body);
   }
 }

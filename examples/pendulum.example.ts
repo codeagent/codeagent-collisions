@@ -26,7 +26,7 @@ export class PendulumExample implements ExampleInterface {
   }
 
   uninstall(): void {
-    this.world.dispose();
+    this.world.clear();
   }
 
   private createPendulums(n: number) {
@@ -74,8 +74,8 @@ export class PendulumExample implements ExampleInterface {
       this.world.addDistanceJoint({
         bodyA: ceil,
         bodyB: pendulum,
-        jointA: vec2.fromValues(n % 2 ? offset : -offset, 0.0),
-        jointB: vec2.fromValues(0.0, 0.0),
+        pivotA: vec2.fromValues(n % 2 ? offset : -offset, 0.0),
+        pivotB: vec2.fromValues(0.0, 0.0),
         distance: length,
       });
 

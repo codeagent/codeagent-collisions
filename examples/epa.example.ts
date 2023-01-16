@@ -57,7 +57,7 @@ export class EpaExample implements ExampleInterface {
   uninstall(): void {
     this.world.off(Events.PostStep, this.onPostStepEventListener);
     Object.assign(this.settings, defaultSettings);
-    this.world.dispose();
+    this.world.clear();
   }
 
   private createObjects() {

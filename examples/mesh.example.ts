@@ -28,7 +28,7 @@ export class MeshExample implements ExampleInterface {
   }
 
   uninstall(): void {
-    this.world.dispose();
+    this.world.clear();
   }
 
   private createMesh() {

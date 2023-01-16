@@ -27,7 +27,7 @@ export class HelixExample implements ExampleInterface {
   }
 
   uninstall(): void {
-    this.world.dispose();
+    this.world.clear();
   }
 
   private createHelix() {

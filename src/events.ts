@@ -1,5 +1,4 @@
 export namespace Events {
-  export const WorldDestroyed = 'WorldDestroyed';
   export const BodyCreated = 'BodyCreated';
   export const BodyDestroyed = 'BodyDestroyed';
   export const ColliderAdded = 'ColliderAdded';

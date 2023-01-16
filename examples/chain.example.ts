@@ -25,7 +25,7 @@ export class ChainExample implements ExampleInterface {
   }
 
   uninstall(): void {
-    this.world.dispose();
+    this.world.clear();
   }
 
   private createChain(links: number) {
@@ -52,9 +52,9 @@ export class ChainExample implements ExampleInterface {
         const pointB = vec2.fromValues(-size * 0.5, -size * 0.5);
         this.world.addDistanceJoint({
           bodyA,
-          jointA: pointA,
+          pivotA: pointA,
           bodyB: body,
-          jointB: pointB,
+          pivotB: pointB,
           distance,
         });
       }

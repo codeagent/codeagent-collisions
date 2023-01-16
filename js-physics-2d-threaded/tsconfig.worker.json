@@ -1,0 +1,9 @@
+{
+  "extends": "./tsconfig.json",
+  "compilerOptions": {
+    "module": "ESNext",
+    "allowJs": false,
+    "rootDir": "./src"
+  },
+  "include": ["./src/host"]
+}

@@ -1,6 +1,5 @@
 import { vec2 } from 'gl-matrix';
 
-import { World } from '../world';
 import { JointInterface } from './joint.interface';
 import {
   ConstraintInterface,
@@ -9,6 +8,7 @@ import {
   MinDistanceConstraint,
 } from '../constraint';
 import { BodyInterface } from '../body.interface';
+import { WorldInterface } from '../world.interface';
 
 export interface WheelJointDef {
   bodyA: Readonly<BodyInterface>;
@@ -24,7 +24,7 @@ export class WheelJoint implements JointInterface {
   private readonly constraints: ConstraintInterface[] = [];
 
   constructor(
-    readonly world: World,
+    readonly world: WorldInterface,
     public readonly bodyA: Readonly<BodyInterface>,
     public readonly pivotA: Readonly<vec2>,
     public readonly bodyB: Readonly<BodyInterface>,

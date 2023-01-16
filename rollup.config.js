@@ -3,7 +3,7 @@ import resolve from '@rollup/plugin-node-resolve';
 import terser from '@rollup/plugin-terser';
 import commonjs from '@rollup/plugin-commonjs';
 import serve from 'rollup-plugin-serve';
-import livereload from 'rollup-plugin-livereload';
+// import livereload from 'rollup-plugin-livereload';
 import { string } from 'rollup-plugin-string';
 
 import pkg from './package.json';
@@ -19,7 +19,7 @@ const onwarn = (warning, warn) => {
 
 export default process.env.BUILD !== 'development'
   ? {
-      input: 'dist/esm/index.js',
+      input: 'src/index.ts',
       context: 'self',
       onwarn,
       output: [
@@ -37,7 +37,11 @@ export default process.env.BUILD !== 'development'
           plugins: [terser()],
         },
       ],
-      plugins: [resolve(), commonjs()],
+      plugins: [
+        resolve(),
+        commonjs(),
+        typescript({ tsconfig: __dirname + '/tsconfig.esm.json' }),
+      ],
     }
   : {
       input: 'examples/index.ts',
@@ -50,7 +54,7 @@ export default process.env.BUILD !== 'development'
       },
       plugins: [
         string({
-          include: '**/*.obj',
+          include: ['**/*.obj'],
         }),
         resolve(),
         commonjs(),
@@ -60,8 +64,12 @@ export default process.env.BUILD !== 'development'
         serve({
           verbose: false,
           open: true,
-          contentBase: ['examples/public', 'dist/examples'],
+          contentBase: [
+            'examples/public',
+            'dist/examples',
+            'js-physics-2d-threaded/dist/bundle',
+          ],
         }),
-        livereload(),
+        // livereload(),
       ],
     };

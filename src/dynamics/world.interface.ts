@@ -29,9 +29,9 @@ export interface WorldInterface extends Iterable<BodyInterface> {
   removeJoint(joint: JointInterface): void;
   addCollider(collider: ColliderDef): ColliderInterface;
   removeCollider(collider: ColliderInterface): void;
-  dispose(): void;
+  clear(): void;
   on<T extends Function>(eventName: keyof typeof Events, handler: T): void;
   off<T extends Function>(eventName: keyof typeof Events, handler: T): void;
-  dispatch(eventName: keyof typeof Events, ...payload: unknown[]): void;
   step(dt: number): void;
+  getBody(id: number): BodyInterface;
 }

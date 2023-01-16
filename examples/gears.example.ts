@@ -26,7 +26,7 @@ export class GearsExample implements ExampleInterface {
   }
 
   uninstall(): void {
-    this.world.dispose();
+    this.world.clear();
   }
 
   private createGears() {

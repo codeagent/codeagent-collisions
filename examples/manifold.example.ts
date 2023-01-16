@@ -12,8 +12,8 @@ import {
   MeshShape,
   NarrowPhaseInterface,
   ContactCandidate,
+  Events,
 } from 'js-physics-2d';
-import { Events } from 'js-physics-2d/events';
 import { Inject, Service } from 'typedi';
 
 import { ExampleInterface } from './example.interface';
@@ -43,7 +43,7 @@ export class ManifoldExample implements ExampleInterface {
   uninstall(): void {
     this.world.off(Events.PostStep, this.onPostStepEventListener);
     Object.assign(this.settings, defaultSettings);
-    this.world.dispose();
+    this.world.clear();
   }
 
   private createObjects() {
@@ -63,7 +63,11 @@ export class ManifoldExample implements ExampleInterface {
       position: vec2.fromValues(4, 4),
       angle: Math.PI * 0.5,
     });
-    this.world.addCollider({ body: body, shape: new Capsule(1.0, 3.5), mask: 0 });
+    this.world.addCollider({
+      body: body,
+      shape: new Capsule(1.0, 3.5),
+      mask: 0,
+    });
 
     body = this.world.createBody({
       mass: 1.0,
@@ -79,7 +83,11 @@ export class ManifoldExample implements ExampleInterface {
       position: vec2.fromValues(4, -4),
       angle: Math.PI * 0.75,
     });
-    this.world.addCollider({ body: body, shape: new Ellipse(2.0, 1.5), mask: 0 });
+    this.world.addCollider({
+      body: body,
+      shape: new Ellipse(2.0, 1.5),
+      mask: 0,
+    });
 
     body = this.world.createBody({
       mass: 1,
@@ -87,9 +95,11 @@ export class ManifoldExample implements ExampleInterface {
       position: vec2.fromValues(4, -8),
       angle: Math.PI * 0.75,
     });
-    this.world.addCollider(
-      { body: body, shape: new MeshShape(objects['gear_o_049']), mask: 0 }
-    );
+    this.world.addCollider({
+      body: body,
+      shape: new MeshShape(objects['gear_o_049']),
+      mask: 0,
+    });
 
     //
     body = this.world.createBody({
@@ -106,7 +116,11 @@ export class ManifoldExample implements ExampleInterface {
       position: vec2.fromValues(4.5, 5.5),
       angle: Math.PI * 0.55,
     });
-    this.world.addCollider({ body: body, shape: new Capsule(1.0, 3.5), mask: 0 });
+    this.world.addCollider({
+      body: body,
+      shape: new Capsule(1.0, 3.5),
+      mask: 0,
+    });
 
     body = this.world.createBody({
       mass: 1.0,
@@ -122,7 +136,11 @@ export class ManifoldExample implements ExampleInterface {
       position: vec2.fromValues(-4, -4),
       angle: 0,
     });
-    this.world.addCollider({ body: body, shape: new Ellipse(2.0, 1.0), mask: 0 });
+    this.world.addCollider({
+      body: body,
+      shape: new Ellipse(2.0, 1.0),
+      mask: 0,
+    });
 
     body = this.world.createBody({
       mass: 1,
@@ -130,9 +148,11 @@ export class ManifoldExample implements ExampleInterface {
       position: vec2.fromValues(-4, -8),
       angle: 0,
     });
-    this.world.addCollider(
-      { body: body, shape: new MeshShape(objects['gear_o_049']), mask: 0 }
-    );
+    this.world.addCollider({
+      body: body,
+      shape: new MeshShape(objects['gear_o_049']),
+      mask: 0,
+    });
   }
 
   private onPostStep(): void {
@@ -144,8 +164,14 @@ export class ManifoldExample implements ExampleInterface {
         const body0 = bodies[i];
         const body1 = bodies[j];
         pairs.push([
-          new ContactCandidate(body0.collider as Collider, body0.collider.shape),
-          new ContactCandidate(body1.collider as Collider, body1.collider.shape),
+          new ContactCandidate(
+            body0.collider as Collider,
+            body0.collider.shape
+          ),
+          new ContactCandidate(
+            body1.collider as Collider,
+            body1.collider.shape
+          ),
         ]);
       }
     }

@@ -25,7 +25,7 @@ export class CcdExample implements ExampleInterface {
   }
 
   uninstall(): void {
-    this.world.dispose();
+    this.world.clear();
   }
 
   private createObjects() {

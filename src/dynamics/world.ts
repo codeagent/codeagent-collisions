@@ -8,7 +8,7 @@ import {
   ColliderDef,
   ColliderInterface,
 } from '../cd';
-import { Clock, EventDispatcher, IdManager, Memory, pairId } from '../utils';
+import { Clock, EventDispatcher, IdManager, pairId } from '../utils';
 import {
   DistanceJoint,
   JointInterface,
@@ -38,8 +38,7 @@ import { WorldInterface } from './world.interface';
 
 @Service()
 export class World implements WorldInterface {
-  public readonly bodies: Body[] = [];
-
+  private readonly bodies = new Map<number, Body>();
   private readonly bodyForce = vec2.create();
 
   constructor(
@@ -50,12 +49,11 @@ export class World implements WorldInterface {
     private readonly detector: CollisionDetector,
     private readonly clock: Clock,
     private readonly idManager: IdManager,
-    private readonly dispatcher: EventDispatcher,
-    private readonly memory: Memory
+    private readonly dispatcher: EventDispatcher
   ) {}
 
   createBody(bodyDef: BodyDef): BodyInterface {
-    if (this.bodies.length === this.settings.maxBodiesNumber) {
+    if (this.bodies.size === this.settings.maxBodiesNumber) {
       throw new Error(
         `World.createBody: Failed to create body: maximum namber of bodies attained: ${this.settings.maxBodiesNumber}`
       );
@@ -70,23 +68,21 @@ export class World implements WorldInterface {
     body.inertia = bodyDef?.inertia ?? 1.0;
     body.position = bodyDef.position ?? vec2.create();
     body.angle = bodyDef.angle ?? 0.0;
-
-    this.bodies.push(body);
     body.updateTransform();
 
-    this.dispatcher.dispatch(Events.BodyCreated, body);
+    this.bodies.set(body.id, body);
+
+    this.dispatch(Events.BodyCreated, body);
 
     return body;
   }
 
-  destroyBody(body: BodyInterface) {
-    const bodyIndex = this.bodies.findIndex(
-      (b) => b.id === body.id && body.world === this
-    );
-    if (bodyIndex === -1) {
+  destroyBody(body: BodyInterface): void {
+    if (!this.bodies.has(body.id)) {
       return;
     }
-    this.bodies.splice(bodyIndex, 1);
+
+    this.bodies.delete(body.id);
     this.idManager.releaseId(body.id);
 
     if (body.collider) {
@@ -96,13 +92,17 @@ export class World implements WorldInterface {
     this.dispatch(Events.BodyDestroyed, body);
   }
 
+  getBody(id: number): BodyInterface {
+    return this.bodies.get(id);
+  }
+
   addDistanceJoint(jointDef: DistanceJointDef): JointInterface {
     const joint = new DistanceJoint(
       this,
       jointDef.bodyA,
-      jointDef.jointA,
+      jointDef.pivotA ?? vec2.create(),
       jointDef.bodyB,
-      jointDef.jointB,
+      jointDef.pivotB ?? vec2.create(),
       jointDef.distance
     );
     jointDef.bodyA.addJoint(joint);
@@ -255,7 +255,7 @@ export class World implements WorldInterface {
 
     this.detector.registerCollider(collider);
 
-    for (const body of this.bodies) {
+    for (const body of this.bodies.values()) {
       if (body.collider && body.collider !== collider) {
         this.registry.registerPair(
           new Pair(
@@ -276,7 +276,7 @@ export class World implements WorldInterface {
     this.detector.unregisterCollider(collider as Collider);
     Object.assign(collider.body, { collider: null });
 
-    for (const body of this.bodies) {
+    for (const body of this.bodies.values()) {
       const id = pairId(body.collider.id, collider.id);
       this.registry.unregisterPair(id);
     }
@@ -296,20 +296,16 @@ export class World implements WorldInterface {
     this.dispatch(Events.JointRemoved, joint);
   }
 
-  dispose(): void {
-    this.registry.clear();
-    this.idManager.reset();
-    this.memory.clear();
-
-    for (const body of this.bodies) {
+  clear(): void {
+    for (const body of this.bodies.values()) {
       if (body.collider) {
         this.detector.unregisterCollider(body.collider);
       }
     }
 
-    this.bodies.length = 0;
-
-    this.dispatch(Events.WorldDestroyed, this);
+    this.registry.clear();
+    this.idManager.reset();
+    this.bodies.clear();
   }
 
   on<T extends Function>(eventName: keyof typeof Events, handler: T): void {
@@ -325,11 +321,11 @@ export class World implements WorldInterface {
   }
 
   *[Symbol.iterator](): Iterator<BodyInterface> {
-    yield* this.bodies;
+    yield* this.bodies.values();
   }
 
   private applyGlobalForces() {
-    for (const body of this.bodies) {
+    for (const body of this.bodies.values()) {
       vec2.copy(this.bodyForce, body.force);
 
       if (body.invMass) {
@@ -385,7 +381,7 @@ export class World implements WorldInterface {
 
     this.clearForces();
 
-    for (const body of this.bodies) {
+    for (const body of this.bodies.values()) {
       body.tick(dt);
     }
 
@@ -393,13 +389,13 @@ export class World implements WorldInterface {
   }
 
   private clearForces() {
-    for (const body of this.bodies) {
+    for (const body of this.bodies.values()) {
       body.clearForces();
     }
   }
 
   private advance(dt: number) {
-    for (const island of this.islandGenerator.generate(this.bodies)) {
+    for (const island of this.islandGenerator.generate(this.bodies.values())) {
       if (!island.sleeping) {
         this.dispatch(Events.IslandPreStep, island);
         island.step(dt);

@@ -1,6 +1,5 @@
 import { vec2 } from 'gl-matrix';
 
-import { World } from '../world';
 import { JointInterface } from './joint.interface';
 import {
   ConstraintInterface,
@@ -11,8 +10,8 @@ import {
   SpiralSpringConstraint,
 } from '../constraint';
 
-import { Body } from '../body';
 import { BodyInterface } from '../body.interface';
+import { WorldInterface } from '../world.interface';
 
 export interface RevoluteJointDef {
   bodyA: Readonly<BodyInterface>;
@@ -29,7 +28,7 @@ export class RevoluteJoint implements JointInterface {
   private readonly constraints: ConstraintInterface[] = [];
 
   constructor(
-    readonly world: World,
+    readonly world: WorldInterface,
     public readonly bodyA: Readonly<BodyInterface>,
     public readonly pivotA: Readonly<vec2>,
     public readonly bodyB: Readonly<BodyInterface>,
