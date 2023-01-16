@@ -26,7 +26,7 @@ import {
   WheelJoint,
   WheelJointDef,
   WorldInterface,
-} from 'js-physics-2d';
+} from 'rb-phys2d';
 import { Inject, Service } from 'typedi';
 
 import { BodyProxy } from './body-proxy';
@@ -435,6 +435,7 @@ export class WorldProxy implements WorldInterface {
     this.taskQueue.enqueue(new ClearTask());
     this.joints.clear();
     this.bodies.clear();
+    this.mouseControl = null;
   }
 
   on<T extends Function>(eventName: keyof typeof Events, handler: T): void {

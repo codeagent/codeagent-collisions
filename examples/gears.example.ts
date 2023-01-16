@@ -5,7 +5,7 @@ import {
   Collider,
   loadObj,
   MeshShape,
-} from 'js-physics-2d';
+} from 'rb-phys2d';
 import { Inject, Service } from 'typedi';
 import { ExampleInterface } from './example.interface';
 import GEARS from './objects/gears.obj';

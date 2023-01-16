@@ -5,7 +5,7 @@ import {
   JointInterface,
   affineInverse,
   cross,
-} from 'js-physics-2d';
+} from 'rb-phys2d';
 import { WorldProxy } from './world-proxy';
 import { AttributeMask } from '../serializing';
 

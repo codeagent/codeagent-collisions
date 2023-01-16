@@ -1,4 +1,4 @@
-import { BodyInterface, ColliderInterface } from 'js-physics-2d';
+import { BodyInterface, ColliderInterface } from 'rb-phys2d';
 
 export interface IdentityInterface {
   readonly id: number;

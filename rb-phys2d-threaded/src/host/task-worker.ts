@@ -1,11 +1,10 @@
 import {
-  BodyInterface,
   Events,
   IdManager,
   JointInterface,
   WorldInterface,
   createWorld,
-} from 'js-physics-2d';
+} from 'rb-phys2d';
 import {
   AddColliderTask,
   AddDistanceJointTask,

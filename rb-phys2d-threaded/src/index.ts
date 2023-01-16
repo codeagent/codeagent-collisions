@@ -1,4 +1,4 @@
-import { EventDispatcher, WorldInterface } from 'js-physics-2d';
+import { EventDispatcher, WorldInterface } from 'rb-phys2d';
 import { Container, ContainerInstance } from 'typedi';
 
 import { WorldProxy } from './proxy';

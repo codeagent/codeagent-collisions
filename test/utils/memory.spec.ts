@@ -1,4 +1,4 @@
-import { Memory, configureContainer } from 'js-physics-2d';
+import { Memory, configureContainer } from 'rb-phys2d';
 import { ContainerInstance } from 'typedi';
 
 describe('Memory', () => {

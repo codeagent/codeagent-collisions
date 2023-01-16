@@ -1,4 +1,4 @@
-import * as csr from 'js-physics-2d/math/csr';
+import * as csr from 'rb-phys2d/math/csr';
 
 describe('csr', () => {
   beforeEach(() => {});

@@ -1,7 +1,7 @@
 import {
   Settings as BaseSettings,
   defaultSettings as defaultBaseSettings,
-} from 'js-physics-2d';
+} from 'rb-phys2d';
 
 export interface Settings extends BaseSettings {
   // World's step size in seconds. If 'animationFrame' given the requestAnimationFrame will be used with 60 fps

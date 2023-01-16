@@ -8,7 +8,7 @@ import {
   MeshShape,
   Polygon,
   Shape,
-} from 'js-physics-2d';
+} from 'rb-phys2d';
 
 export enum ShapeType {
   Circle = 'Circle',

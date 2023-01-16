@@ -6,7 +6,7 @@ import {
   Body,
   Circle,
   BodyInterface,
-} from 'js-physics-2d';
+} from 'rb-phys2d';
 import { vec2 } from 'gl-matrix';
 import { Inject, Service } from 'typedi';
 import { ExampleInterface } from './example.interface';

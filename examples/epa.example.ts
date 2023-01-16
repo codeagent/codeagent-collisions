@@ -16,7 +16,7 @@ import {
   BodyInterface,
   Events,
   ColliderInterface,
-} from 'js-physics-2d';
+} from 'rb-phys2d';
 import { Inject, Service } from 'typedi';
 
 import { ExampleInterface } from './example.interface';

@@ -1,4 +1,4 @@
-import { BodyInterface } from 'js-physics-2d';
+import { BodyInterface } from 'rb-phys2d';
 import { vec2 } from 'gl-matrix';
 
 import {

@@ -3,7 +3,7 @@ import {
   Events,
   BodyInterface,
   ColliderInterface,
-} from 'js-physics-2d';
+} from 'rb-phys2d';
 
 export interface EventCollectorInterface<T = unknown> extends Iterable<T> {
   readonly listening: boolean;

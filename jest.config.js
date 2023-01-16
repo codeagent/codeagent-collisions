@@ -13,6 +13,6 @@ module.exports = {
   testPathIgnorePatterns: ['<rootDir>/node_modules/', '<rootDir>/dist/'],
   testMatch: ['<rootDir>/test/**/*.spec.ts'],
   moduleNameMapper: {
-    '^js-physics-2d': '<rootDir>/src/',
+    '^rb-phys2d': '<rootDir>/src/',
   },
 };

@@ -24,7 +24,7 @@ import {
   WorldInterface,
   BodyInterface,
   ColliderInterface,
-} from 'js-physics-2d';
+} from 'rb-phys2d';
 
 import {
   RendererInterface,

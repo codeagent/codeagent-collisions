@@ -1,4 +1,4 @@
-import { PriorityQueue } from 'js-physics-2d';
+import { PriorityQueue } from 'rb-phys2d';
 
 interface Item {
   value: number;

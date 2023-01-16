@@ -67,7 +67,7 @@ export default process.env.BUILD !== 'development'
           contentBase: [
             'examples/public',
             'dist/examples',
-            'js-physics-2d-threaded/dist/bundle',
+            'rb-phys2d-threaded/dist/bundle',
           ],
         }),
         // livereload(),

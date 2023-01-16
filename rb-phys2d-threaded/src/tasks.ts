@@ -1,5 +1,5 @@
 import { vec2 } from 'gl-matrix';
-import { BodyDef, Events, MouseControlInterface } from 'js-physics-2d';
+import { BodyDef, Events, MouseControlInterface } from 'rb-phys2d';
 
 import { Settings } from './settings';
 import { ShapeDef } from './shape-def';

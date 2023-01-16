@@ -7,7 +7,7 @@ import {
   OBBNode,
   WorldInterface,
   BodyInterface,
-} from 'js-physics-2d';
+} from 'rb-phys2d';
 
 export interface StylePresetInterface {
   aabbColor: string;

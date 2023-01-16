@@ -4,11 +4,11 @@ import 'reflect-metadata';
 import Container from 'typedi';
 import { vec2 } from 'gl-matrix';
 import { animationFrames, fromEvent, interval } from 'rxjs';
-import { MouseControl, createWorld } from 'js-physics-2d';
+import { MouseControl, createWorld } from 'rb-phys2d';
 
 Container.reset();
 
-import { createWorld as createThreadedWorld } from 'js-physics-2d-threaded';
+import { createWorld as createThreadedWorld } from 'rb-phys2d-threaded';
 import { map, startWith, switchMap, tap } from 'rxjs/operators';
 
 import {
