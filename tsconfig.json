@@ -17,7 +17,9 @@
     "declaration": false,
     "paths": {
       "js-physics-2d": ["src/"],
-      "js-physics-2d-threaded": ["js-physics-2d-threaded/src/"]
+      "js-physics-2d/*": ["src/"],
+      "js-physics-2d-threaded": ["js-physics-2d-threaded/src/"],
+      "js-physics-2d-threaded/*": ["js-physics-2d-threaded/src/"],
     }
   },
   "exclude": ["./node_modules", "./threading/node_modules"]
