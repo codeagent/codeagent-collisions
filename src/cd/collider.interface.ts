@@ -1,7 +1,8 @@
 import { mat3 } from 'gl-matrix';
 
-import { AABB } from './aabb';
 import { BodyInterface } from '../dynamics';
+
+import { AABB } from './aabb';
 import { Shape } from './shape';
 
 export interface ColliderDef {

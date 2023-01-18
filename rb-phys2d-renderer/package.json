@@ -1,0 +1,51 @@
+{
+  "name": "rb-phys2d-renderer",
+  "version": "0.0.1-alpha",
+  "private": false,
+  "main": "./dist/cjs/index.js",
+  "module": "./dist/esm/index.js",
+  "typings": "./dist/types/index.d.ts",
+  "author": "i.aleksey.yakovlev@gmail.com",
+  "description": "Debug renderer for rb-phys2d",
+  "license": "MIT",
+  "tags": [
+    "physics 2D",
+    "treading",
+    "web worker"
+  ],
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/codeagent/rb-phys2d-renderer.git"
+  },
+  "files": [
+    "dist/bundle/*",
+    "dist/cjs/*",
+    "dist/esm/*",
+    "dist/types/*",
+    "README.md",
+    "LICENSE",
+    "package.json"
+  ],
+  "scripts": {
+    "build:clean": "npx rimraf dist",
+    "build:esm": "npx tsc -p tsconfig.esm.json",
+    "build:cjs": "npx tsc -p tsconfig.cjs.json",
+    "build:types": "npx tsc -p tsconfig.types.json",
+    "build:bundle": "npx rollup -c --bundleConfigAsCjs --environment BUILD:bundle"
+  },
+  "devDependencies": {
+    "@rollup/plugin-commonjs": "^23.0.2",
+    "@rollup/plugin-node-resolve": "^15.0.1",
+    "@rollup/plugin-terser": "^0.1.0",
+    "@rollup/plugin-typescript": "^9.0.2",
+    "rimraf": "^3.0.2",
+    "rollup": "^3.3.0",
+    "ts-loader": "^9.4.1",
+    "typescript": "^4.8.4"
+  },
+  "dependencies": {
+    "@types/gl-matrix": "^3.2.0",
+    "gl-matrix": "^3.4.3",
+    "rb-phys2d": "file:../"
+  }
+}

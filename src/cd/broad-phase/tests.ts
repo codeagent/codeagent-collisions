@@ -1,9 +1,10 @@
 import { vec2 } from 'gl-matrix';
+
+import { AABB } from '../';
 import {
   closestPointsBetweenLineSegments,
   sqDistanceToLineSegment,
 } from '../../math';
-import { AABB } from '../';
 
 /**
  * Test for two aabb-s
@@ -27,7 +28,7 @@ export const AABBLineSegmentIntersection = (
 ) => {
   let entry = 0;
   let leave = 1;
-  let dir = vec2.sub(vec2.create(), p1, p0);
+  const dir = vec2.sub(vec2.create(), p1, p0);
 
   for (let i = 0; i < 2; i++) {
     if (Math.abs(dir[i]) < epsilon) {
@@ -35,7 +36,7 @@ export const AABBLineSegmentIntersection = (
         return false;
       }
     } else {
-      let ood = 1.0 / dir[i];
+      const ood = 1.0 / dir[i];
       let t1 = (aabb[0][i] - p0[i]) * ood;
       let t2 = (aabb[1][i] - p0[i]) * ood;
 

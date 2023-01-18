@@ -3,8 +3,6 @@ import {
   WorldInterface,
   Settings,
   Box,
-  Collider,
-  Body,
   Capsule,
   Ellipse,
   getToi,
@@ -16,11 +14,12 @@ import {
   BodyInterface,
   Events,
 } from 'rb-phys2d';
+import { RendererInterface } from 'rb-phys2d-renderer';
 import { Inject, Service } from 'typedi';
 
 import { ExampleInterface } from './example.interface';
 import GEARS from './objects/gears.obj';
-import { RendererInterface, RENDERER_TOKEN } from './services';
+import { RENDERER_TOKEN } from './services';
 
 @Service()
 export class ToiExample implements ExampleInterface {
@@ -202,8 +201,8 @@ export class ToiExample implements ExampleInterface {
     body1: BodyInterface,
     dt: number
   ) {
-    let currVelocity = vec2.clone(body0.velocity);
-    let currOmega = body0.omega;
+    const currVelocity = vec2.clone(body0.velocity);
+    const currOmega = body0.omega;
 
     body0.velocity = this.velocity;
     body0.omega = this.omega;

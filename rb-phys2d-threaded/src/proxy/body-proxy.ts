@@ -6,8 +6,10 @@ import {
   affineInverse,
   cross,
 } from 'rb-phys2d';
-import { WorldProxy } from './world-proxy';
+
 import { AttributeMask } from '../serializing';
+
+import { WorldProxy } from './world-proxy';
 
 export class BodyProxy implements BodyInterface {
   private readonly r = vec2.create();

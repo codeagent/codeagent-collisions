@@ -1,8 +1,8 @@
 import { vec2 } from 'gl-matrix';
 
+import { BodyInterface } from '../body.interface';
 import { DistanceConstraint } from '../constraint';
 import { WorldInterface } from '../world.interface';
-import { BodyInterface } from '../body.interface';
 
 export class MinDistanceConstraint extends DistanceConstraint {
   constructor(

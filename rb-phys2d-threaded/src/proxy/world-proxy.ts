@@ -29,8 +29,22 @@ import {
 } from 'rb-phys2d';
 import { Inject, Service } from 'typedi';
 
-import { BodyProxy } from './body-proxy';
-
+import { identity } from '../identity';
+import {
+  BODY_BUFFER_SAFE_CAPACITY,
+  EventMask,
+  deserializeBody,
+  serializeBody,
+} from '../serializing';
+import { Settings } from '../settings';
+import { createShapeDef } from '../shape-def';
+import {
+  TaskQueue,
+  WorkerMessage,
+  WorkerTask,
+  WorkerTaskResult,
+  isSuccess,
+} from '../task-queue';
 import {
   AddColliderTask,
   AddDistanceJointTask,
@@ -53,23 +67,8 @@ import {
   OffTask,
 } from '../tasks';
 
+import { BodyProxy } from './body-proxy';
 import WORKER_SOURCE from './worker-source';
-import { Settings } from '../settings';
-import { createShapeDef } from '../shape-def';
-import {
-  TaskQueue,
-  WorkerMessage,
-  WorkerTask,
-  WorkerTaskResult,
-  isSuccess,
-} from '../task-queue';
-import { identity } from '../identity';
-import {
-  BODY_BUFFER_SAFE_CAPACITY,
-  EventMask,
-  deserializeBody,
-  serializeBody,
-} from '../serializing';
 
 @Service()
 export class WorldProxy implements WorldInterface {
@@ -438,7 +437,10 @@ export class WorldProxy implements WorldInterface {
     this.mouseControl = null;
   }
 
-  on<T extends Function>(eventName: keyof typeof Events, handler: T): void {
+  on<T extends CallableFunction>(
+    eventName: keyof typeof Events,
+    handler: T
+  ): void {
     if (!this.dispatcher.hasEventListeners(eventName)) {
       this.taskQueue.enqueue(new OnTask(eventName));
     }
@@ -446,7 +448,10 @@ export class WorldProxy implements WorldInterface {
     this.dispatcher.addEventListener(eventName, handler);
   }
 
-  off<T extends Function>(eventName: keyof typeof Events, handler: T): void {
+  off<T extends CallableFunction>(
+    eventName: keyof typeof Events,
+    handler: T
+  ): void {
     this.dispatcher.removeEventListener(eventName, handler);
 
     if (!this.dispatcher.hasEventListeners(eventName)) {
@@ -458,7 +463,8 @@ export class WorldProxy implements WorldInterface {
     this.dispatcher.dispatch(eventName, ...payload);
   }
 
-  step(dt: number): void {}
+  // eslint-disable-next-line @typescript-eslint/no-empty-function
+  step(): void {}
 
   terminate() {
     this.worker.terminate();

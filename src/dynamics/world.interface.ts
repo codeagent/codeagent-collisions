@@ -1,3 +1,7 @@
+import { ColliderDef, ColliderInterface } from '../cd';
+import { Events } from '../events';
+import { Settings } from '../settings';
+
 import { BodyDef, BodyInterface } from './body.interface';
 import {
   DistanceJointDef,
@@ -10,9 +14,6 @@ import {
   WeldJointDef,
   WheelJointDef,
 } from './joint';
-import { ColliderDef, ColliderInterface } from '../cd';
-import { Events } from '../events';
-import { Settings } from '../settings';
 
 export interface WorldInterface extends Iterable<BodyInterface> {
   readonly settings: Readonly<Settings>;
@@ -30,8 +31,14 @@ export interface WorldInterface extends Iterable<BodyInterface> {
   addCollider(collider: ColliderDef): ColliderInterface;
   removeCollider(collider: ColliderInterface): void;
   clear(): void;
-  on<T extends Function>(eventName: keyof typeof Events, handler: T): void;
-  off<T extends Function>(eventName: keyof typeof Events, handler: T): void;
+  on<T extends CallableFunction>(
+    eventName: keyof typeof Events,
+    handler: T
+  ): void;
+  off<T extends CallableFunction>(
+    eventName: keyof typeof Events,
+    handler: T
+  ): void;
   step(dt: number): void;
   getBody(id: number): BodyInterface;
 }

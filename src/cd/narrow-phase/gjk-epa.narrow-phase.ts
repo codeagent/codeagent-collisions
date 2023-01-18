@@ -1,11 +1,13 @@
 import { vec2 } from 'gl-matrix';
 import { Inject, Service } from 'typedi';
 
-import { inverse } from '../../math';
 import { PairsRegistry, PairsRegistryInterface } from '../../dynamics';
+import { inverse } from '../../math';
+import { Settings } from '../../settings';
 import { pairId } from '../../utils';
 import { ContactCandidatePair, ContactInfo } from '../contact';
 import { Circle, Polygon } from '../shape';
+
 import { distance, epa, mdv } from './gjk-epa';
 import {
   getCircleCircleContactManifold,
@@ -13,7 +15,6 @@ import {
   getPolyPolyContactManifold,
 } from './gjk-epa/manifold';
 import { NarrowPhaseInterface } from './narrow-phase.interface';
-import { Settings } from '../../settings';
 
 @Service()
 export class GjkEpaNarrowPhase implements NarrowPhaseInterface {
@@ -32,7 +33,7 @@ export class GjkEpaNarrowPhase implements NarrowPhaseInterface {
   ): Iterable<ContactInfo> {
     const contact: ContactInfo[] = [];
 
-    for (let [left, right] of pairs) {
+    for (const [left, right] of pairs) {
       const id = pairId(left.collider.id, right.collider.id);
       const pair = this.registry.getPairById(id);
 

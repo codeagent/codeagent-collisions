@@ -1,9 +1,10 @@
 import { vec2 } from 'gl-matrix';
 
-import { ConstraintBase } from './constraint.base';
-import { WorldInterface } from '../world.interface';
-import { BodyInterface } from '../body.interface';
 import { cross } from '../../math';
+import { BodyInterface } from '../body.interface';
+import { WorldInterface } from '../world.interface';
+
+import { ConstraintBase } from './constraint.base';
 
 export class SpringConstraint extends ConstraintBase {
   private readonly pa = vec2.create();
@@ -50,7 +51,7 @@ export class SpringConstraint extends ConstraintBase {
     out[5] = cross(this.rb, this.pbpa);
   }
 
-  getPushFactor(dt: number, strength: number): number {
+  getPushFactor(): number {
     return 0.0;
   }
 

@@ -14,9 +14,9 @@ export class Clock {
     return this._frame;
   }
 
-  private _time: number = 0;
-  private _lastTime: number = 0;
-  private _frame: number = 0;
+  private _time = 0;
+  private _lastTime = 0;
+  private _frame = 0;
 
   tick(dt: number) {
     this._lastTime = this._time;

@@ -1,7 +1,8 @@
 import { mat3, vec2 } from 'gl-matrix';
 
-import { Body, BodyInterface } from '../dynamics';
+import { BodyInterface } from '../dynamics';
 import { betweenPair } from '../math';
+
 import * as gjk from './narrow-phase/gjk-epa';
 import { Shape } from './shape';
 
@@ -119,7 +120,9 @@ export const getToi = (
     const dt = dist / speed;
 
     if (!Number.isFinite(dt)) {
-      debugger;
+      console.warn(
+        'getToi: something went wrong with time of impact estimation'
+      );
     }
 
     proxy0.advance(dt);

@@ -1,22 +1,23 @@
 import { vec2 } from 'gl-matrix';
 import { Inject, Service } from 'typedi';
 
-import { pairId } from '../../utils';
 import { PairsRegistry, PairsRegistryInterface } from '../../dynamics';
 import { SpaceMappingInterface, inverse } from '../../math';
+import { pairId } from '../../utils';
 import {
   ContactCandidatePair,
   ContactInfo,
   ContactCandidate,
 } from '../contact';
 import { Circle, Polygon } from '../shape';
+
+import { NarrowPhaseInterface } from './narrow-phase.interface';
 import {
   testCircleCircle,
   ContactPoint,
   testPolyPoly,
   testPolyCircle,
 } from './sat';
-import { NarrowPhaseInterface } from './narrow-phase.interface';
 
 @Service()
 export class SatNarrowPhase implements NarrowPhaseInterface {
@@ -30,7 +31,7 @@ export class SatNarrowPhase implements NarrowPhaseInterface {
   ): Iterable<ContactInfo> {
     const contact: ContactPoint[] = [];
 
-    for (let [left, right] of pairs) {
+    for (const [left, right] of pairs) {
       const leftShape = left.shape;
       const rightShape = right.shape;
       const id = pairId(left.collider.id, right.collider.id);

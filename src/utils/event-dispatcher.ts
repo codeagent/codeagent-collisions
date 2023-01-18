@@ -2,9 +2,9 @@ import { Service } from 'typedi';
 
 @Service()
 export class EventDispatcher {
-  private readonly lisneters = new Map<string, Set<Function>>();
+  private readonly lisneters = new Map<string, Set<CallableFunction>>();
 
-  addEventListener<T extends Function>(eventName: string, handler: T) {
+  addEventListener<T extends CallableFunction>(eventName: string, handler: T) {
     if (!this.lisneters.has(eventName)) {
       this.lisneters.set(eventName, new Set());
     }
@@ -12,7 +12,10 @@ export class EventDispatcher {
     this.lisneters.get(eventName).add(handler);
   }
 
-  removeEventListener<T extends Function>(eventName: string, handler: T) {
+  removeEventListener<T extends CallableFunction>(
+    eventName: string,
+    handler: T
+  ) {
     if (this.lisneters.has(eventName)) {
       this.lisneters.get(eventName).delete(handler);
 

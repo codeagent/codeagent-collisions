@@ -1,7 +1,6 @@
 import { vec2 } from 'gl-matrix';
 
-import { World } from '../world';
-import { JointInterface } from './joint.interface';
+import { BodyInterface } from '../body.interface';
 import {
   AngleConstraint,
   ConstraintInterface,
@@ -9,10 +8,9 @@ import {
   MaxDistanceConstraint,
   MinDistanceConstraint,
 } from '../constraint';
-
-import { BodyInterface } from '../body.interface';
-import { Body } from '../body';
 import { WorldInterface } from '../world.interface';
+
+import { JointInterface } from './joint.interface';
 
 export interface PrismaticJointDef {
   bodyA: Readonly<BodyInterface>;

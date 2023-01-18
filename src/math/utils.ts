@@ -243,7 +243,7 @@ export const transformMat3Vec = (
 ) => vec2.set(out, m[0] * v[0] + m[3] * v[1], m[1] * v[0] + m[4] * v[1]);
 
 export const getPolygonSignedArea = (polygon: Readonly<vec2[]>): number => {
-  let area: number = 0.0;
+  let area = 0.0;
   for (let i = 0; i < polygon.length; i++) {
     const p0 = polygon[i];
     const p1 = polygon[(i + 1) % polygon.length];

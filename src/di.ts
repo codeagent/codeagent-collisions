@@ -1,13 +1,5 @@
 import { Container, ContainerInstance } from 'typedi';
 
-import { defaultSettings, Settings } from './settings';
-import {
-  LocalIslandsGenerator,
-  SoleIslandGenerator,
-  ConstraintsSolver,
-  World,
-} from './dynamics';
-
 import {
   NaiveBroadPhase,
   SapBroadPhase,
@@ -15,7 +7,14 @@ import {
   GjkEpaNarrowPhase,
   SatNarrowPhase,
 } from './cd';
+import {
+  LocalIslandsGenerator,
+  SoleIslandGenerator,
+  ConstraintsSolver,
+  World,
+} from './dynamics';
 import { GaussSeidelSolver } from './math';
+import { defaultSettings, Settings } from './settings';
 
 export const configureContainer = (
   settings: Partial<Settings> = {}

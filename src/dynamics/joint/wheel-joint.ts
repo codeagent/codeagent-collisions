@@ -1,14 +1,15 @@
 import { vec2 } from 'gl-matrix';
 
-import { JointInterface } from './joint.interface';
+import { BodyInterface } from '../body.interface';
 import {
   ConstraintInterface,
   LineConstraint,
   MaxDistanceConstraint,
   MinDistanceConstraint,
 } from '../constraint';
-import { BodyInterface } from '../body.interface';
 import { WorldInterface } from '../world.interface';
+
+import { JointInterface } from './joint.interface';
 
 export interface WheelJointDef {
   bodyA: Readonly<BodyInterface>;

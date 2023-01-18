@@ -1,14 +1,13 @@
+import { vec2 } from 'gl-matrix';
 import {
   WorldInterface,
   Settings,
   Box,
-  Collider,
-  Body,
   Circle,
   BodyInterface,
 } from 'rb-phys2d';
-import { vec2 } from 'gl-matrix';
 import { Inject, Service } from 'typedi';
+
 import { ExampleInterface } from './example.interface';
 
 @Service()

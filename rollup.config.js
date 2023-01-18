@@ -1,7 +1,7 @@
-import typescript from '@rollup/plugin-typescript';
+import commonjs from '@rollup/plugin-commonjs';
 import resolve from '@rollup/plugin-node-resolve';
 import terser from '@rollup/plugin-terser';
-import commonjs from '@rollup/plugin-commonjs';
+import typescript from '@rollup/plugin-typescript';
 import serve from 'rollup-plugin-serve';
 // import livereload from 'rollup-plugin-livereload';
 import { string } from 'rollup-plugin-string';
@@ -26,13 +26,13 @@ export default process.env.BUILD !== 'development'
         {
           file: `dist/bundle/${pkg.name}.js`,
           format: 'iife',
-          name: 'JSP2D',
+          name: 'rbPhys2d',
           sourcemap: true,
         },
         {
           file: `dist/bundle/${pkg.name}.min.js`,
           format: 'iife',
-          name: 'JSP2D',
+          name: 'rbPhys2d',
           sourcemap: true,
           plugins: [terser()],
         },

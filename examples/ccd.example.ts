@@ -1,12 +1,7 @@
 import { vec2 } from 'gl-matrix';
-import {
-  Settings,
-  Box,
-  Collider,
-  Polygon,
-  WorldInterface,
-} from 'rb-phys2d';
+import { Settings, Box, Polygon, WorldInterface } from 'rb-phys2d';
 import { Inject, Service } from 'typedi';
+
 import { ExampleInterface } from './example.interface';
 
 @Service()
@@ -30,7 +25,7 @@ export class CcdExample implements ExampleInterface {
 
   private createObjects() {
     // floor
-    let body = this.world.createBody({
+    const body = this.world.createBody({
       mass: Number.POSITIVE_INFINITY,
       inertia: Number.POSITIVE_INFINITY,
       position: vec2.fromValues(0.0, -9),
@@ -40,7 +35,7 @@ export class CcdExample implements ExampleInterface {
     const omega = Math.PI * 1.0;
     const velocity = vec2.fromValues(0.0, -10000.0);
 
-    let box1 = this.world.createBody({
+    const box1 = this.world.createBody({
       mass: 1.0,
       inertia: 1.0,
       position: vec2.fromValues(-2, 0),
@@ -59,7 +54,7 @@ export class CcdExample implements ExampleInterface {
       ]),
     });
 
-    let box2 = this.world.createBody({
+    const box2 = this.world.createBody({
       mass: 1.0,
       inertia: 1.0,
       position: vec2.fromValues(2, 0),

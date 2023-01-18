@@ -1,6 +1,8 @@
 import { mat3, vec2, vec3 } from 'gl-matrix';
+
 import { getPolygonCentroid, getPolygonSignedArea } from '../../math';
 import { AABB } from '../aabb';
+
 import { Shape, MassDistribution } from './shape.interface';
 
 const v = vec2.create();
@@ -53,9 +55,9 @@ export class Polygon implements Shape, MassDistribution {
     this.radius = this.getRadius();
   }
 
-  support(out: vec2, dir: Readonly<vec2>, margin: number = 0): vec2 {
+  support(out: vec2, dir: Readonly<vec2>, margin = 0): vec2 {
     let curr: Vertex = this.cachedSupportVertex;
-    let best = vec2.dot(curr.point, dir);
+    const best = vec2.dot(curr.point, dir);
 
     if (vec2.dot(curr.next.point, dir) > best) {
       curr = curr.next;
@@ -128,7 +130,7 @@ export class Polygon implements Shape, MassDistribution {
   }
 
   inetria(mass: number): number {
-    let area: number = 0.0;
+    let area = 0.0;
     let jx = 0.0;
     let jy = 0.0;
     for (const vertex of this.vertices()) {

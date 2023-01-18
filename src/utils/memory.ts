@@ -101,7 +101,7 @@ export class Memory {
       );
     }
 
-    let [left, right] = this.closests(block);
+    const [left, right] = this.closests(block);
     let merged: MemoryBlock;
 
     if (
@@ -160,7 +160,7 @@ export class Memory {
   }
 
   dump(): MemoryBlock[] {
-    let list: MemoryBlock[] = [];
+    const list: MemoryBlock[] = [];
 
     let block = this.freeList;
     while (block !== null) {

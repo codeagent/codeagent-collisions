@@ -1,16 +1,15 @@
 import { vec2 } from 'gl-matrix';
 import { Inject, Service } from 'typedi';
 
-import { NarrowPhaseInterface } from './narrow-phase';
-import { Collider } from './collider';
-
-import { ContactInfo } from './contact';
-import { BroadPhaseInterface, testCapsuleCapsule } from './broad-phase';
-import { MidPhaseInterface } from './mid-phase';
-import { Body } from '../dynamics';
-import { getToi } from './toi';
-import { MeshShape } from './shape';
 import { Settings } from '../settings';
+
+import { BroadPhaseInterface, testCapsuleCapsule } from './broad-phase';
+import { Collider } from './collider';
+import { ContactInfo } from './contact';
+import { MidPhaseInterface } from './mid-phase';
+import { NarrowPhaseInterface } from './narrow-phase';
+import { MeshShape } from './shape';
+import { getToi } from './toi';
 
 @Service()
 export class CollisionDetector {
@@ -29,17 +28,17 @@ export class CollisionDetector {
 
   getTimeOfFirstImpact(dt: number): number {
     let minToi = 1;
-    let pairs = new Set<[Collider, Collider]>();
+    const pairs = new Set<[Collider, Collider]>();
     const cNumber = this.continuous.length;
 
     for (let i = 0; i < cNumber; i++) {
-      let left = this.continuous[i];
+      const left = this.continuous[i];
 
       vec2.copy(this.p0, left.body.position);
       vec2.scaleAndAdd(this.p1, this.p0, left.body.velocity, dt);
 
       for (let j = i + 1; j < cNumber; j++) {
-        let right = this.continuous[j];
+        const right = this.continuous[j];
 
         if ((left.mask & right.mask) === 0x0) {
           continue;

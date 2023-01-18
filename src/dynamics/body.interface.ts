@@ -1,7 +1,8 @@
 import { mat3, vec2 } from 'gl-matrix';
 
-import { JointInterface } from './joint';
 import { ColliderInterface } from '../cd';
+
+import { JointInterface } from './joint';
 import { WorldInterface } from './world.interface';
 
 export interface BodyDef {

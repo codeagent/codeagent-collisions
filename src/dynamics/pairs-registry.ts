@@ -1,12 +1,13 @@
 import { vec2 } from 'gl-matrix';
 import { Service } from 'typedi';
 
+import { Collider, ContactInfo } from '../cd';
+import { Events } from '../events';
 import { betweenPair, SpaceMapping, SpaceMappingInterface } from '../math';
 import { EventDispatcher, pairId } from '../utils';
-import { Collider, ContactInfo } from '../cd';
-import { Contact } from './joint';
-import { Events } from '../events';
+
 import { Body } from './body';
+import { Contact } from './joint';
 
 const a = vec2.create();
 const b = vec2.create();

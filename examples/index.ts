@@ -1,42 +1,33 @@
 /// <reference path="./declarations.d.ts" />
 import 'reflect-metadata';
 
-import Container from 'typedi';
 import { vec2 } from 'gl-matrix';
+import { MouseControl } from 'rb-phys2d';
+import { Canvas2DRenderer } from 'rb-phys2d-renderer';
+import { createWorld } from 'rb-phys2d-threaded';
 import { animationFrames, fromEvent, interval } from 'rxjs';
-import { MouseControl, createWorld } from 'rb-phys2d';
-
-Container.reset();
-
-import { createWorld as createThreadedWorld } from 'rb-phys2d-threaded';
 import { map, startWith, switchMap, tap } from 'rxjs/operators';
+import { Container } from 'typedi';
 
+import { ExampleInterface } from './example.interface';
 import {
   Profiler,
   ExampleLoader,
-  RendererInterface,
-  Canvas2DRenderer,
   EXAMPLES_TOKEN,
   EXAMPLES,
-  RENDERER_TOKEN,
   CONTAINER_TOKEN,
-  COLORS_TOKEN,
-  COLORS,
+  RENDERER_TOKEN,
 } from './services';
-import { ExampleInterface } from './example.interface';
 
-const world = createThreadedWorld({
-  workerUrl: 'worker.js',
-  // defaultRestitution: 0,
-  // defaultFriction: 0.27
-});
-// const world = createWorld({});
+Container.reset();
+
+const renderer = new Canvas2DRenderer();
+const world = createWorld({ workerUrl: 'worker.js' });
 
 const container = Container.of('examples');
 container.set({ id: EXAMPLES_TOKEN, value: EXAMPLES });
-container.set({ id: RENDERER_TOKEN, type: Canvas2DRenderer });
 container.set({ id: CONTAINER_TOKEN, value: container });
-container.set({ id: COLORS_TOKEN, value: COLORS });
+container.set({ id: RENDERER_TOKEN, value: renderer });
 container.set({ id: 'WORLD', value: world });
 container.set({ id: 'SETTINGS', value: world.settings });
 
@@ -44,7 +35,7 @@ let example: ExampleInterface;
 const canvas = document.getElementById('canvas') as HTMLCanvasElement;
 const profiler = container.get(Profiler);
 const loader = container.get(ExampleLoader);
-const renderer = container.get<RendererInterface>(RENDERER_TOKEN);
+
 renderer.of(canvas);
 const control = new MouseControl(world, renderer.projectionMatrix, 1.0, 1.0e3);
 control.of(canvas);

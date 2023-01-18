@@ -1,7 +1,7 @@
 import { Inject, Service } from 'typedi';
 
-import { Matrix, projectedGaussSeidel } from '../csr';
 import { Settings } from '../../settings';
+import { Matrix, projectedGaussSeidel } from '../csr';
 
 import { LinearEquationsSolverInterface } from './linear-equations-solver.interface';
 

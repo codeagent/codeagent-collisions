@@ -1,10 +1,5 @@
 import { Inject, Service } from 'typedi';
 
-import { Settings } from '../../settings';
-import { Body } from '../body';
-import { ConstraintInterface } from '../constraint';
-import { ConstraintsSolverInterface } from './constraints-solver.interface';
-
 import {
   VcV,
   VmV,
@@ -17,8 +12,12 @@ import {
   LinearEquationsSolverInterface,
   Matrix,
 } from '../../math';
-
+import { Settings } from '../../settings';
 import { Memory, Stack } from '../../utils';
+import { Body } from '../body';
+import { ConstraintInterface } from '../constraint';
+
+import { ConstraintsSolverInterface } from './constraints-solver.interface';
 
 @Service()
 export class ConstraintsSolver implements ConstraintsSolverInterface {
@@ -151,9 +150,9 @@ export class ConstraintsSolver implements ConstraintsSolverInterface {
     this.J.columns.length = this.J.rows.length = this.J.values.length = 0;
 
     let j = 0;
-    let values = this.J.values;
-    let columns = this.J.columns;
-    let rows = this.J.rows;
+    const values = this.J.values;
+    const columns = this.J.columns;
+    const rows = this.J.rows;
 
     for (const constraint of constraints) {
       constraint.getJacobian(this.jacobian);

@@ -1,12 +1,7 @@
 import { vec2 } from 'gl-matrix';
-import {
-  Settings,
-  Box,
-  Collider,
-  BodyInterface,
-  WorldInterface,
-} from 'rb-phys2d';
+import { Settings, Box, BodyInterface, WorldInterface } from 'rb-phys2d';
 import { Inject, Service } from 'typedi';
+
 import { ExampleInterface } from './example.interface';
 
 @Service()
@@ -34,7 +29,7 @@ export class ChainExample implements ExampleInterface {
     const distance = 1.0;
     let offset = Math.SQRT2 * size;
     const m = 1.0;
-    let x = 0.0;
+    const x = 0.0;
 
     for (let i = 0; i < links; i++) {
       const body = this.world.createBody({

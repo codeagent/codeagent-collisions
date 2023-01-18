@@ -1,7 +1,8 @@
 import 'reflect-metadata';
 
-import { TaskWorker } from './task-worker';
 import { WorkerMessage, isTask } from '../task-queue';
+
+import { TaskWorker } from './task-worker';
 
 const worker = new TaskWorker();
 

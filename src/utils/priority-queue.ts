@@ -64,7 +64,7 @@ export class PriorityQueue<T extends object> implements Iterable<T> {
 
     while (p !== null) {
       let q = p.prev;
-      let n = p.next;
+      const n = p.next;
 
       while (q && this.predicate(q.value, p.value) > 0) {
         q = q.prev;

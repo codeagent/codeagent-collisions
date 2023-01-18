@@ -1,9 +1,10 @@
 import { vec2 } from 'gl-matrix';
 
-import { ConstraintBase } from './constraint.base';
 import { cross, VxV } from '../../math';
 import { BodyInterface } from '../body.interface';
 import { WorldInterface } from '../world.interface';
+
+import { ConstraintBase } from './constraint.base';
 
 const ra = vec2.create();
 const rb = vec2.create();
@@ -41,7 +42,7 @@ export class ContactConstraint extends ConstraintBase {
 
   getPushFactor(dt: number, strength: number): number {
     if (strength) {
-      let penetration =
+      const penetration =
         this.penetration - this.world.settings.contactConstraintSlop;
       return (Math.max(penetration, 0) / dt) * strength;
     } else {

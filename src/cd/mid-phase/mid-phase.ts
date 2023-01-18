@@ -2,9 +2,10 @@ import { Service } from 'typedi';
 
 import { MeshOBBNode } from '../../utils';
 import { ContactCandidatePair, ContactCandidate } from '../contact';
-import { testAABBOBBTree, testOBBOBBTrees } from './tests';
-import { MidPhaseInterface } from './mid-phase.interface';
 import { MeshShape } from '../shape';
+
+import { MidPhaseInterface } from './mid-phase.interface';
+import { testAABBOBBTree, testOBBOBBTrees } from './tests';
 
 @Service()
 export class MidPhase implements MidPhaseInterface {

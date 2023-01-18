@@ -1,10 +1,10 @@
 import { vec2 } from 'gl-matrix';
 
-import { World } from '../world';
-import { JointInterface } from './joint.interface';
-import { ConstraintInterface, DistanceConstraint } from '../constraint';
 import { BodyInterface } from '../body.interface';
+import { ConstraintInterface, DistanceConstraint } from '../constraint';
 import { WorldInterface } from '../world.interface';
+
+import { JointInterface } from './joint.interface';
 
 export interface DistanceJointDef {
   bodyA: Readonly<BodyInterface>;

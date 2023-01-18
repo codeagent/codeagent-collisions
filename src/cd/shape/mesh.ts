@@ -1,8 +1,5 @@
 import { mat3, vec2 } from 'gl-matrix';
 
-import { AABB } from '../aabb';
-
-import { TestTarget, MassDistribution, Shape } from './shape.interface';
 import {
   getUnique,
   getConvexHull,
@@ -12,6 +9,9 @@ import {
   Mesh,
   MeshOBBNode,
 } from '../../utils';
+import { AABB } from '../aabb';
+
+import { TestTarget, MassDistribution, Shape } from './shape.interface';
 
 export class MeshShape implements Shape, MassDistribution {
   readonly radius: number = 0;

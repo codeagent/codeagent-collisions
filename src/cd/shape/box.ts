@@ -1,4 +1,5 @@
 import { vec2 } from 'gl-matrix';
+
 import { Polygon } from './polygon';
 
 export class Box extends Polygon {

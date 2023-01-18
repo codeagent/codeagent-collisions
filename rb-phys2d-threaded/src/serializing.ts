@@ -1,5 +1,5 @@
-import { BodyInterface } from 'rb-phys2d';
 import { vec2 } from 'gl-matrix';
+import { BodyInterface } from 'rb-phys2d';
 
 import {
   BodyEventCollector,

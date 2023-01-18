@@ -1,6 +1,7 @@
-import { ConstraintBase } from './constraint.base';
-import { WorldInterface } from '../world.interface';
 import { BodyInterface } from '../body.interface';
+import { WorldInterface } from '../world.interface';
+
+import { ConstraintBase } from './constraint.base';
 
 export class SpiralSpringConstraint extends ConstraintBase {
   constructor(
@@ -30,7 +31,7 @@ export class SpiralSpringConstraint extends ConstraintBase {
     }
   }
 
-  getPushFactor(dt: number, strength: number): number {
+  getPushFactor(): number {
     return 0.0;
   }
 

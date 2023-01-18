@@ -1,9 +1,10 @@
 import { vec2 } from 'gl-matrix';
 
-import { ConstraintBase } from './constraint.base';
-import { MouseControlInterface } from '../joint';
 import { BodyInterface } from '../body.interface';
+import { MouseControlInterface } from '../joint';
 import { WorldInterface } from '../world.interface';
+
+import { ConstraintBase } from './constraint.base';
 
 export class MouseXConstraint extends ConstraintBase {
   private readonly pa = vec2.create();
@@ -33,7 +34,7 @@ export class MouseXConstraint extends ConstraintBase {
     out[2] = -this.ra[1];
   }
 
-  getPushFactor(dt: number, strength: number): number {
+  getPushFactor(dt: number): number {
     this.control.getCursorPosition(this.cursor);
     vec2.transformMat3(this.pa, this.joint, this.bodyA.transform);
 

@@ -2,6 +2,7 @@ import { mat3, vec2 } from 'gl-matrix';
 
 import { closestPointToLineSegment, fromBarycentric } from '../../math';
 import { AABB, getAABBFromSupport } from '../aabb';
+
 import { Polygon } from './polygon';
 
 // vertically aligned capsule
@@ -53,7 +54,7 @@ const createCapsulePoints = (
   const bottom: vec2[] = [];
 
   let angle = 0.0;
-  let delta = Math.PI / subdivisions;
+  const delta = Math.PI / subdivisions;
   for (let i = 0; i <= subdivisions; i++, angle += delta) {
     const cosA = Math.cos(angle);
     const sinA = Math.sin(angle);

@@ -1,15 +1,14 @@
 import { vec2 } from 'gl-matrix';
 
-import { JointInterface } from './joint.interface';
+import { BodyInterface } from '../body.interface';
 import {
   AngleConstraint,
-  MinAngleConstraint,
   RevoluteXConstraint,
   RevoluteYConstraint,
 } from '../constraint';
-
-import { BodyInterface } from '../body.interface';
 import { WorldInterface } from '../world.interface';
+
+import { JointInterface } from './joint.interface';
 
 export interface WeldJointDef {
   bodyA: Readonly<BodyInterface>;
@@ -22,7 +21,7 @@ export interface WeldJointDef {
 export class WeldJoint implements JointInterface {
   private readonly revoluteXConstraint: RevoluteXConstraint;
   private readonly revoluteYConstraint: RevoluteYConstraint;
-  private readonly angleConstraint: MinAngleConstraint;
+  private readonly angleConstraint: AngleConstraint;
 
   constructor(
     readonly world: WorldInterface,

@@ -1,6 +1,7 @@
-import { ConstraintBase } from './constraint.base';
 import { BodyInterface } from '../body.interface';
 import { WorldInterface } from '../world.interface';
+
+import { ConstraintBase } from './constraint.base';
 
 export class AngleConstraint extends ConstraintBase {
   constructor(

@@ -1,10 +1,12 @@
-import { mat3, vec2, vec3 } from 'gl-matrix';
-import { Events } from '../events';
+import { mat3, vec2 } from 'gl-matrix';
+
 import { Collider } from '../cd';
+import { Events } from '../events';
 import { affineInverse, cross } from '../math';
+
+import { BodyInterface } from './body.interface';
 import { Contact, JointInterface } from './joint';
 import { World } from './world';
-import { BodyInterface } from './body.interface';
 
 export class Body implements BodyInterface {
   get transform(): Readonly<mat3> {
@@ -47,12 +49,12 @@ export class Body implements BodyInterface {
     this._torque = torque;
   }
 
-  get mass(): number {
-    return this._mass;
-  }
-
   get invMass(): number {
     return this._invMass;
+  }
+
+  get mass(): number {
+    return this._mass;
   }
 
   set mass(mass: number) {
@@ -62,12 +64,12 @@ export class Body implements BodyInterface {
       !Number.isFinite(this._mass) && !Number.isFinite(this._inertia);
   }
 
-  get inertia(): number {
-    return this._inertia;
-  }
-
   get invInertia(): number {
     return this._invInertia;
+  }
+
+  get inertia(): number {
+    return this._inertia;
   }
 
   set inertia(inertia: number) {
@@ -85,11 +87,11 @@ export class Body implements BodyInterface {
     return this._isSleeping;
   }
 
-  public omega: number = 0;
-  public angle: number = 0;
+  public omega = 0;
+  public angle = 0;
   public collider: Collider;
-  public bodyIndex: number = -1; // index in host island
-  public islandId: number = -1; // id of host island
+  public bodyIndex = -1; // index in host island
+  public islandId = -1; // id of host island
   public readonly joints = new Set<JointInterface>();
   public readonly contacts = new Set<Contact>();
   public readonly solverConstraints: number[] = []; // the list of constraints in island with witch given body will be interacted

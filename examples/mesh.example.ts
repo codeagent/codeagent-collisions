@@ -3,12 +3,12 @@ import {
   WorldInterface,
   Settings,
   Box,
-  Collider,
   MeshShape,
   Circle,
   loadObj,
 } from 'rb-phys2d';
 import { Inject, Service } from 'typedi';
+
 import { ExampleInterface } from './example.interface';
 import MESH from './objects/mesh.obj';
 

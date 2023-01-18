@@ -1,9 +1,10 @@
 import { vec2 } from 'gl-matrix';
 
-import { ConstraintBase } from './constraint.base';
 import { cross, transformMat3Vec } from '../../math';
-import { WorldInterface } from '../world.interface';
 import { BodyInterface } from '../body.interface';
+import { WorldInterface } from '../world.interface';
+
+import { ConstraintBase } from './constraint.base';
 
 export class LineConstraint extends ConstraintBase {
   private readonly tangent = vec2.create();

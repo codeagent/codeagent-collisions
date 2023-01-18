@@ -1,9 +1,10 @@
 import { vec2 } from 'gl-matrix';
 
-import { ConstraintBase } from './constraint.base';
 import { cross } from '../../math';
-import { WorldInterface } from '../world.interface';
 import { BodyInterface } from '../body.interface';
+import { WorldInterface } from '../world.interface';
+
+import { ConstraintBase } from './constraint.base';
 
 const tangent = vec2.create();
 const ra = vec2.create();
@@ -37,7 +38,7 @@ export class FrictionConstraint extends ConstraintBase {
     out[5] = cross(rb, tangent);
   }
 
-  getPushFactor(dt: number, strength: number): number {
+  getPushFactor(): number {
     return 0.0;
   }
 

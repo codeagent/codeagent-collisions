@@ -1,6 +1,5 @@
 import { vec2 } from 'gl-matrix';
 
-import { Circle, Polygon, Edge } from '../../shape';
 import {
   SpaceMappingInterface,
   inverse,
@@ -8,9 +7,9 @@ import {
   clipByPlane,
   fromBarycentric,
 } from '../../../math';
-
-import { ContactInfo } from '../../contact';
 import { Collider } from '../../collider';
+import { ContactInfo } from '../../contact';
+import { Circle, Polygon, Edge } from '../../shape';
 
 const inc0 = vec2.create();
 const inc1 = vec2.create();
@@ -27,7 +26,7 @@ const queryBestEdge = (
   normal: Readonly<vec2>
 ): Edge => {
   let curr = polygon.edgeLoop;
-  let best = vec2.dot(curr.normal, normal);
+  const best = vec2.dot(curr.normal, normal);
 
   if (vec2.dot(curr.next.normal, normal) > best) {
     curr = curr.next;
@@ -61,18 +60,18 @@ export const getPolyPolyContactManifold = (
 
   spaceMapping.toSecondVector(dir, dir);
   let incident = queryBestEdge(poly1, dir);
-  let incDot = vec2.dot(incident.normal, dir);
+  const incDot = vec2.dot(incident.normal, dir);
 
   vec2.negate(dir, normal);
 
   spaceMapping.toFirstVector(dir, dir);
   let reference = queryBestEdge(poly0, dir);
-  let refDot = vec2.dot(reference.normal, dir);
+  const refDot = vec2.dot(reference.normal, dir);
 
   let inverted = false;
 
   if (incDot > refDot) {
-    let tmp = incident;
+    const tmp = incident;
     incident = reference;
     reference = tmp;
     spaceMapping = inverse(spaceMapping);
@@ -92,7 +91,7 @@ export const getPolyPolyContactManifold = (
 
   out.length = 0;
 
-  for (let contact of [inc0, inc1]) {
+  for (const contact of [inc0, inc1]) {
     vec2.sub(refN, contact, reference.v0.point);
     const depth = vec2.dot(refN, reference.normal);
     if (depth >= 0) {
@@ -143,7 +142,7 @@ export const getPolyCircleContactManifold = (
 
   spaceMapping.toFirstVector(dir, dir);
   vec2.negate(dir, dir);
-  let edge = queryBestEdge(poly, dir);
+  const edge = queryBestEdge(poly, dir);
 
   spaceMapping.fromFirstPoint(p0, edge.v0.point);
   spaceMapping.fromFirstPoint(p1, edge.v1.point);

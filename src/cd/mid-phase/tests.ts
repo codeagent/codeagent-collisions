@@ -1,4 +1,5 @@
 import { mat3, vec2 } from 'gl-matrix';
+
 import { affineInverse } from '../../math';
 import { AABB } from '../aabb';
 import { OBB } from '../obb';
@@ -157,7 +158,7 @@ export const testOBBOBBTrees = (
   candidates.clear();
 
   while (queue.length) {
-    let [first, second] = queue.shift();
+    const [first, second] = queue.shift();
 
     mat3.multiply(
       firstToSecondTransform,

@@ -1,9 +1,10 @@
 import { vec2 } from 'gl-matrix';
 
-import { JointInterface } from './joint.interface';
-import { SpringConstraint } from '../constraint';
 import { BodyInterface } from '../body.interface';
+import { SpringConstraint } from '../constraint';
 import { WorldInterface } from '../world.interface';
+
+import { JointInterface } from './joint.interface';
 
 export interface SpringDef {
   bodyA: Readonly<BodyInterface>;

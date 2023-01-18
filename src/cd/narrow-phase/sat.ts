@@ -1,6 +1,5 @@
 import { vec2 } from 'gl-matrix';
 
-import { Circle, Convex, Edge, Polygon, Vertex } from '../shape';
 import {
   inverse,
   SpaceMappingInterface,
@@ -8,6 +7,7 @@ import {
   fromBarycentric,
   clipByPlane,
 } from '../../math';
+import { Circle, Convex, Edge, Polygon, Vertex } from '../shape';
 
 // --
 class BestEdgeVertexQuery {
@@ -29,7 +29,6 @@ const c0 = vec2.create();
 const c1 = vec2.create();
 const bary = vec2.create();
 const point0 = vec2.create();
-const point1 = vec2.create();
 const inc0 = vec2.create();
 const inc1 = vec2.create();
 const normal = vec2.create();
@@ -55,7 +54,7 @@ const queryBestEdgeVertex = (
     spaceMapping.fromSecondToFirstPoint(support, support);
 
     vec2.sub(support, support, edge.v0.point);
-    let proj = vec2.dot(edge.normal, support);
+    const proj = vec2.dot(edge.normal, support);
     if (proj >= 0) {
       // separating axis was found - early exit
       query.depth = proj;
@@ -91,7 +90,7 @@ const queryBestEdge = (
     spaceMapping.fromSecondToFirstPoint(support, support);
 
     vec2.sub(support, support, edge.v0.point);
-    let proj = vec2.dot(edge.normal, support);
+    const proj = vec2.dot(edge.normal, support);
     if (proj >= 0) {
       // separating axis was found - early exit
       query.depth = proj;
@@ -113,7 +112,7 @@ export class ContactPoint {
   public readonly point0 = vec2.create();
   public readonly point1 = vec2.create();
   public readonly normal = vec2.create();
-  public depth: number = 0;
+  public depth = 0;
 }
 
 export const testPolyPoly = (
@@ -164,7 +163,7 @@ export const testPolyPoly = (
   vec2.negate(normal, normal);
   clipByPlane(inc1, inc0, normal, reference.v0.point);
 
-  for (let contact of [inc0, inc1]) {
+  for (const contact of [inc0, inc1]) {
     vec2.sub(normal, contact, reference.v0.point);
     const depth = vec2.dot(normal, reference.normal);
     if (depth >= 0) {

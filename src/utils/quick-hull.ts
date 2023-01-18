@@ -1,4 +1,5 @@
 import { vec2 } from 'gl-matrix';
+
 import { cross } from '../math';
 
 class Edge {

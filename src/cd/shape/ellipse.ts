@@ -1,6 +1,7 @@
 import { mat3, vec2 } from 'gl-matrix';
 
 import { AABB, getAABBFromSupport } from '../aabb';
+
 import { Polygon } from './polygon';
 
 export class Ellipse extends Polygon {
@@ -46,10 +47,10 @@ const createEllipsePoints = (
   r1: number,
   subdivisions: number
 ): vec2[] => {
-  let points: vec2[] = [];
+  const points: vec2[] = [];
 
   let angle = 0.0;
-  let delta = (2 * Math.PI) / subdivisions;
+  const delta = (2 * Math.PI) / subdivisions;
 
   for (let i = 0; i < subdivisions; i++, angle += delta) {
     const cosA = Math.cos(angle);

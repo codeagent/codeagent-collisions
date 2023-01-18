@@ -24,7 +24,7 @@ const getPoints = (mesh: Readonly<Mesh>): vec2[] =>
 const getMedian = (mesh: Readonly<Mesh>) => {
   const points = getPoints(mesh);
   const median = vec2.create();
-  for (let point of points) {
+  for (const point of points) {
     vec2.add(median, median, point);
   }
   return vec2.scale(median, median, 1.0 / points.length);
@@ -37,7 +37,7 @@ const getCovarianceMatrix = (mesh: Readonly<Mesh>) => {
   let c01 = 0.0;
   let c11 = 0.0;
 
-  for (let point of points) {
+  for (const point of points) {
     c00 = c00 + (point[0] - median[0]) * (point[0] - median[0]);
     c01 = c01 + (point[0] - median[0]) * (point[1] - median[1]);
     c11 = c11 + (point[1] - median[1]) * (point[1] - median[1]);
@@ -92,7 +92,7 @@ export const calculateOBB = (mesh: Readonly<Mesh>): OBB => {
   let minDot1 = Number.POSITIVE_INFINITY;
   let maxDot1 = Number.NEGATIVE_INFINITY;
 
-  for (let point of points) {
+  for (const point of points) {
     let dot = vec2.dot(point, e0);
     if (dot < minDot0) {
       minDot0 = dot;
@@ -156,7 +156,7 @@ export const centroid = (triangle: MeshTriangle) =>
   );
 
 export const generateOBBTree = (mesh: Readonly<Mesh>): MeshOBBNode => {
-  let root: MeshOBBNode = {
+  const root: MeshOBBNode = {
     obb: calculateOBB(mesh),
     children: [],
     leaf: false,
@@ -197,7 +197,7 @@ export const generateOBBTree = (mesh: Readonly<Mesh>): MeshOBBNode => {
           vec2.scale(origin, origin, 1.0 / soup.length);
         }
 
-        for (let normal of [normal0, normal1]) {
+        for (const normal of [normal0, normal1]) {
           const positive: Mesh = [];
           const negative: Mesh = [];
           const dot = vec2.dot(origin, normal);

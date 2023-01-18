@@ -1,9 +1,10 @@
 import { mat3, vec2 } from 'gl-matrix';
 
 import { BodyInterface } from '../dynamics';
+
 import { AABB } from './aabb';
-import { Shape } from './shape';
 import { ColliderInterface } from './collider.interface';
+import { Shape } from './shape';
 
 export class Collider implements ColliderInterface {
   get id(): number {

@@ -1,6 +1,7 @@
 import { vec2 } from 'gl-matrix';
-import { WorldInterface, Settings, Box, Collider, Circle } from 'rb-phys2d';
+import { WorldInterface, Settings, Box, Circle } from 'rb-phys2d';
 import { Inject, Service } from 'typedi';
+
 import { ExampleInterface } from './example.interface';
 
 @Service()
@@ -26,7 +27,7 @@ export class SuspensionExample implements ExampleInterface {
     const stiffness = 25;
     const extinction = 1;
 
-    let length = 6;
+    const length = 6;
     const hull = this.world.createBody({
       mass: 1.0,
       inertia: 1.0,
@@ -35,7 +36,7 @@ export class SuspensionExample implements ExampleInterface {
     });
     this.world.addCollider({ body: hull, shape: new Box(length, 1.0) });
 
-    let wheels = 4;
+    const wheels = 4;
     for (let i = 0; i < wheels; i++) {
       const wheel = this.world.createBody({
         mass: 1.1,

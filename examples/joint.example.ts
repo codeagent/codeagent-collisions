@@ -1,15 +1,7 @@
-import {
-  WorldInterface,
-  Settings,
-  Box,
-  Collider,
-  Body,
-  Circle,
-  Capsule,
-  World,
-} from 'rb-phys2d';
 import { vec2 } from 'gl-matrix';
+import { WorldInterface, Settings, Box, Circle, Capsule } from 'rb-phys2d';
 import { Inject, Service } from 'typedi';
+
 import { ExampleInterface } from './example.interface';
 
 @Service()

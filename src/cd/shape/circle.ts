@@ -1,11 +1,13 @@
 import { mat3, vec2 } from 'gl-matrix';
+
 import { AABB } from '../aabb';
+
 import { Shape, MassDistribution } from './shape.interface';
 
 export class Circle implements Shape, MassDistribution {
   constructor(readonly radius: number) {}
 
-  support(out: vec2, dir: vec2, margin: number = 0.0): vec2 {
+  support(out: vec2, dir: vec2, margin = 0.0): vec2 {
     vec2.normalize(out, dir);
     return vec2.scale(out, out, this.radius + margin);
   }

@@ -1,4 +1,5 @@
 import { mat3, vec2 } from 'gl-matrix';
+
 import { AABB } from '../aabb';
 
 export interface Convex {

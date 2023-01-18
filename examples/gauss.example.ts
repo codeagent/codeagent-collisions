@@ -1,6 +1,7 @@
 import { vec2 } from 'gl-matrix';
-import { WorldInterface, Settings, Box, Collider, Circle } from 'rb-phys2d';
+import { WorldInterface, Settings, Box, Circle } from 'rb-phys2d';
 import { Inject, Service } from 'typedi';
+
 import { ExampleInterface } from './example.interface';
 
 @Service()
@@ -25,14 +26,14 @@ export class GaussExample implements ExampleInterface {
   private createGauss() {
     const n = 512;
     let columns = 9;
-    let band = 2.0;
+    const band = 2.0;
     const colW = 0.25;
     const sinkSlope = Math.PI * 0.35;
-    let obstacleBands = 10;
-    let obstacleMarginX = 2.0;
-    let obstacleMarginY = 0.75;
-    let obstacleSize = 0.25;
-    let ballR = 0.2;
+    const obstacleBands = 10;
+    const obstacleMarginX = 2.0;
+    const obstacleMarginY = 0.75;
+    const obstacleSize = 0.25;
+    const ballR = 0.2;
 
     // floor
     this.world.addCollider({

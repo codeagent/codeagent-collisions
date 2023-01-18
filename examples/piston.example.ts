@@ -2,12 +2,12 @@ import { vec2 } from 'gl-matrix';
 import {
   WorldInterface,
   Settings,
-  Collider,
   Circle,
   loadObj,
   MeshShape,
 } from 'rb-phys2d';
 import { Inject, Service } from 'typedi';
+
 import { ExampleInterface } from './example.interface';
 import PISTON from './objects/piston.obj';
 

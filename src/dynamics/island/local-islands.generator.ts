@@ -1,12 +1,13 @@
 import { Service, Inject } from 'typedi';
 
+import { Settings } from '../../settings';
+import { Memory } from '../../utils';
 import { Body } from '../body';
 import { JointInterface } from '../joint';
+import { ConstraintsSolverInterface } from '../solver';
+
 import { IslandsGeneratorInterface } from './islands-generator.interface';
 import { WorldIsland } from './world-island';
-import { Settings } from '../../settings';
-import { ConstraintsSolverInterface } from '../solver';
-import { Memory } from '../../utils';
 
 @Service()
 export class LocalIslandsGenerator implements IslandsGeneratorInterface {

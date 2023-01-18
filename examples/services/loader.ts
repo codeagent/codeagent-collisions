@@ -1,5 +1,7 @@
-import { ExampleInterface } from 'examples/example.interface';
 import { Constructable, ContainerInstance, Inject, Service } from 'typedi';
+
+import { ExampleInterface } from '../example.interface';
+
 import { CONTAINER_TOKEN, EXAMPLES_TOKEN } from './tokents';
 
 export type Examples = Record<

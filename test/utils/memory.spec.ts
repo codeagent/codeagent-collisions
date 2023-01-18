@@ -63,11 +63,11 @@ describe('Memory', () => {
 
     it('should reserve block of memory #3', () => {
       // Arrange
-      let block0 = memory.reserve(32);
+      const block0 = memory.reserve(32);
       memory.reserve(32);
-      let block2 = memory.reserve(64);
+      const block2 = memory.reserve(64);
       memory.reserve(32);
-      let block4 = memory.reserve(128);
+      const block4 = memory.reserve(128);
       memory.reserve(32);
 
       memory.free(block0);
@@ -99,11 +99,11 @@ describe('Memory', () => {
 
     it('should reserve block of memory #4', () => {
       // Arrange
-      let block0 = memory.reserve(32);
+      const block0 = memory.reserve(32);
       memory.reserve(32);
-      let block2 = memory.reserve(64);
+      const block2 = memory.reserve(64);
       memory.reserve(32);
-      let block4 = memory.reserve(128);
+      const block4 = memory.reserve(128);
       memory.reserve(32);
 
       memory.free(block0);
@@ -138,9 +138,9 @@ describe('Memory', () => {
     // #region beginning of free list
     it('should reserve block of memory #5', () => {
       // Act
-      let block0 = memory.reserve(64);
+      const block0 = memory.reserve(64);
       memory.reserve(32);
-      let block2 = memory.reserve(32);
+      const block2 = memory.reserve(32);
       memory.reserve(32);
 
       memory.free(block0);
@@ -172,9 +172,9 @@ describe('Memory', () => {
 
     it('should reserve block of memory #6', () => {
       // Act
-      let block0 = memory.reserve(32);
+      const block0 = memory.reserve(32);
       memory.reserve(32);
-      let block2 = memory.reserve(32);
+      const block2 = memory.reserve(32);
       memory.reserve(32);
 
       memory.free(block0);
@@ -203,9 +203,9 @@ describe('Memory', () => {
     it('should reserve block of memory #7', () => {
       // Act
       memory.reserve(32);
-      let block1 = memory.reserve(32);
+      const block1 = memory.reserve(32);
       memory.reserve(32);
-      let block3 = memory.reserve(64);
+      const block3 = memory.reserve(64);
       memory.reserve(32);
 
       memory.free(block1);
@@ -238,9 +238,9 @@ describe('Memory', () => {
     it('should reserve block of memory #9', () => {
       // Act
       memory.reserve(32);
-      let block1 = memory.reserve(32);
+      const block1 = memory.reserve(32);
       memory.reserve(32);
-      let block3 = memory.reserve(64);
+      const block3 = memory.reserve(64);
       memory.reserve(32);
 
       memory.free(block1);
@@ -268,9 +268,9 @@ describe('Memory', () => {
     // #region end of free list
     it('should reserve block of memory #10', () => {
       // Act
-      let block0 = memory.reserve(32);
+      const block0 = memory.reserve(32);
       memory.reserve(32);
-      let block2 = memory.reserve(32);
+      const block2 = memory.reserve(32);
       memory.reserve(32);
 
       memory.free(block0);
@@ -302,9 +302,9 @@ describe('Memory', () => {
 
     it('should reserve block of memory #11', () => {
       // Act
-      let block0 = memory.reserve(32);
+      const block0 = memory.reserve(32);
       memory.reserve(32);
-      let block2 = memory.reserve(32);
+      const block2 = memory.reserve(32);
       memory.reserve(32);
 
       memory.free(block0);
@@ -341,8 +341,8 @@ describe('Memory', () => {
   describe('free', () => {
     it('should free memory #1', () => {
       // Arrange
-      let block0 = memory.reserve(32);
-      let block1 = memory.reserve(32);
+      const block0 = memory.reserve(32);
+      const block1 = memory.reserve(32);
       memory.reserve(32);
       memory.free(block1);
 
@@ -368,8 +368,8 @@ describe('Memory', () => {
     it('should free memory #2', () => {
       // Arrange
       memory.reserve(32);
-      let block1 = memory.reserve(32);
-      let block2 = memory.reserve(32);
+      const block1 = memory.reserve(32);
+      const block2 = memory.reserve(32);
       memory.reserve(32);
 
       memory.free(block1);
@@ -396,8 +396,8 @@ describe('Memory', () => {
     it('should free memory #3', () => {
       // Arrange
       memory.reserve(32);
-      let block1 = memory.reserve(32);
-      let block2 = memory.reserve(32);
+      const block1 = memory.reserve(32);
+      const block2 = memory.reserve(32);
       memory.free(block1);
 
       // Act
@@ -417,11 +417,11 @@ describe('Memory', () => {
   describe('clear', () => {
     it('clear memory', () => {
       // Arrange
-      let block0 = memory.reserve(32);
+      const block0 = memory.reserve(32);
       memory.reserve(32);
-      let block2 = memory.reserve(32);
+      const block2 = memory.reserve(32);
       memory.reserve(32);
-      let block4 = memory.reserve(32);
+      const block4 = memory.reserve(32);
       memory.reserve(32);
 
       memory.free(block0);

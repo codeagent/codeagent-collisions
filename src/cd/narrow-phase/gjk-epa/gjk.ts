@@ -1,5 +1,4 @@
 import { vec2, vec3 } from 'gl-matrix';
-import { Convex } from '../../shape';
 
 import {
   closestPointToLineSegment,
@@ -8,6 +7,7 @@ import {
   ORIGIN,
   SpaceMappingInterface,
 } from '../../../math';
+import { Convex } from '../../shape';
 
 import { support } from './support';
 
@@ -30,7 +30,7 @@ export const distance = (
   let lower = Number.NEGATIVE_INFINITY;
   let upper = Number.POSITIVE_INFINITY;
   let last: vec2 = null;
-  let max = 0;
+  const max = 0;
 
   while (simplex.size != 3 && upper > e * max && maxIterations--) {
     vec2.negate(dir, dir);
@@ -80,7 +80,9 @@ export const distance = (
         }
       }
     } else {
-      debugger;
+      console.warn(
+        'gjk.distance: for some reason simplex has more than 3 vertices'
+      );
     }
 
     let max = 0;

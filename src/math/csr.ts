@@ -80,16 +80,16 @@ export const MxDxMt = (
   const rows = [0];
 
   for (let i = 0; i < mat.m; i++) {
-    let k0 = mat.rows[i];
-    let k1 = mat.rows[i + 1];
-    let adjacent = lookup[i];
+    const k0 = mat.rows[i];
+    const k1 = mat.rows[i + 1];
+    const adjacent = lookup[i];
 
-    for (let j of adjacent) {
+    for (const j of adjacent) {
       let val = 0.0;
       let k = k0;
       let kt = mat.rows[j];
 
-      let kt1 = mat.rows[j + 1];
+      const kt1 = mat.rows[j + 1];
 
       while (k < k1 && kt < kt1) {
         if (mat.columns[kt] < mat.columns[k]) {

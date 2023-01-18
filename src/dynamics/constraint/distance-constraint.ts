@@ -1,9 +1,10 @@
 import { vec2 } from 'gl-matrix';
 
-import { ConstraintBase } from './constraint.base';
 import { cross } from '../../math';
-import { WorldInterface } from '../world.interface';
 import { BodyInterface } from '../body.interface';
+import { WorldInterface } from '../world.interface';
+
+import { ConstraintBase } from './constraint.base';
 
 export class DistanceConstraint extends ConstraintBase {
   protected readonly pa = vec2.create();

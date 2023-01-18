@@ -1,6 +1,9 @@
-const path = require('path');
-const fs = require('fs');
+import * as fs from 'fs';
+import * as path from 'path';
+import { fileURLToPath } from 'url';
 
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
 const srcDir = __dirname + '/../examples';
 const destPath = __dirname + '/../examples/services/examples.ts';
 const header = "/** Don't edit this file! It was generated automaticaly */";

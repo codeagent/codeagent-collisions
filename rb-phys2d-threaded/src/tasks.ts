@@ -1,10 +1,10 @@
 import { vec2 } from 'gl-matrix';
-import { BodyDef, Events, MouseControlInterface } from 'rb-phys2d';
+import { BodyDef, Events } from 'rb-phys2d';
 
+import { IdentityInterface } from './identity';
 import { Settings } from './settings';
 import { ShapeDef } from './shape-def';
 import { WorkerMessage, WorkerTask, WorkerTaskResult } from './task-queue';
-import { IdentityInterface } from './identity';
 
 export enum TaskName {
   CreateWorld = 'CreateWorld',

@@ -2,12 +2,12 @@ import { vec2 } from 'gl-matrix';
 import {
   Settings,
   Box,
-  Collider,
   Circle,
   BodyInterface,
   WorldInterface,
 } from 'rb-phys2d';
 import { Inject, Service } from 'typedi';
+
 import { ExampleInterface } from './example.interface';
 
 @Service()

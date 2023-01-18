@@ -1,7 +1,8 @@
-import typescript from '@rollup/plugin-typescript';
-import resolve from '@rollup/plugin-node-resolve';
 import commonjs from '@rollup/plugin-commonjs';
+import resolve from '@rollup/plugin-node-resolve';
 import terser from '@rollup/plugin-terser';
+import typescript from '@rollup/plugin-typescript';
+
 import pkg from './package.json';
 
 const onwarn = (warning, warn) => {
@@ -65,17 +66,24 @@ export default process.env.BUILD === 'worker'
         {
           file: `dist/bundle/${pkg.name}.js`,
           format: 'iife',
-          name: 'JSP2D',
+          name: 'rbPhys2dThreaded',
           sourcemap: true,
+          globals: {
+            'rb-phys2d': 'rbPhys2d',
+          },
         },
         {
           file: `dist/bundle/${pkg.name}.min.js`,
           format: 'iife',
-          name: 'JSP2D',
+          name: 'rbPhys2dThreaded',
           sourcemap: true,
           plugins: [terser()],
+          globals: {
+            'rb-phys2d': 'rbPhys2d',
+          },
         },
       ],
+      external: ['rb-phys2d'],
       plugins: [
         resolve(),
         commonjs(),

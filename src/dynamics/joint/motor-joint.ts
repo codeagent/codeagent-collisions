@@ -1,7 +1,8 @@
-import { JointInterface } from './joint.interface';
-import { AngularMotorConstraint, ConstraintInterface } from '../constraint';
 import { BodyInterface } from '../body.interface';
+import { AngularMotorConstraint, ConstraintInterface } from '../constraint';
 import { WorldInterface } from '../world.interface';
+
+import { JointInterface } from './joint.interface';
 
 export interface MotorDef {
   body: Readonly<BodyInterface>;

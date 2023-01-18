@@ -9,12 +9,12 @@ export interface MeshCollection {
 export const loadObj = (content: string) => {
   const positions: vec2[] = [];
   const collection: MeshCollection = {};
-  let name: string = '';
+  let name = '';
 
   let triangles: MeshTriangle[] = [];
   const lines = content.split(/\r\n|\n/);
   const objectRegExp = /^o\s+(.+)/;
-  const vertexRegExpr = /^v\s+([\-0-9.]+)\s+([\-0-9.]+)\s+([\-0-9.]+)/;
+  const vertexRegExpr = /^v\s+([-0-9.]+)\s+([-0-9.]+)\s+([-0-9.]+)/;
   const faceRegExpr = /^f\s+/;
   const facePositionsRegExpr = /^f\s+(\d+)\s+(\d+)\s+(\d+)/;
   const facePositionsNormalsRegExpr =

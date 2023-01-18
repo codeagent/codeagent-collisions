@@ -1,10 +1,7 @@
 import { mat3, vec2 } from 'gl-matrix';
-import { Inject, Service } from 'typedi';
-
 import {
   JointInterface,
   AABB,
-  Collider,
   MeshShape,
   OBB,
   OBBNode,
@@ -26,12 +23,12 @@ import {
   ColliderInterface,
 } from 'rb-phys2d';
 
+import COLORS from './colors';
 import {
   RendererInterface,
   RenderMask,
   StylePresetInterface,
 } from './renderer.interface';
-import { COLORS_TOKEN } from './tokents';
 
 const CROSS_SIZE = 0.1;
 const POINT_RADIUS = 2;
@@ -40,7 +37,6 @@ const ANCHOR_REV_SIZE = 8;
 const SPIRING_COILS = 12;
 const SPRINT_WEIGHT = 0.5;
 
-@Service()
 export class Canvas2DRenderer implements RendererInterface {
   private readonly cursor = vec2.create();
   private readonly p0 = vec2.create();
@@ -64,9 +60,8 @@ export class Canvas2DRenderer implements RendererInterface {
     font: '18px Calibri',
     axesColor: '#3399ff',
   };
+  private readonly colors: string[] = COLORS;
   private readonly _projectionMatrix = mat3.create();
-
-  constructor(@Inject(COLORS_TOKEN) private readonly colors: string[]) {}
 
   get projectionMatrix(): Readonly<mat3> {
     return this._projectionMatrix;
@@ -823,7 +818,7 @@ export class Canvas2DRenderer implements RendererInterface {
 
     this.context.beginPath();
 
-    let dv = vec2.distance(this.p0, this.p1) / SPIRING_COILS;
+    const dv = vec2.distance(this.p0, this.p1) / SPIRING_COILS;
     let du = SPRINT_WEIGHT;
     let u = 0;
     let v = 0;
@@ -895,5 +890,6 @@ export class Canvas2DRenderer implements RendererInterface {
     this.context.stroke();
   }
 
+  // eslint-disable-next-line @typescript-eslint/no-empty-function, @typescript-eslint/no-unused-vars
   private renderWheelJoint(joint: WheelJoint): void {}
 }

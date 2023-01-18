@@ -1,5 +1,5 @@
-import { AABB } from '../aabb';
 import { pairId, PriorityQueue } from '../../utils';
+import { AABB } from '../aabb';
 import { Collider } from '../collider';
 
 export enum IntervalType {

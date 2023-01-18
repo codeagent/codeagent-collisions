@@ -3,13 +3,12 @@ import {
   WorldInterface,
   Settings,
   Box,
-  Collider,
   Circle,
-  ColliderInterface,
   Events,
   BodyInterface,
 } from 'rb-phys2d';
 import { Inject, Service } from 'typedi';
+
 import { ExampleInterface } from './example.interface';
 
 @Service()

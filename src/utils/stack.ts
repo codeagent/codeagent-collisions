@@ -20,7 +20,7 @@ export class Stack {
   public readonly size: number = 0;
   private readonly stack: StackEntry<ArrayBufferView>[] = [];
   private readonly end: number = 0;
-  private offset: number = 0;
+  private offset = 0;
 
   constructor(public readonly buffer: Uint8Array) {
     this.size = buffer.length;
@@ -60,7 +60,7 @@ export class Stack {
     return this.pushTypedArray(Float64Array, length);
   }
 
-  pop(count: number = 1): void {
+  pop(count = 1): void {
     while (count > 0 && this.stack.length > 0) {
       const entry = this.stack.pop();
       this.offset -= entry.size;

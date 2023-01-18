@@ -1,7 +1,7 @@
 import { vec2 } from 'gl-matrix';
 
-import { Shape } from './shape';
 import { Collider } from './collider';
+import { Shape } from './shape';
 
 export class ContactCandidate {
   constructor(

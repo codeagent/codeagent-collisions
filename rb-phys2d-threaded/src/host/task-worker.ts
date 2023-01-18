@@ -5,6 +5,17 @@ import {
   WorldInterface,
   createWorld,
 } from 'rb-phys2d';
+
+import {
+  AttributeMask,
+  BODY_BUFFER_SAFE_CAPACITY,
+  EventMask,
+  deserializeBody,
+  serializeBody,
+  serializeEvents,
+} from '../serializing';
+import { createShape } from '../shape-def';
+import { WorkerTask, WorkerTaskResult } from '../task-queue';
 import {
   AddColliderTask,
   AddDistanceJointTask,
@@ -29,30 +40,20 @@ import {
   OnTask,
   OffTask,
 } from '../tasks';
-import { createShape } from '../shape-def';
-import { WorkerTask, WorkerTaskResult } from '../task-queue';
-import { Loop } from './loop';
-import {
-  AttributeMask,
-  BODY_BUFFER_SAFE_CAPACITY,
-  EventMask,
-  deserializeBody,
-  serializeBody,
-  serializeEvents,
-} from '../serializing';
 
 import {
   BodyEventCollector,
   CollisionEventCollector,
   EventCollectorInterface,
 } from './event-collector';
+import { Loop } from './loop';
 import { MouseCursor } from './mouse-cursor';
 
 export class TaskWorker {
   private bodiesBuffer: Float32Array;
   private eventsBuffer: Float32Array;
   private world: WorldInterface;
-  private bodiesNumber: number = 0;
+  private bodiesNumber = 0;
   private readonly joints = new Map<number, JointInterface>();
   private readonly idManager = new IdManager();
   private readonly loop = new Loop();

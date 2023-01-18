@@ -1,6 +1,7 @@
-import { ConstraintBase } from './constraint.base';
-import { WorldInterface } from '../world.interface';
 import { BodyInterface } from '../body.interface';
+import { WorldInterface } from '../world.interface';
+
+import { ConstraintBase } from './constraint.base';
 
 export class AngularMotorConstraint extends ConstraintBase {
   constructor(
@@ -22,7 +23,7 @@ export class AngularMotorConstraint extends ConstraintBase {
     }
   }
 
-  getPushFactor(dt: number, strength: number): number {
+  getPushFactor(): number {
     return this.speed;
   }
 

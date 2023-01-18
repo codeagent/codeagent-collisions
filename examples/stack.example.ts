@@ -1,13 +1,7 @@
 import { vec2 } from 'gl-matrix';
-import {
-  WorldInterface,
-  Settings,
-  Box,
-  Collider,
-  Capsule,
-  Circle,
-} from 'rb-phys2d';
+import { WorldInterface, Settings, Box, Capsule, Circle } from 'rb-phys2d';
 import { Inject, Service } from 'typedi';
+
 import { ExampleInterface } from './example.interface';
 
 @Service()
@@ -60,11 +54,11 @@ export class StackExample implements ExampleInterface {
       shape: new Box(1, 16),
     });
 
-    let box = new Box(1, 1);
-    let girder = new Box(3, 1);
-    let capsule = new Capsule(0.5, 3);
-    let circle = new Circle(0.5);
-    let mass = 1.0;
+    const box = new Box(1, 1);
+    const girder = new Box(3, 1);
+    const capsule = new Capsule(0.5, 3);
+    const circle = new Circle(0.5);
+    const mass = 1.0;
     let i = 0;
 
     // boxes

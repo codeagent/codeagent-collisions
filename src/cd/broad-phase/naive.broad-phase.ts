@@ -1,11 +1,12 @@
 import { vec2 } from 'gl-matrix';
 import { Service } from 'typedi';
 
-import { Collider } from '../collider';
 import { AABB } from '../aabb';
+import { Collider } from '../collider';
 import { ContactCandidate, ContactCandidatePair } from '../contact';
-import { testAABBAABB, testAABBCapsule } from './tests';
+
 import { BroadPhaseInterface } from './broad-phase.interface';
+import { testAABBAABB, testAABBCapsule } from './tests';
 
 @Service()
 export class NaiveBroadPhase implements BroadPhaseInterface {

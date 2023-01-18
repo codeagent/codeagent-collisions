@@ -1,12 +1,12 @@
 import { vec2 } from 'gl-matrix';
 
+import { VmV, VpVxS } from '../../math';
+import { Settings } from '../../settings';
+import { Memory, Stack } from '../../utils';
 import { Body } from '../body';
 import { ConstraintInterface } from '../constraint';
-import { VmV, VpVxS } from '../../math';
 import { JointInterface } from '../joint';
-import { Settings } from '../../settings';
 import { ConstraintsSolverInterface } from '../solver';
-import { Memory, Stack } from '../../utils';
 
 export class WorldIsland {
   get sleeping() {
@@ -21,7 +21,7 @@ export class WorldIsland {
   private readonly constraints: ConstraintInterface[] = [];
   private readonly stack: Stack;
 
-  private id: number = -1;
+  private id = -1;
   private positions: Float32Array;
   private velocities: Float32Array;
   private forces: Float32Array;
