@@ -91,7 +91,7 @@ export class WorldProxy implements WorldInterface {
     private readonly dispatcher: EventDispatcher
   ) {
     this.worker = this.createWorker(settings);
-    this.worker.addEventListener('message', (event) => this.onMessage(event));
+    this.worker.addEventListener('message', event => this.onMessage(event));
     this.taskQueue = new TaskQueue(this.worker);
     this.taskQueue.enqueue(new CreateWorldTask(settings));
     this.attributesBuffer = new Float32Array(

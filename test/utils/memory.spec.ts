@@ -26,7 +26,7 @@ describe('Memory', () => {
 
   it('should have initial state', () => {
     // assert
-    expect(memory.freeList).toEqual(
+    expect(memory['freeList']).toEqual(
       expect.objectContaining({
         size: 512,
         prev: null,

@@ -143,7 +143,7 @@ export class TaskWorker {
         task.settings.maxBodiesNumber * BODY_BUFFER_SAFE_CAPACITY
       );
       this.eventsBuffer = new Float32Array(4);
-      this.loop.start((dt) => this.step(dt), task.settings.step);
+      this.loop.start(dt => this.step(dt), task.settings.step);
 
       return ok(task);
     } catch (error) {

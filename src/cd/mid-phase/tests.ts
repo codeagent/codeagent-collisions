@@ -22,13 +22,13 @@ export const testAABBOBB = (
     vec2.fromValues(obb.extent[0], -obb.extent[1]),
     vec2.fromValues(obb.extent[0], obb.extent[1]),
     vec2.fromValues(-obb.extent[0], obb.extent[1]),
-  ].map((p) => vec2.transformMat3(p, p, transform));
+  ].map(p => vec2.transformMat3(p, p, transform));
 
   if (
-    points.every((p) => p[0] < aabb[0][0]) ||
-    points.every((p) => p[0] > aabb[1][0]) ||
-    points.every((p) => p[1] < aabb[0][1]) ||
-    points.every((p) => p[1] > aabb[1][1])
+    points.every(p => p[0] < aabb[0][0]) ||
+    points.every(p => p[0] > aabb[1][0]) ||
+    points.every(p => p[1] < aabb[0][1]) ||
+    points.every(p => p[1] > aabb[1][1])
   ) {
     return false;
   }
@@ -38,13 +38,13 @@ export const testAABBOBB = (
     vec2.fromValues(aabb[1][0], aabb[0][1]),
     vec2.fromValues(aabb[1][0], aabb[1][1]),
     vec2.fromValues(aabb[0][0], aabb[1][1]),
-  ].map((p) => vec2.transformMat3(p, p, invTransform));
+  ].map(p => vec2.transformMat3(p, p, invTransform));
 
   if (
-    points.every((p) => p[0] < -obb.extent[0]) ||
-    points.every((p) => p[0] > obb.extent[0]) ||
-    points.every((p) => p[1] < -obb.extent[1]) ||
-    points.every((p) => p[1] > obb.extent[1])
+    points.every(p => p[0] < -obb.extent[0]) ||
+    points.every(p => p[0] > obb.extent[0]) ||
+    points.every(p => p[1] < -obb.extent[1]) ||
+    points.every(p => p[1] > obb.extent[1])
   ) {
     return false;
   }
@@ -63,13 +63,13 @@ export const testOBBOBB = (
     vec2.fromValues(obb1.extent[0], -obb1.extent[1]),
     vec2.fromValues(obb1.extent[0], obb1.extent[1]),
     vec2.fromValues(-obb1.extent[0], obb1.extent[1]),
-  ].map((p) => vec2.transformMat3(p, p, secondToFirstTransform));
+  ].map(p => vec2.transformMat3(p, p, secondToFirstTransform));
 
   if (
-    points.every((p) => p[0] < -obb0.extent[0]) ||
-    points.every((p) => p[0] > obb0.extent[0]) ||
-    points.every((p) => p[1] < -obb0.extent[1]) ||
-    points.every((p) => p[1] > obb0.extent[1])
+    points.every(p => p[0] < -obb0.extent[0]) ||
+    points.every(p => p[0] > obb0.extent[0]) ||
+    points.every(p => p[1] < -obb0.extent[1]) ||
+    points.every(p => p[1] > obb0.extent[1])
   ) {
     return false;
   }
@@ -79,13 +79,13 @@ export const testOBBOBB = (
     vec2.fromValues(obb0.extent[0], -obb0.extent[1]),
     vec2.fromValues(obb0.extent[0], obb0.extent[1]),
     vec2.fromValues(-obb0.extent[0], obb0.extent[1]),
-  ].map((p) => vec2.transformMat3(p, p, firstToSecondTransform));
+  ].map(p => vec2.transformMat3(p, p, firstToSecondTransform));
 
   if (
-    points.every((p) => p[0] < -obb1.extent[0]) ||
-    points.every((p) => p[0] > obb1.extent[0]) ||
-    points.every((p) => p[1] < -obb1.extent[1]) ||
-    points.every((p) => p[1] > obb1.extent[1])
+    points.every(p => p[0] < -obb1.extent[0]) ||
+    points.every(p => p[0] > obb1.extent[0]) ||
+    points.every(p => p[1] < -obb1.extent[1]) ||
+    points.every(p => p[1] > obb1.extent[1])
   ) {
     return false;
   }

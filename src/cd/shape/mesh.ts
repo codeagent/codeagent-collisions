@@ -37,7 +37,7 @@ export class MeshShape implements Shape, MassDistribution {
   }
 
   testPoint(point: vec2): boolean {
-    return this.triangles.some((shape) => shape.testPoint(point));
+    return this.triangles.some(shape => shape.testPoint(point));
   }
 
   support(out: vec2, dir: vec2): vec2 {
@@ -112,7 +112,7 @@ export class MeshShape implements Shape, MassDistribution {
 
   private transformOriginToCentroid(mesh: Readonly<Mesh>): Mesh {
     const shift = getMeshCentroid(mesh);
-    return mesh.map((triangle) => ({
+    return mesh.map(triangle => ({
       p0: vec2.subtract(vec2.create(), triangle.p0, shift),
       p1: vec2.subtract(vec2.create(), triangle.p1, shift),
       p2: vec2.subtract(vec2.create(), triangle.p2, shift),
@@ -136,7 +136,7 @@ export class MeshShape implements Shape, MassDistribution {
 
   private getRadius(): number {
     return this.hull
-      .map((p) => vec2.length(p))
+      .map(p => vec2.length(p))
       .reduce((max, length) => (length > max ? length : max), 0);
   }
 }

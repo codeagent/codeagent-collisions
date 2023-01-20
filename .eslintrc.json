@@ -48,7 +48,8 @@
       "extends": ["plugin:jest/recommended"],
       "rules": {
         "jest/prefer-expect-assertions": "off",
-        "@typescript-eslint/no-explicit-any": "off"
+        "@typescript-eslint/no-explicit-any": "off",
+        "@typescript-eslint/dot-notation": "off"
       }
     }
   ]

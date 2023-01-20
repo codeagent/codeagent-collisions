@@ -39,7 +39,8 @@
     "build:bundle": "npx rollup -c --bundleConfigAsCjs",
     "compile:examples": "node ./scripts/compile-examples.mjs",
     "start": "npx rollup -c --watch --bundleConfigAsCjs --environment BUILD:development",
-    "test": "npx jest"
+    "test": "npx jest",
+    "prepare": "husky install"
   },
   "devDependencies": {
     "@jest/globals": "^29.3.1",
@@ -56,6 +57,7 @@
     "eslint-plugin-import": "^2.27.5",
     "eslint-plugin-jest": "^27.2.1",
     "generate-license-file": "^2.0.0",
+    "husky": "^8.0.0",
     "jest": "^29.3.1",
     "prettier": "2.8.3",
     "rimraf": "^3.0.2",

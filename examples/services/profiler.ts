@@ -42,7 +42,7 @@ export class Profiler {
 
   listen(...names: string[]) {
     return this.broadcast$.pipe(
-      filter((stream) => names.includes(stream.name)),
+      filter(stream => names.includes(stream.name)),
       bufferTime(this.bufferTime),
       map((buffered: ProfilerStream[]) => {
         const counts = buffered.reduce((acc, stream) => {

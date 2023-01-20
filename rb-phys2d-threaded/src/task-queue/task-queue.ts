@@ -12,7 +12,7 @@ export class TaskQueue {
   private readonly queue: TaskQueueEntry[] = [];
 
   constructor(private readonly worker: Worker) {
-    this.worker.addEventListener('message', (event) => this.onMessage(event));
+    this.worker.addEventListener('message', event => this.onMessage(event));
   }
 
   enqueue(

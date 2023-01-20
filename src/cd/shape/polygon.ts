@@ -173,12 +173,12 @@ export class Polygon implements Shape, MassDistribution {
   private transformOriginToCentroid(polygon: Readonly<vec2[]>): vec2[] {
     const area = getPolygonSignedArea(polygon);
     const shift = getPolygonCentroid(polygon, area);
-    return polygon.map((point) => vec2.subtract(vec2.create(), point, shift));
+    return polygon.map(point => vec2.subtract(vec2.create(), point, shift));
   }
 
   private getRadius(): number {
     return Array.from(this.vertices())
-      .map((p) => vec2.length(p.point))
+      .map(p => vec2.length(p.point))
       .reduce((max, length) => (length > max ? length : max), 0);
   }
 

@@ -9,21 +9,21 @@ const destPath = __dirname + '/../examples/services/examples.ts';
 const header = "/** Don't edit this file! It was generated automaticaly */";
 
 // --
-const isExample = (name) => name.match(/\.example\.ts$/);
+const isExample = name => name.match(/\.example\.ts$/);
 
-const getExampleKey = (fileName) => {
+const getExampleKey = fileName => {
   const matchings = fileName.match(/(\w+)\.example$/i);
   return matchings?.[1];
 };
 
-const getExampleClass = (exampleContent) => {
+const getExampleClass = exampleContent => {
   const matchings = exampleContent.match(
     /class\s+(\w+)\s+implements\s+ExampleInterface/
   );
   return matchings?.[1];
 };
 
-const readdirRecursive = (root) =>
+const readdirRecursive = root =>
   fs
     .readdirSync(path.normalize(root), {
       withFileTypes: true,
@@ -37,7 +37,7 @@ const readdirRecursive = (root) =>
       return acc;
     }, []);
 
-const compile = (input) => {
+const compile = input => {
   const packs = [];
   const files = readdirRecursive(input);
 

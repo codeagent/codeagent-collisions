@@ -45,15 +45,15 @@ fromEvent(self.document.querySelectorAll('.nav-link'), 'click')
   .pipe(
     map((e: MouseEvent) => (e.target as HTMLAnchorElement).id),
     startWith('joint'),
-    tap((id) => {
+    tap(id => {
       document
         .querySelectorAll('.nav-link')
-        .forEach((e) => e.classList.remove('active'));
+        .forEach(e => e.classList.remove('active'));
       document.getElementById(id).classList.add('active');
     }),
     switchMap((id: string) => loader.loadExample(id))
   )
-  .subscribe((e) => {
+  .subscribe(e => {
     if (example) {
       example.uninstall();
     }
@@ -79,6 +79,6 @@ animationFrames().subscribe(() => {
   profiler.end('draw');
 });
 
-profiler.listen('draw', 'step').subscribe((e) => {
+profiler.listen('draw', 'step').subscribe(e => {
   statistics = `Draw: ${e.draw?.toFixed(2)}ms | Step: ${e.step?.toFixed(2)}ms`;
 });
