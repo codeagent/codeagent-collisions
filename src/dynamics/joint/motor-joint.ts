@@ -12,6 +12,7 @@ export interface MotorDef {
 
 export class MotorJoint implements JointInterface {
   public readonly bodyB: Readonly<BodyInterface> = null;
+
   private readonly motorConstraint: ConstraintInterface;
 
   constructor(

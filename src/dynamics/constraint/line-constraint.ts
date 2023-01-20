@@ -8,10 +8,15 @@ import { ConstraintBase } from './constraint.base';
 
 export class LineConstraint extends ConstraintBase {
   private readonly tangent = vec2.create();
+
   private readonly pa = vec2.create();
+
   private readonly pb = vec2.create();
+
   private readonly u = vec2.create();
+
   private readonly ra = vec2.create();
+
   private readonly rb = vec2.create();
 
   constructor(

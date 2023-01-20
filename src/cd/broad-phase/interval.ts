@@ -25,6 +25,7 @@ export class IntervalPoint {
 
 export class Interval {
   readonly start: IntervalPoint;
+
   readonly end: IntervalPoint;
 
   constructor(
@@ -43,8 +44,11 @@ export const intervalPredicate = (a: IntervalPoint, b: IntervalPoint): number =>
 
 export class AABBIntervalKeeper {
   private readonly aabbInterval = new Map<Readonly<AABB>, Interval>();
+
   private readonly queue = new PriorityQueue<IntervalPoint>(intervalPredicate);
+
   private readonly active = new Set<Interval>();
+
   public readonly intersected = new Map<number, [Interval, Interval]>();
 
   constructor(public readonly type: IntervalType) {}

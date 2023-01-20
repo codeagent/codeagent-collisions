@@ -1,5 +1,37 @@
 import * as csr from 'rb-phys2d/math/csr';
 
+const MxV = (out: Float32Array, M: Float32Array, V: Float32Array) => {
+  const n = V.length;
+  const m = M.length / n;
+
+  for (let i = 0; i < m; i++) {
+    out[i] = 0.0;
+    for (let j = 0; j < n; j++) {
+      out[i] += M[i * n + j] * V[j];
+    }
+  }
+};
+
+const MtxV = (out: Float32Array, M: Float32Array, V: Float32Array) => {
+  const n = V.length;
+  const m = M.length / n;
+
+  for (let i = 0; i < m; i++) {
+    out[i] = 0.0;
+    for (let j = 0; j < n; j++) {
+      out[i] += M[j * m + i] * V[j];
+    }
+  }
+};
+
+const random = (a: number, b: number, decimals = 2) =>
+  Number((Math.random() * (b - a) + a).toFixed(decimals));
+
+const generateRandomVector = (n: number, d = 0.5): Float32Array =>
+  Float32Array.from(Array<number>(n)).map(() =>
+    random(0.0, 1.0) < d ? random(-16, 16) : 0.0
+  );
+
 describe('csr', () => {
   describe('compress/decompress', () => {
     it('should compress matrix to CsrMatirx', () => {
@@ -287,35 +319,3 @@ describe('csr', () => {
     });
   });
 });
-
-const MxV = (out: Float32Array, M: Float32Array, V: Float32Array) => {
-  const n = V.length;
-  const m = M.length / n;
-
-  for (let i = 0; i < m; i++) {
-    out[i] = 0.0;
-    for (let j = 0; j < n; j++) {
-      out[i] += M[i * n + j] * V[j];
-    }
-  }
-};
-
-const MtxV = (out: Float32Array, M: Float32Array, V: Float32Array) => {
-  const n = V.length;
-  const m = M.length / n;
-
-  for (let i = 0; i < m; i++) {
-    out[i] = 0.0;
-    for (let j = 0; j < n; j++) {
-      out[i] += M[j * m + i] * V[j];
-    }
-  }
-};
-
-const random = (a: number, b: number, decimals = 2) =>
-  Number((Math.random() * (b - a) + a).toFixed(decimals));
-
-const generateRandomVector = (n: number, d = 0.5): Float32Array =>
-  Float32Array.from(Array<number>(n)).map(() =>
-    random(0.0, 1.0) < d ? random(-16, 16) : 0.0
-  );

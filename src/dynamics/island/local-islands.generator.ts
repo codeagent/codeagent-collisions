@@ -12,10 +12,15 @@ import { WorldIsland } from './world-island';
 @Service()
 export class LocalIslandsGenerator implements IslandsGeneratorInterface {
   private readonly bodies = new Set<Body>();
+
   private readonly joints = new Set<JointInterface>();
+
   private readonly contacts = new Set<JointInterface>();
+
   private readonly stack = new Array<Body>();
+
   private readonly free = new Set<Body>();
+
   private readonly island: WorldIsland;
 
   constructor(

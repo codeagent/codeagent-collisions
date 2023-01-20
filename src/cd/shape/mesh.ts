@@ -15,9 +15,11 @@ import { TestTarget, MassDistribution, Shape } from './shape.interface';
 
 export class MeshShape implements Shape, MassDistribution {
   readonly radius: number = 0;
+
   readonly obbTree: MeshOBBNode;
 
   private readonly triangles = new Array<TestTarget>();
+
   private readonly hull = new Array<vec2>();
 
   constructor(

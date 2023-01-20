@@ -18,17 +18,27 @@ export class WorldIsland {
   }
 
   private readonly bodies: Body[] = [];
+
   private readonly constraints: ConstraintInterface[] = [];
+
   private readonly stack: Stack;
 
   private id = -1;
+
   private positions: Float32Array;
+
   private velocities: Float32Array;
+
   private forces: Float32Array;
+
   private invMasses: Float32Array;
+
   private accelerations: Float32Array;
+
   private _sleeping = true;
+
   private readonly bodyPosition = vec2.create();
+
   private readonly bodyVelocity = vec2.create();
 
   constructor(

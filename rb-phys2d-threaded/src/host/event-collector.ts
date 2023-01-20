@@ -14,8 +14,10 @@ export interface EventCollectorInterface<T = unknown> extends Iterable<T> {
 
 export abstract class EventCollector<T> implements EventCollectorInterface<T> {
   protected readonly collection = new Set<T>();
+
   protected readonly listener = (...args: unknown[]) =>
     this.addToCollection(...args);
+
   protected world: WorldInterface;
 
   get listening() {
@@ -48,20 +50,12 @@ export abstract class EventCollector<T> implements EventCollectorInterface<T> {
 }
 
 export class BodyEventCollector extends EventCollector<number> {
-  constructor(event: keyof typeof Events) {
-    super(event);
-  }
-
   protected addToCollection(body: BodyInterface): void {
     this.collection.add(body.id);
   }
 }
 
 export class CollisionEventCollector extends EventCollector<[number, number]> {
-  constructor(event: keyof typeof Events) {
-    super(event);
-  }
-
   protected addToCollection(
     collider0: ColliderInterface,
     collider1: ColliderInterface

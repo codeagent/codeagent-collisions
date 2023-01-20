@@ -1,3 +1,4 @@
+/* eslint-disable import/no-extraneous-dependencies */
 /// <reference path="./declarations.d.ts" />
 import 'reflect-metadata';
 

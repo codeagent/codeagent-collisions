@@ -22,24 +22,43 @@ import { ConstraintsSolverInterface } from './constraints-solver.interface';
 @Service()
 export class ConstraintsSolver implements ConstraintsSolverInterface {
   private positions: Float32Array;
+
   private velocities: Float32Array;
+
   private forces: Float32Array;
+
   private invMasses: Float32Array;
+
   private accelerations: Float32Array;
+
   private c0Forces: Float32Array;
+
   private cvForces: Float32Array;
+
   private tmpForces: Float32Array;
+
   private tmpVelocities: Float32Array;
+
   private v0: Float32Array;
+
   private v1: Float32Array;
+
   private cMin: Float32Array;
+
   private cMax: Float32Array;
+
   private lambdas0: Float32Array;
+
   private lambdas1: Float32Array;
+
   private b: Float32Array;
+
   private bt0: Float32Array;
+
   private bt1: Float32Array;
+
   private bhat: Float32Array;
+
   private J: Matrix = {
     columns: [],
     rows: [],
@@ -47,11 +66,17 @@ export class ConstraintsSolver implements ConstraintsSolverInterface {
     m: 0,
     n: 0,
   };
+
   private jacobian = new Float32Array(6);
+
   private lookup: Array<number[]> = [];
+
   private constraints: Readonly<ConstraintInterface>[];
+
   private stack: Stack;
+
   private rows: number;
+
   private columns: number;
 
   constructor(

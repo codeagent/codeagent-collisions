@@ -11,7 +11,9 @@ import { testAABBAABB, testAABBCapsule } from './tests';
 @Service()
 export class NaiveBroadPhase implements BroadPhaseInterface {
   private readonly colliders: Collider[] = [];
+
   private readonly capsuleAABB: AABB = [vec2.create(), vec2.create()];
+
   private readonly candidatePair: [ContactCandidate, ContactCandidate] = [
     new ContactCandidate(),
     new ContactCandidate(),

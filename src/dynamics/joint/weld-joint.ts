@@ -20,7 +20,9 @@ export interface WeldJointDef {
 
 export class WeldJoint implements JointInterface {
   private readonly revoluteXConstraint: RevoluteXConstraint;
+
   private readonly revoluteYConstraint: RevoluteYConstraint;
+
   private readonly angleConstraint: AngleConstraint;
 
   constructor(

@@ -8,6 +8,7 @@ export interface TaskQueueEntry {
 
 export class TaskQueue {
   private taskCounter = 0;
+
   private readonly queue: TaskQueueEntry[] = [];
 
   constructor(private readonly worker: Worker) {

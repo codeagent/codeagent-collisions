@@ -39,6 +39,7 @@ import { WorldInterface } from './world.interface';
 @Service()
 export class World implements WorldInterface {
   private readonly bodies = new Map<number, Body>();
+
   private readonly bodyForce = vec2.create();
 
   constructor(

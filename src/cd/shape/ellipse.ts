@@ -4,35 +4,6 @@ import { AABB, getAABBFromSupport } from '../aabb';
 
 import { Polygon } from './polygon';
 
-export class Ellipse extends Polygon {
-  private ellipseSupportFun: (out: vec2, dir: Readonly<vec2>) => vec2;
-
-  /**
-   * @param a radius along x axis
-   * @param b radius along y axis
-   */
-  constructor(
-    public readonly a: number,
-    public readonly b: number,
-    public readonly subdivisions = 32
-  ) {
-    super(createEllipsePoints(a, b, subdivisions));
-    this.ellipseSupportFun = createEllipseSupportFunc(a, b);
-  }
-
-  aabb(out: AABB, transform: mat3): AABB {
-    return getAABBFromSupport(out, this.ellipseSupportFun, transform);
-  }
-
-  testPoint(point: vec2): boolean {
-    return (
-      (point[0] * point[0]) / this.a / this.a +
-        (point[1] * point[1]) / this.b / this.b <
-      1.0
-    );
-  }
-}
-
 const createEllipseSupportFunc = (r0: number, r1: number) => {
   return (out: vec2, dir: vec2): vec2 => {
     const a2 = r0 * r0;
@@ -61,3 +32,32 @@ const createEllipsePoints = (
 
   return points;
 };
+
+export class Ellipse extends Polygon {
+  private ellipseSupportFun: (out: vec2, dir: Readonly<vec2>) => vec2;
+
+  /**
+   * @param a radius along x axis
+   * @param b radius along y axis
+   */
+  constructor(
+    public readonly a: number,
+    public readonly b: number,
+    public readonly subdivisions = 32
+  ) {
+    super(createEllipsePoints(a, b, subdivisions));
+    this.ellipseSupportFun = createEllipseSupportFunc(a, b);
+  }
+
+  aabb(out: AABB, transform: mat3): AABB {
+    return getAABBFromSupport(out, this.ellipseSupportFun, transform);
+  }
+
+  testPoint(point: vec2): boolean {
+    return (
+      (point[0] * point[0]) / this.a / this.a +
+        (point[1] * point[1]) / this.b / this.b <
+      1.0
+    );
+  }
+}

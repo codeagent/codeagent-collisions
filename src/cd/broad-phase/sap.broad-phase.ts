@@ -12,12 +12,16 @@ import { testAABBAABB, testAABBCapsule } from './tests';
 @Service()
 export class SapBroadPhase implements BroadPhaseInterface {
   private readonly colliders = new Set<Collider>();
+
   private readonly capsuleAABB: AABB = [vec2.create(), vec2.create()];
+
   private readonly candidatePair: [ContactCandidate, ContactCandidate] = [
     new ContactCandidate(),
     new ContactCandidate(),
   ];
+
   private readonly xIntervalKeeper = new AABBIntervalKeeper(IntervalType.X);
+
   private readonly yIntervalKeeper = new AABBIntervalKeeper(IntervalType.Y);
 
   registerCollider(collider: Collider) {

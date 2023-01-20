@@ -13,7 +13,9 @@ import { support } from './support';
 
 class Edge {
   public readonly closest = vec2.create();
+
   public readonly closestBarycentric = vec2.create();
+
   public distance = 0;
 
   constructor(

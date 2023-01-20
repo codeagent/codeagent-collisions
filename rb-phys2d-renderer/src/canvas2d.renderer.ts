@@ -39,15 +39,25 @@ const SPRINT_WEIGHT = 0.5;
 
 export class Canvas2DRenderer implements RendererInterface {
   private readonly cursor = vec2.create();
+
   private readonly p0 = vec2.create();
+
   private readonly p1 = vec2.create();
+
   private readonly p2 = vec2.create();
+
   private readonly p3 = vec2.create();
+
   private readonly t = mat3.create();
+
   private readonly joints = new Set<JointInterface>();
+
   private renderMask: number = RenderMask.Default;
+
   private canvas: HTMLCanvasElement;
+
   private context: CanvasRenderingContext2D;
+
   private styling: StylePresetInterface = {
     aabbColor: '#ff0000',
     obbColor: '#2200ff',
@@ -60,7 +70,9 @@ export class Canvas2DRenderer implements RendererInterface {
     font: '18px Calibri',
     axesColor: '#3399ff',
   };
+
   private readonly colors: string[] = COLORS;
+
   private readonly _projectionMatrix = mat3.create();
 
   get projectionMatrix(): Readonly<mat3> {
@@ -163,7 +175,7 @@ export class Canvas2DRenderer implements RendererInterface {
       this.joints.clear();
 
       for (const body of world) {
-        for (const contact of body['contacts']) {
+        for (const contact of body.contacts) {
           if (this.joints.has(contact)) {
             continue;
           }

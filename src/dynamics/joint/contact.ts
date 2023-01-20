@@ -16,6 +16,7 @@ export class Contact implements JointInterface {
   }
 
   private readonly contactConstraint: ContactConstraint;
+
   private readonly frictionConstraint: FrictionConstraint;
 
   constructor(public readonly contactInfo: ContactInfo) {

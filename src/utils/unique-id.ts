@@ -3,6 +3,7 @@ import { Service } from 'typedi';
 @Service()
 export class IdManager {
   private counter = 0;
+
   private readonly freeList: number[] = [];
 
   getUniqueId(): number {

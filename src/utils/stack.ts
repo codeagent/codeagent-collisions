@@ -18,8 +18,11 @@ type TypedArrayConstructor =
 
 export class Stack {
   public readonly size: number = 0;
+
   private readonly stack: StackEntry<ArrayBufferView>[] = [];
+
   private readonly end: number = 0;
+
   private offset = 0;
 
   constructor(public readonly buffer: Uint8Array) {

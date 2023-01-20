@@ -73,11 +73,17 @@ import WORKER_SOURCE from './worker-source';
 @Service()
 export class WorldProxy implements WorldInterface {
   private readonly bodies = new Map<number, BodyProxy>();
+
   private readonly worker: Worker;
+
   private readonly taskQueue: TaskQueue;
+
   private readonly attributesBuffer: Float32Array;
+
   private readonly joints = new Map<JointInterface, number>();
+
   private mouseControl: MouseControlInterface = null;
+
   private readonly cursor = vec2.create();
 
   constructor(

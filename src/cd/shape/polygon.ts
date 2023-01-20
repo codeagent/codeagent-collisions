@@ -8,9 +8,13 @@ import { Shape, MassDistribution } from './shape.interface';
 const v = vec2.create();
 export class Vertex {
   public readonly normal: Readonly<vec2>;
+
   public readonly prev: Vertex = null;
+
   public readonly next: Vertex = null;
+
   public readonly edge0: Edge = null; // incoming
+
   public readonly edge1: Edge = null; // outcoming
 
   constructor(public readonly point: Readonly<vec2>) {}
@@ -18,7 +22,9 @@ export class Vertex {
 
 export class Edge {
   public readonly normal = vec2.create();
+
   public readonly prev: Edge = null;
+
   public readonly next: Edge = null;
 
   constructor(
@@ -33,7 +39,9 @@ export class Edge {
 
 export class Polygon implements Shape, MassDistribution {
   readonly radius: number = 0;
+
   readonly loop: Vertex = null;
+
   readonly edgeLoop: Edge = null;
 
   cachedSupportVertex: Readonly<Vertex> = null;

@@ -26,6 +26,7 @@ export class MouseJoint implements JointInterface {
   public readonly bodyB: BodyInterface = null;
 
   private mouseXConstraint: ConstraintInterface;
+
   private mouseYConstraint: ConstraintInterface;
 
   constructor(

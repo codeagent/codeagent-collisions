@@ -15,8 +15,11 @@ export class BodyProxy implements BodyInterface {
   private readonly r = vec2.create();
 
   id = 0;
+
   islandId = 0;
+
   transform = mat3.create();
+
   invTransform = mat3.create();
 
   get position(): Readonly<vec2> {
@@ -98,22 +101,35 @@ export class BodyProxy implements BodyInterface {
   }
 
   invMass = 0.0;
+
   invInertia = 0.0;
+
   isStatic = false;
+
   isSleeping = false;
+
   collider: ColliderInterface;
+
   readonly joints = new Set<Readonly<JointInterface>>();
+
   readonly contacts = [];
 
   private _attributeMask: AttributeMask = AttributeMask.None;
 
   private readonly _position = vec2.create();
+
   private _angle = 0;
+
   private readonly _velocity = vec2.create();
+
   private _omega = 0;
+
   private readonly _force = vec2.create();
+
   private _torque = 0.0;
+
   private _mass = 0.0;
+
   private _inertia = 0.0;
 
   constructor(

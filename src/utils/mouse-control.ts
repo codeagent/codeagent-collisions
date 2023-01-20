@@ -9,15 +9,25 @@ import {
 
 export class MouseControl implements MouseControlInterface {
   private canvas: HTMLElement;
+
   private body: BodyInterface;
+
   private joint: JointInterface = null;
+
   private readonly cursor = vec2.create();
+
   private readonly origin = vec2.create();
+
   private readonly locked = vec2.create();
+
   private readonly invProjMat = mat3.create();
+
   private readonly onMouseDownHandler = this.onMouseDown.bind(this);
+
   private readonly onMouseMoveHandler = this.onMouseMove.bind(this);
+
   private readonly onMouseUpHandler = this.onMouseUp.bind(this);
+
   constructor(
     public readonly world: Readonly<WorldInterface>,
     public readonly projMatrix: Readonly<mat3>,

@@ -8,12 +8,19 @@ import { ConstraintBase } from './constraint.base';
 
 export class SpringConstraint extends ConstraintBase {
   private readonly pa = vec2.create();
+
   private readonly pb = vec2.create();
+
   private readonly ra = vec2.create();
+
   private readonly rb = vec2.create();
+
   private readonly va = vec2.create();
+
   private readonly vb = vec2.create();
+
   private readonly pbpa = vec2.create();
+
   private readonly normal = vec2.create();
 
   constructor(

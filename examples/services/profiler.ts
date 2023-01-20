@@ -1,3 +1,4 @@
+/* eslint-disable import/no-extraneous-dependencies */
 import { Subject } from 'rxjs';
 import { bufferTime, filter, map } from 'rxjs/operators';
 import { Service } from 'typedi';
@@ -10,7 +11,9 @@ export interface ProfilerStream {
 @Service()
 export class Profiler {
   private static _instance: Profiler;
+
   private readonly records = new Map<string, number>();
+
   private readonly broadcast$ = new Subject<ProfilerStream>();
 
   static get instance(): Profiler {

@@ -24,9 +24,13 @@ import { RENDERER_TOKEN } from './services';
 @Service()
 export class ToiExample implements ExampleInterface {
   private readonly onPostStepEventListener = this.onPostStep.bind(this);
+
   private readonly epsilon = 1.0e-3;
+
   private readonly maxIterations = 32;
+
   private readonly velocity = vec2.fromValues(550, -350);
+
   private readonly omega = Math.PI * 150;
 
   constructor(
@@ -103,7 +107,7 @@ export class ToiExample implements ExampleInterface {
     });
     this.world.addCollider({
       body: body,
-      shape: new MeshShape(objects['gear_o_049']),
+      shape: new MeshShape(objects.gear_o_049),
       mask: 0,
     });
 
@@ -156,7 +160,7 @@ export class ToiExample implements ExampleInterface {
     });
     this.world.addCollider({
       body: body,
-      shape: new MeshShape(objects['gear_o_049']),
+      shape: new MeshShape(objects.gear_o_049),
       mask: 0,
     });
   }

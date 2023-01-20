@@ -19,7 +19,9 @@ import { NarrowPhaseInterface } from './narrow-phase.interface';
 @Service()
 export class GjkEpaNarrowPhase implements NarrowPhaseInterface {
   private readonly mtv = vec2.create();
+
   private readonly simplex = new Set<vec2>();
+
   private readonly initialDir = vec2.create();
 
   constructor(

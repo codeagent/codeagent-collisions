@@ -14,9 +14,13 @@ import { getToi } from './toi';
 @Service()
 export class CollisionDetector {
   private readonly continuous = new Array<Collider>();
+
   private readonly p0 = vec2.create();
+
   private readonly p1 = vec2.create();
+
   private readonly q0 = vec2.create();
+
   private readonly q1 = vec2.create();
 
   constructor(

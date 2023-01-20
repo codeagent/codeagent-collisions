@@ -5,35 +5,6 @@ import { AABB, getAABBFromSupport } from '../aabb';
 
 import { Polygon } from './polygon';
 
-// vertically aligned capsule
-export class Capsule extends Polygon {
-  private capsuleSupportFun: (out: vec2, dir: Readonly<vec2>) => vec2;
-
-  constructor(
-    public readonly r: number,
-    public readonly height: number,
-    public readonly subdivisions = 16
-  ) {
-    super(createCapsulePoints(r, height, subdivisions));
-    this.capsuleSupportFun = createCapsuleSupportFunc(r, height * 0.5);
-  }
-
-  testPoint(point: vec2): boolean {
-    const bary = vec2.create();
-    const closest = vec2.create();
-    const p0 = vec2.fromValues(0, -this.height * 0.5);
-    const p1 = vec2.fromValues(0, this.height * 0.5);
-    closestPointToLineSegment(bary, p0, p1, point);
-    fromBarycentric(closest, bary, p0, p1);
-
-    return vec2.distance(closest, point) < this.r;
-  }
-
-  aabb(out: AABB, transform: mat3): AABB {
-    return getAABBFromSupport(out, this.capsuleSupportFun, transform);
-  }
-}
-
 const createCapsuleSupportFunc = (radius: number, height: number) => {
   return (out: vec2, dir: vec2): vec2 => {
     vec2.normalize(out, dir);
@@ -65,3 +36,32 @@ const createCapsulePoints = (
 
   return top.concat(bottom);
 };
+
+// vertically aligned capsule
+export class Capsule extends Polygon {
+  private capsuleSupportFun: (out: vec2, dir: Readonly<vec2>) => vec2;
+
+  constructor(
+    public readonly r: number,
+    public readonly height: number,
+    public readonly subdivisions = 16
+  ) {
+    super(createCapsulePoints(r, height, subdivisions));
+    this.capsuleSupportFun = createCapsuleSupportFunc(r, height * 0.5);
+  }
+
+  testPoint(point: vec2): boolean {
+    const bary = vec2.create();
+    const closest = vec2.create();
+    const p0 = vec2.fromValues(0, -this.height * 0.5);
+    const p1 = vec2.fromValues(0, this.height * 0.5);
+    closestPointToLineSegment(bary, p0, p1, point);
+    fromBarycentric(closest, bary, p0, p1);
+
+    return vec2.distance(closest, point) < this.r;
+  }
+
+  aabb(out: AABB, transform: mat3): AABB {
+    return getAABBFromSupport(out, this.capsuleSupportFun, transform);
+  }
+}

@@ -88,28 +88,45 @@ export class Body implements BodyInterface {
   }
 
   public omega = 0;
+
   public angle = 0;
+
   public collider: Collider;
+
   public bodyIndex = -1; // index in host island
+
   public islandId = -1; // id of host island
+
   public readonly joints = new Set<JointInterface>();
+
   public readonly contacts = new Set<Contact>();
+
   public readonly solverConstraints: number[] = []; // the list of constraints in island with witch given body will be interacted
 
   private readonly _position = vec2.create();
+
   private readonly _velocity = vec2.create();
+
   private readonly _force = vec2.create();
 
   private _torque = 0.0;
+
   private _mass = 0.0;
+
   private _invMass = 0.0;
+
   private _invInertia = 0.0;
+
   private _inertia = 0.0;
+
   private _isStatic = false;
+
   private _isSleeping = false;
+
   private _sleepTimer = 0;
 
   private readonly _transform = mat3.create();
+
   private readonly _invTransform = mat3.create();
 
   constructor(

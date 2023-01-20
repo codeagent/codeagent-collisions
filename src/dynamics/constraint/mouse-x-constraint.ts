@@ -8,6 +8,7 @@ import { ConstraintBase } from './constraint.base';
 
 export class MouseXConstraint extends ConstraintBase {
   private readonly pa = vec2.create();
+
   private readonly ra = vec2.create();
 
   private readonly cursor = vec2.create();

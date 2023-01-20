@@ -12,12 +12,15 @@ import { Circle, Convex, Edge, Polygon, Vertex } from '../shape';
 // --
 class BestEdgeVertexQuery {
   public edge: Edge = null; // reference edge
+
   public vertex: Vertex = null; // incident vertex
+
   public depth: number = Number.NEGATIVE_INFINITY;
 }
 
 class BestEdgeQuery {
   public edge: Edge = null;
+
   public depth: number = Number.NEGATIVE_INFINITY;
 }
 
@@ -110,8 +113,11 @@ const queryBestEdge = (
 
 export class ContactPoint {
   public readonly point0 = vec2.create();
+
   public readonly point1 = vec2.create();
+
   public readonly normal = vec2.create();
+
   public depth = 0;
 }
 

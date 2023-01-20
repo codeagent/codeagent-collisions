@@ -10,8 +10,11 @@ export class PriorityQueue<T extends object> implements Iterable<T> {
   }
 
   private lookup = new WeakMap<T, QueueEntry<T>>();
+
   private begin: QueueEntry<T> = null;
+
   private end: QueueEntry<T> = null;
+
   private _size = 0;
 
   constructor(private readonly predicate: (a: T, b: T) => number) {}

@@ -7,6 +7,7 @@ import {
 
 export abstract class ConstraintBase implements ConstraintInterface {
   readonly bodyA: Readonly<BodyInterface> = null;
+
   readonly bodyB: Readonly<BodyInterface> = null;
 
   private readonly cache: number[] = [0.0, 0.0];

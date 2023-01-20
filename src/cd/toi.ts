@@ -8,10 +8,15 @@ import { Shape } from './shape';
 
 class BodyProxy {
   public shape: Shape;
+
   public readonly transform = mat3.create();
+
   public readonly position = vec2.create();
+
   public readonly velocity = vec2.create();
+
   public angle = 0.0;
+
   public omega = 0.0;
 
   advance(dt: number): void {

@@ -2,6 +2,7 @@ export type LoopHandler = (dt: number) => void;
 
 export class Loop {
   private timer: number;
+
   private interval: number | 'animationFrame';
 
   start(handler: LoopHandler, interval: number | 'animationFrame'): void {

@@ -51,7 +51,7 @@ export class PistonExample implements ExampleInterface {
     });
     this.world.addCollider({
       body: cylinder,
-      shape: new MeshShape(collection['cylinder']),
+      shape: new MeshShape(collection.cylinder),
     });
 
     const piston = this.world.createBody({
@@ -62,7 +62,7 @@ export class PistonExample implements ExampleInterface {
     });
     this.world.addCollider({
       body: piston,
-      shape: new MeshShape(collection['piston']),
+      shape: new MeshShape(collection.piston),
     });
 
     this.world.addPrismaticJoint({

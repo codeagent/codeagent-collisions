@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/dot-notation */
 import {
   Events,
   IdManager,
@@ -51,13 +52,21 @@ import { MouseCursor } from './mouse-cursor';
 
 export class TaskWorker {
   private bodiesBuffer: Float32Array;
+
   private eventsBuffer: Float32Array;
+
   private world: WorldInterface;
+
   private bodiesNumber = 0;
+
   private readonly joints = new Map<number, JointInterface>();
+
   private readonly idManager = new IdManager();
+
   private readonly loop = new Loop();
+
   private readonly cursor = new MouseCursor();
+
   private readonly eventCollectors = new Map<string, EventCollectorInterface>([
     [Events.Awake, new BodyEventCollector(Events.Awake)],
     [Events.FallAsleep, new BodyEventCollector(Events.FallAsleep)],
@@ -302,7 +311,7 @@ export class TaskWorker {
 
     this.cursor.setCursor(cursor[0], cursor[1]);
 
-    const _joint = this.world.addMouseJoint({
+    const mouseJoint = this.world.addMouseJoint({
       control: this.cursor,
       body: this.world.getBody(body.id),
       joint,
@@ -311,7 +320,7 @@ export class TaskWorker {
     });
     const id = this.idManager.getUniqueId();
 
-    this.joints.set(id, _joint);
+    this.joints.set(id, mouseJoint);
 
     return ok(task, id);
   }

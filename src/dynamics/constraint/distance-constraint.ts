@@ -8,9 +8,13 @@ import { ConstraintBase } from './constraint.base';
 
 export class DistanceConstraint extends ConstraintBase {
   protected readonly pa = vec2.create();
+
   protected readonly pb = vec2.create();
+
   protected readonly pbpa = vec2.create();
+
   protected readonly ra = vec2.create();
+
   protected readonly rb = vec2.create();
 
   constructor(

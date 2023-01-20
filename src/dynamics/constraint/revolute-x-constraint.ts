@@ -7,8 +7,11 @@ import { ConstraintBase } from './constraint.base';
 
 export class RevoluteXConstraint extends ConstraintBase {
   private readonly pa = vec2.create();
+
   private readonly pb = vec2.create();
+
   private readonly ra = vec2.create();
+
   private readonly rb = vec2.create();
 
   constructor(

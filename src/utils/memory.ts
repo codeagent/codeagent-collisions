@@ -4,7 +4,9 @@ import { Settings } from '../settings';
 
 class MemoryBlock {
   public prev: MemoryBlock = null;
+
   public next: MemoryBlock = null;
+
   public readonly end: number;
 
   constructor(
@@ -19,9 +21,13 @@ class MemoryBlock {
 @Service()
 export class Memory {
   private static readonly MIN_BLOCK_SIZE = 32;
+
   public readonly size: number;
+
   private readonly buffer: Uint8Array;
+
   private readonly reserved = new WeakMap<Uint8Array, MemoryBlock>();
+
   private freeList: MemoryBlock;
 
   constructor(@Inject('SETTINGS') settings: Settings) {

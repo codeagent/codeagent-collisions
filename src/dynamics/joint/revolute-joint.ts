@@ -83,6 +83,7 @@ export class RevoluteJoint implements JointInterface {
       );
     }
   }
+
   *[Symbol.iterator]() {
     yield* this.constraints;
   }

@@ -12,7 +12,9 @@ import { WorldIsland } from './world-island';
 @Service()
 export class SoleIslandGenerator implements IslandsGeneratorInterface {
   private readonly joints = new Set<JointInterface>();
+
   private readonly contacts = new Set<JointInterface>();
+
   private readonly island: WorldIsland;
 
   constructor(

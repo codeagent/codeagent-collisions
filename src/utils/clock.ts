@@ -15,7 +15,9 @@ export class Clock {
   }
 
   private _time = 0;
+
   private _lastTime = 0;
+
   private _frame = 0;
 
   tick(dt: number) {

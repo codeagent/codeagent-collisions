@@ -37,7 +37,7 @@ export class GearsExample implements ExampleInterface {
     this.world.addMotor({ body: motor, speed: 15.0, torque: 5.0 });
     this.world.addCollider({
       body: motor,
-      shape: new MeshShape(collection['gear_o_049']),
+      shape: new MeshShape(collection.gear_o_049),
     });
 
     const gear0 = this.world.createBody({
@@ -48,7 +48,7 @@ export class GearsExample implements ExampleInterface {
     });
     this.world.addCollider({
       body: gear0,
-      shape: new MeshShape(collection['gear_051']),
+      shape: new MeshShape(collection.gear_051),
     });
 
     const gear1 = this.world.createBody({
@@ -59,7 +59,7 @@ export class GearsExample implements ExampleInterface {
     });
     this.world.addCollider({
       body: gear1,
-      shape: new MeshShape(collection['gear_052']),
+      shape: new MeshShape(collection.gear_052),
     });
 
     const gear2 = this.world.createBody({
@@ -70,7 +70,7 @@ export class GearsExample implements ExampleInterface {
     });
     this.world.addCollider({
       body: gear2,
-      shape: new MeshShape(collection['gear_049']),
+      shape: new MeshShape(collection.gear_049),
     });
 
     const gear3 = this.world.createBody({
@@ -82,7 +82,7 @@ export class GearsExample implements ExampleInterface {
 
     this.world.addCollider({
       body: gear3,
-      shape: new MeshShape(collection['gear_o_052']),
+      shape: new MeshShape(collection.gear_o_052),
     });
 
     const gear4 = this.world.createBody({
@@ -94,7 +94,7 @@ export class GearsExample implements ExampleInterface {
 
     this.world.addCollider({
       body: gear4,
-      shape: new MeshShape(collection['gear_o_050']),
+      shape: new MeshShape(collection.gear_o_050),
     });
   }
 }

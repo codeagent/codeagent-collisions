@@ -138,7 +138,9 @@ export class ContactManifold {
 
 export class Pair {
   public readonly id: number;
+
   public readonly spacesMapping: SpaceMappingInterface;
+
   public readonly contactManifold: ContactManifold;
 
   constructor(
@@ -181,9 +183,13 @@ export interface PairsRegistryInterface {
 @Service()
 export class PairsRegistry implements PairsRegistryInterface {
   private readonly registry = new Map<number, Pair>();
+
   private readonly active = new Set<Pair>();
+
   private readonly deleted = new Set<Pair>();
+
   private readonly persistent = new Set<Pair>();
+
   private readonly added = new Set<Pair>();
 
   constructor(private readonly dispatcher: EventDispatcher) {}

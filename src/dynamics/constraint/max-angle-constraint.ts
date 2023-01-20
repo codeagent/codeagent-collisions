@@ -1,18 +1,6 @@
-import { BodyInterface } from '../body.interface';
-import { WorldInterface } from '../world.interface';
-
 import { AngleConstraint } from './angle-constraint';
 
 export class MaxAngleConstraint extends AngleConstraint {
-  constructor(
-    world: WorldInterface,
-    bodyA: BodyInterface,
-    bodyB: BodyInterface,
-    angle: number
-  ) {
-    super(world, bodyA, bodyB, angle);
-  }
-
   getPushFactor(dt: number): number {
     const violation = this.angle - (this.bodyB.angle - this.bodyA.angle);
 

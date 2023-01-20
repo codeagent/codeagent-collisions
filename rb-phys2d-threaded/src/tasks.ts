@@ -30,21 +30,25 @@ export enum TaskName {
 
 export class CreateWorldTask implements WorkerTask {
   readonly name = TaskName.CreateWorld;
+
   constructor(public readonly settings: Readonly<Settings>) {}
 }
 
 export class CreateBodyTask implements WorkerTask {
   readonly name = TaskName.CreateBody;
+
   constructor(public readonly bodyDef: Readonly<BodyDef>) {}
 }
 
 export class DestroyBodyTask implements WorkerTask {
   readonly name = TaskName.DestroyBody;
+
   constructor(public readonly body: IdentityInterface) {}
 }
 
 export class AddDistanceJointTask implements WorkerTask {
   readonly name = TaskName.AddDistanceJoint;
+
   constructor(
     public readonly bodyA: IdentityInterface,
     public readonly pivotA: Readonly<vec2>,
@@ -56,6 +60,7 @@ export class AddDistanceJointTask implements WorkerTask {
 
 export class AddPrismaticJointTask implements WorkerTask {
   readonly name = TaskName.AddPrismaticJoint;
+
   constructor(
     public readonly bodyA: IdentityInterface,
     public readonly pivotA: Readonly<vec2>,
@@ -70,6 +75,7 @@ export class AddPrismaticJointTask implements WorkerTask {
 
 export class AddRevoluteJointTask implements WorkerTask {
   readonly name = TaskName.AddRevoluteJoint;
+
   constructor(
     public readonly bodyA: IdentityInterface,
     public readonly pivotA: Readonly<vec2>,
@@ -84,6 +90,7 @@ export class AddRevoluteJointTask implements WorkerTask {
 
 export class AddWeldJointTask implements WorkerTask {
   readonly name = TaskName.AddWeldJoint;
+
   constructor(
     public readonly bodyA: IdentityInterface,
     public readonly pivotA: Readonly<vec2>,
@@ -95,6 +102,7 @@ export class AddWeldJointTask implements WorkerTask {
 
 export class AddWheelJointTask implements WorkerTask {
   readonly name = TaskName.AddWheelJoint;
+
   constructor(
     public readonly bodyA: IdentityInterface,
     public readonly pivotA: Readonly<vec2>,
@@ -108,6 +116,7 @@ export class AddWheelJointTask implements WorkerTask {
 
 export class AddSpringTask implements WorkerTask {
   readonly name = TaskName.AddSpring;
+
   constructor(
     public readonly bodyA: IdentityInterface,
     public readonly pivotA: Readonly<vec2>,
@@ -121,6 +130,7 @@ export class AddSpringTask implements WorkerTask {
 
 export class AddMouseJointTask implements WorkerTask {
   readonly name = TaskName.AddMouseJoint;
+
   constructor(
     public readonly cursor: Readonly<vec2>,
     public readonly body: IdentityInterface,
@@ -132,6 +142,7 @@ export class AddMouseJointTask implements WorkerTask {
 
 export class AddMotorTask implements WorkerTask {
   readonly name = TaskName.AddMotor;
+
   constructor(
     public readonly body: IdentityInterface,
     public readonly speed: number,
@@ -141,11 +152,13 @@ export class AddMotorTask implements WorkerTask {
 
 export class RemoveJointTask implements WorkerTask {
   readonly name = TaskName.RemoveJoint;
+
   constructor(public readonly jointId: number) {}
 }
 
 export class AddColliderTask implements WorkerTask {
   readonly name = TaskName.AddCollider;
+
   constructor(
     public readonly body: IdentityInterface,
     public readonly shape: ShapeDef,
@@ -170,7 +183,9 @@ export class UpdateTransformTask implements WorkerTask {
 
 export class ReturnTask implements WorkerTask {
   readonly name = TaskName.Return;
+
   readonly taskId = -1; // synthetic task id
+
   constructor(
     public readonly bodiesBuffer: Float32Array,
     public readonly eventsBuffer: Float32Array
@@ -179,16 +194,19 @@ export class ReturnTask implements WorkerTask {
 
 export class OnTask implements WorkerTask {
   readonly name = TaskName.On;
+
   constructor(public readonly event: keyof typeof Events) {}
 }
 
 export class OffTask implements WorkerTask {
   readonly name = TaskName.Off;
+
   constructor(public readonly event: keyof typeof Events) {}
 }
 
 export class StepMessage implements WorkerMessage {
   readonly name = 'Step';
+
   constructor(
     public readonly bodiesBuffer: Float32Array,
     public readonly eventsBuffer: Float32Array,
