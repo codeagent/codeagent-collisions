@@ -175,7 +175,8 @@ export class Canvas2DRenderer implements RendererInterface {
       this.joints.clear();
 
       for (const body of world) {
-        for (const contact of body.contacts) {
+        // eslint-disable-next-line @typescript-eslint/dot-notation
+        for (const contact of body['contacts']) {
           if (this.joints.has(contact)) {
             continue;
           }
