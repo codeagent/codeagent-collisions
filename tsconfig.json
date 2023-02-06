@@ -20,9 +20,7 @@
       "rb-phys2d": ["src/"],
       "rb-phys2d/*": ["src/*"],
       "rb-phys2d-threaded": ["rb-phys2d-threaded/src/"],
-      "rb-phys2d-threaded/*": ["rb-phys2d-threaded/src/*"],
-      "rb-phys2d-renderer": ["rb-phys2d-renderer/src/"],
-      "rb-phys2d-renderer/*": ["rb-phys2d-renderer/src/*"]
+      "rb-phys2d-threaded/*": ["rb-phys2d-threaded/src/*"]
     }
   },
   "exclude": ["./node_modules", "./threading/node_modules"]
