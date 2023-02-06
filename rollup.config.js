@@ -2,8 +2,8 @@ import commonjs from '@rollup/plugin-commonjs';
 import resolve from '@rollup/plugin-node-resolve';
 import terser from '@rollup/plugin-terser';
 import typescript from '@rollup/plugin-typescript';
+import livereload from 'rollup-plugin-livereload';
 import serve from 'rollup-plugin-serve';
-// import livereload from 'rollup-plugin-livereload';
 import { string } from 'rollup-plugin-string';
 
 import pkg from './package.json';
@@ -64,12 +64,8 @@ export default process.env.BUILD !== 'development'
         serve({
           verbose: false,
           open: true,
-          contentBase: [
-            'examples/public',
-            'dist/examples',
-            'rb-phys2d-threaded/dist/bundle',
-          ],
+          contentBase: ['examples/public', 'dist/examples'],
         }),
-        // livereload(),
+        livereload(),
       ],
     };

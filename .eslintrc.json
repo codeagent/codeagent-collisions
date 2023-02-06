@@ -28,10 +28,7 @@
         "newlines-between": "always"
       }
     ],
-    "import/no-unresolved": [
-      "error",
-      { "ignore": ["rb-phys2d", "rb-phys2d-threaded"] }
-    ],
+    "import/no-unresolved": ["error", { "ignore": ["rb-phys2d"] }],
     "import/no-extraneous-dependencies": ["off"],
     "@typescript-eslint/triple-slash-reference": ["off"],
     "@typescript-eslint/no-shadow": ["off"],
