@@ -302,6 +302,8 @@ export class World implements WorldInterface {
       if (body.collider) {
         this.detector.unregisterCollider(body.collider);
       }
+
+      this.dispatch(Events.BodyDestroyed, body);
     }
 
     this.registry.clear();

@@ -125,6 +125,7 @@ export class LocalIslandsGenerator implements IslandsGeneratorInterface {
     // put all free-moving bodies into one common island
     if (this.free.size !== 0) {
       this.island.clear();
+      this.island.setId(islandId++);
 
       for (const body of this.free) {
         this.island.addBody(body);

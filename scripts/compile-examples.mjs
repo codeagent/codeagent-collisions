@@ -56,7 +56,7 @@ const assembly = (packs, output) => {
   let statements = [];
   for (const pack of packs) {
     statements.push(
-      `${pack.key}: () => import('../${pack.fileName}').then((e) => e['${pack.className}'])`
+      `${pack.key}: () => import('../${pack.fileName}').then((e) => e.${pack.className})`
     );
   }
 

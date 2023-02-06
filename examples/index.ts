@@ -3,9 +3,9 @@
 import 'reflect-metadata';
 
 import { vec2 } from 'gl-matrix';
-import { MouseControl } from 'rb-phys2d';
-import { Canvas2DRenderer } from 'rb-phys2d-renderer';
-import { createWorld } from 'rb-phys2d-threaded';
+import { createWorld } from 'rb-phys2d';
+import { createViewport, createWorldRenderer } from 'rb-phys2d-renderer';
+// import { createWorld } from 'rb-phys2d-threaded';
 import { animationFrames, fromEvent, interval } from 'rxjs';
 import { map, startWith, switchMap, tap } from 'rxjs/operators';
 import { Container } from 'typedi';
@@ -20,10 +20,13 @@ import {
   RENDERER_TOKEN,
 } from './services';
 
-Container.reset();
+const canvas = document.getElementById('canvas') as HTMLCanvasElement;
+const world = createWorld();
+const viewport = createViewport(canvas)
+  .addMousePickingControl(world)
+  .addViewportAdjustingControl();
 
-const renderer = new Canvas2DRenderer();
-const world = createWorld({ workerUrl: 'worker.js' });
+const renderer = createWorldRenderer(viewport, world);
 
 const container = Container.of('examples');
 container.set({ id: EXAMPLES_TOKEN, value: EXAMPLES });
@@ -33,13 +36,9 @@ container.set({ id: 'WORLD', value: world });
 container.set({ id: 'SETTINGS', value: world.settings });
 
 let example: ExampleInterface;
-const canvas = document.getElementById('canvas') as HTMLCanvasElement;
+
 const profiler = container.get(Profiler);
 const loader = container.get(ExampleLoader);
-
-renderer.of(canvas);
-const control = new MouseControl(world, renderer.projectionMatrix, 1.0, 1.0e3);
-control.of(canvas);
 
 fromEvent(self.document.querySelectorAll('.nav-link'), 'click')
   .pipe(
@@ -56,6 +55,7 @@ fromEvent(self.document.querySelectorAll('.nav-link'), 'click')
   .subscribe(e => {
     if (example) {
       example.uninstall();
+      renderer.reset();
     }
     example = e;
     example.install();
@@ -74,8 +74,7 @@ interval(dt * 1000).subscribe(() => {
 animationFrames().subscribe(() => {
   profiler.begin('draw');
   renderer.clear();
-  renderer.renderWorld(world);
-  renderer.renderText(statistics, statisitcsPos);
+  renderer.render();
   profiler.end('draw');
 });
 

@@ -15,5 +15,4 @@ export default {
   stairs: () => import('../stairs.example').then(e => e.StairsExample),
   suspension: () =>
     import('../suspension.example').then(e => e.SuspensionExample),
-  toi: () => import('../toi.example').then(e => e.ToiExample),
 };

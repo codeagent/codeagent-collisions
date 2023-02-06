@@ -30,6 +30,7 @@ export class JointExample implements ExampleInterface {
     this.createPrismaticJoint();
     this.createSprings();
     this.createFreeBody();
+    this.createWheels(2, 2);
 
     // floor
     this.world.addCollider({
@@ -228,8 +229,9 @@ export class JointExample implements ExampleInterface {
     this.world.addPrismaticJoint({
       bodyA: box0,
       pivotA: vec2.fromValues(-0.5, 0),
+      localAxis: vec2.fromValues(-1.0, 0.0),
       bodyB: box1,
-      minDistance: 1.0,
+      minDistance: 0.5,
       maxDistance: 3.0,
     });
 
@@ -300,5 +302,53 @@ export class JointExample implements ExampleInterface {
       angle: Math.PI * 0.125,
     });
     this.world.addCollider({ body: box, shape: boxShape });
+  }
+
+  private createWheels(wheels: number, length: number) {
+    const stiffness = 25;
+    const extinction = 1;
+    const position = vec2.fromValues(6.0, -6.0);
+
+    const hull = this.world.createBody({
+      mass: 1.0,
+      inertia: 1.0,
+      position,
+      angle: 0,
+    });
+    this.world.addCollider({ body: hull, shape: new Box(length, 1.0) });
+
+    for (let i = 0; i < wheels; i++) {
+      const wheel = this.world.createBody({
+        mass: 1.0,
+        inertia: 1.0,
+        angle: 0.0,
+        position: vec2.fromValues(position[0], position[1] - 2),
+      });
+      this.world.addCollider({ body: wheel, shape: new Circle(0.5) });
+
+      this.world.addWheelJonit({
+        bodyA: hull,
+        pivotA: vec2.fromValues(
+          (length / (wheels - 1)) * i - length * 0.5,
+          -0.5
+        ),
+        bodyB: wheel,
+        localAxis: vec2.fromValues(0.0, -1.0),
+        minDistance: 0.75,
+        maxDistance: 3,
+      });
+
+      this.world.addSpring({
+        bodyA: hull,
+        pivotA: vec2.fromValues(
+          (length / (wheels - 1)) * i - length * 0.5,
+          -0.5
+        ),
+        bodyB: wheel,
+        distance: 2,
+        stiffness,
+        extinction,
+      });
+    }
   }
 }

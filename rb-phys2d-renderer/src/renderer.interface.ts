@@ -1,63 +1,46 @@
-import { mat3, vec2 } from 'gl-matrix';
-import {
-  AABB,
-  JointInterface,
-  OBB,
-  Collider,
-  OBBNode,
-  WorldInterface,
-  BodyInterface,
-} from 'rb-phys2d';
+import { vec4 } from 'gl-matrix';
 
 export interface StylePresetInterface {
-  aabbColor: string;
-  obbColor: string;
-  staticBodyColor: string;
-  sleepingBodyColor: string;
-  anchorColor: string;
-  contactColor: string;
-  jointColor: string;
-  font: string;
-  fontColor: string;
-  axesColor: string;
+  backgroundColor: vec4;
+  staticBodyColor: vec4;
+  sleepingBodyColor: vec4;
+  anchorColor: vec4;
+  contactPointColor: vec4;
+  contactNormalColor: vec4;
+  jointColor: vec4;
+  axesColor: {
+    main: vec4;
+    secondary: vec4;
+  };
 }
 
 export enum RenderMask {
-  Text = 0x01,
-  Axes = 0x02,
-  Body = 0x04,
-  Joint = 0x08,
-  Contact = 0x10,
-  AABB = 0x20,
-  OBB = 0x40,
-  All = RenderMask.Text |
-    RenderMask.Axes |
-    RenderMask.Body |
-    RenderMask.Joint |
-    RenderMask.Contact |
-    RenderMask.AABB |
-    RenderMask.OBB,
-  Default = RenderMask.Text |
-    RenderMask.Axes |
-    RenderMask.Body |
-    RenderMask.Joint,
+  Axes = 0x1,
+  Body = 0x2,
+  RevoluteJoint = 0x4,
+  WeldJoint = 0x8,
+  MouseJoint = 0x10,
+  MotorJoint = 0x20,
+  Spring = 0x40,
+  DistanceJoint = 0x80,
+  PrismaticJoint = 0x100,
+  WheelJoint = 0x200,
+  Contact = 0x400,
+  Joint = RevoluteJoint |
+    WeldJoint |
+    MouseJoint |
+    MotorJoint |
+    Spring |
+    DistanceJoint |
+    PrismaticJoint |
+    WheelJoint,
+  All = Axes | Body | Joint | Contact,
+  Default = Axes | Body | Joint,
 }
 
 export interface RendererInterface {
-  readonly projectionMatrix: Readonly<mat3>;
-
   setStyling(preset: StylePresetInterface): void;
-  setRenderMask(mask: number): void;
   clear(): void;
-  viewport(xmin: number, xmax: number, ymin: number, ymax: number): void;
-  renderText(text: string, pos: Readonly<vec2>): void;
-  renderGrid(lines: number, step: number): void;
-  renderWorld(world: Readonly<WorldInterface>): void;
-  renderBody(body: Readonly<BodyInterface>): void;
-  renderJoint(joint: JointInterface): void;
-  renderAABB(aabb: Readonly<AABB>): void;
-  renderOBB(obb: Readonly<OBB>): void;
-  renderOBBTree(obb: Readonly<OBBNode>, root: number): void;
-  renderCollider(collider: Readonly<Collider>): void;
-  of(canvas: HTMLCanvasElement): void;
+  render(mask?: RenderMask): void;
+  reset(): void;
 }

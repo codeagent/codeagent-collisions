@@ -53,7 +53,7 @@ export class SuspensionExample implements ExampleInterface {
           -0.5
         ),
         bodyB: wheel,
-        localAxis: vec2.fromValues(0.0, 1.0),
+        localAxis: vec2.fromValues(0.0, -1.0),
         minDistance: 1,
         maxDistance: 3,
       });
