@@ -18,18 +18,16 @@ export class PendulumExample implements ExampleInterface {
   ) {}
 
   install(): void {
-    this.settings.defaultRestitution = 1.0; //elastic bounces
-    this.settings.defaultPushFactor = 0.95;
-    this.settings.defaultFriction = 0.0;
+    this.settings.defaultPushFactor = 1.0;
 
-    this.createPendulums(12);
+    this.createPendulums(6);
   }
 
   uninstall(): void {
     this.world.clear();
   }
 
-  private createPendulums(n: number) {
+  private createPendulums(n: number): void {
     const step = 1.0;
     const length = 8;
     const m = 1.0;
@@ -58,6 +56,7 @@ export class PendulumExample implements ExampleInterface {
         this.world.addCollider({
           body: pendulum,
           shape: new Circle(step * 0.5),
+          material: { restitution: 1.0, friction: 0 },
         });
       } else {
         pendulum = this.world.createBody({
@@ -68,6 +67,7 @@ export class PendulumExample implements ExampleInterface {
         this.world.addCollider({
           body: pendulum,
           shape: new Circle(step * 0.5),
+          material: { restitution: 1.0, friction: 0 },
         });
       }
 

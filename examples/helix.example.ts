@@ -19,9 +19,7 @@ export class HelixExample implements ExampleInterface {
   ) {}
 
   install(): void {
-    this.settings.defaultRestitution = 0.25;
     this.settings.defaultPushFactor = 0.65;
-    this.settings.defaultFriction = 0.75;
 
     this.createHelix();
   }

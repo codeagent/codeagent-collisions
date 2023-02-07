@@ -21,7 +21,7 @@ import {
 } from './services';
 
 const canvas = document.getElementById('canvas') as HTMLCanvasElement;
-const world = createWorld();
+const world = createWorld({});
 const viewport = createViewport(canvas)
   .addMousePickingControl(world)
   .addViewportAdjustingControl();
@@ -43,7 +43,7 @@ const loader = container.get(ExampleLoader);
 fromEvent(self.document.querySelectorAll('.nav-link'), 'click')
   .pipe(
     map((e: MouseEvent) => (e.target as HTMLAnchorElement).id),
-    startWith('joint'),
+    startWith('material'),
     tap(id => {
       document
         .querySelectorAll('.nav-link')

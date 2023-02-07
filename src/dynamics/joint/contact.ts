@@ -31,15 +31,19 @@ export class Contact implements JointInterface {
       contactInfo.depth
     );
 
-    // @todo: involve materials
-    if (world.settings.defaultFriction > 0) {
+    const friction =
+      (contactInfo.collider0.material.friction +
+        contactInfo.collider1.material.friction) *
+      0.5;
+
+    if (friction > 0) {
       this.frictionConstraint = new FrictionConstraint(
         world,
         contactInfo.collider0.body,
         contactInfo.collider1.body,
         vec2.clone(contactInfo.point0),
         vec2.fromValues(-contactInfo.normal[0], -contactInfo.normal[1]),
-        world.settings.defaultFriction
+        friction
       );
     }
   }

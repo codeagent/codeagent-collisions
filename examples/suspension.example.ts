@@ -12,9 +12,7 @@ export class SuspensionExample implements ExampleInterface {
   ) {}
 
   install(): void {
-    this.settings.defaultRestitution = 0.35;
     this.settings.defaultPushFactor = 0.65;
-    this.settings.defaultFriction = 0.55;
 
     this.createSuspension();
   }

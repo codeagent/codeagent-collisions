@@ -1,6 +1,6 @@
 import { mat3, vec2 } from 'gl-matrix';
 
-import { BodyInterface } from '../dynamics';
+import { BodyInterface, Material } from '../dynamics';
 
 import { AABB } from './aabb';
 import { ColliderInterface } from './collider.interface';
@@ -25,7 +25,8 @@ export class Collider implements ColliderInterface {
     public readonly body: BodyInterface,
     public readonly shape: Shape,
     public readonly mask: number,
-    public readonly virtual: boolean // this type of collider is not involve in contact resolving, only event will be triggered
+    public readonly virtual: boolean, // this type of collider is not involve in contact resolving, only event will be triggered
+    public readonly material: Material
   ) {}
 
   updateAABB(): void {

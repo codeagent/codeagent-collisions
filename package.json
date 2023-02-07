@@ -38,7 +38,7 @@
     "build:types": "npx tsc -p tsconfig.types.json",
     "build:bundle": "npx rollup -c --bundleConfigAsCjs",
     "compile:examples": "node ./scripts/compile-examples.mjs",
-    "start": "npx rollup -c --watch --bundleConfigAsCjs --environment BUILD:development",
+    "start": "npx rimraf dist/examples && npx rollup -c --watch --bundleConfigAsCjs --environment BUILD:development",
     "test": "npx jest",
     "prepare": "husky install"
   },

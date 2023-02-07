@@ -12,9 +12,7 @@ export class StackExample implements ExampleInterface {
   ) {}
 
   install(): void {
-    this.settings.defaultRestitution = 0.15;
     this.settings.defaultPushFactor = 0.15;
-    this.settings.defaultFriction = 0.95;
 
     this.createStacks();
   }

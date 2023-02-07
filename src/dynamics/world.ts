@@ -33,6 +33,7 @@ import {
   MouseJointDef,
   MotorDef,
 } from './joint';
+import { Material } from './material';
 import { Pair, PairsRegistry } from './pairs-registry';
 import { WorldInterface } from './world.interface';
 
@@ -246,11 +247,24 @@ export class World implements WorldInterface {
   }
 
   addCollider(colliderDef: ColliderDef): ColliderInterface {
+    const materialDef = {
+      ...this.settings.defaultMaterial,
+      ...(colliderDef.material ?? {}),
+    };
+
+    const material = new Material(
+      materialDef.friction,
+      materialDef.restitution,
+      materialDef.damping,
+      materialDef.angularDamping
+    );
+
     const collider = new Collider(
       colliderDef.body,
       colliderDef.shape,
       colliderDef.mask ?? 0xffffffff,
-      colliderDef.isVirtual ?? false
+      colliderDef.isVirtual ?? false,
+      material
     );
     Object.assign(collider.body, { collider });
 
@@ -334,7 +348,7 @@ export class World implements WorldInterface {
   }
 
   private applyGlobalForces() {
-    for (const body of this.bodies.values()) {
+    for (const body of this) {
       vec2.copy(this.bodyForce, body.force);
 
       if (body.invMass) {
@@ -346,19 +360,16 @@ export class World implements WorldInterface {
         );
       }
 
-      if (this.settings.defaultDamping) {
+      if (body.collider) {
         vec2.scaleAndAdd(
           this.bodyForce,
           this.bodyForce,
           body.velocity,
-          -this.settings.defaultDamping
+          -body.collider.material.damping
         );
-      }
+        body.force = this.bodyForce;
 
-      body.force = this.bodyForce;
-
-      if (this.settings.defaultAngularDamping) {
-        body.torque -= this.settings.defaultAngularDamping * body.omega;
+        body.torque -= body.collider.material.angularDamping * body.omega;
       }
     }
   }

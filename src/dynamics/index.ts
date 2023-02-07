@@ -3,6 +3,7 @@ export * from './body';
 export * from './world.interface';
 export * from './world';
 export * from './island';
+export * from './material';
 export * from './constraint';
 export * from './joint';
 export * from './pairs-registry';

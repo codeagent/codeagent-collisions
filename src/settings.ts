@@ -1,5 +1,7 @@
 import { vec2 } from 'gl-matrix';
 
+import { MaterialDef } from './dynamics';
+
 export interface Settings {
   uid: string;
   gravity: vec2;
@@ -8,13 +10,8 @@ export interface Settings {
 
   // Memory
   totalReservedMemory: number; // in bytes
-
-  // Default (todo: material)
+  defaultMaterial: MaterialDef;
   defaultPushFactor: number;
-  defaultFriction: number;
-  defaultRestitution: number;
-  defaultDamping: number; // todo:
-  defaultAngularDamping: number; // todo:
 
   // Solver
   solverIterations: number;
@@ -56,10 +53,12 @@ export const defaultSettings: Settings = {
   gravity: vec2.fromValues(0.0, -9.8),
   totalReservedMemory: 16e6, // 16mb
   defaultPushFactor: 0.25,
-  defaultFriction: 0.5,
-  defaultRestitution: 0.5,
-  defaultDamping: 0.005,
-  defaultAngularDamping: 0.05,
+  defaultMaterial: {
+    friction: 0.5,
+    restitution: 0.5,
+    damping: 0.005,
+    angularDamping: 0.05,
+  },
   solverIterations: 10,
   islandGenerator: 'local',
   contactProximityThreshold: 5e-3, // 5mm

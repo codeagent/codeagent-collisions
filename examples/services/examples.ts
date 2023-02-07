@@ -7,6 +7,7 @@ export default {
   gears: () => import('../gears.example').then(e => e.GearsExample),
   helix: () => import('../helix.example').then(e => e.HelixExample),
   joint: () => import('../joint.example').then(e => e.JointExample),
+  material: () => import('../material.example').then(e => e.MaterialExample),
   mesh: () => import('../mesh.example').then(e => e.MeshExample),
   pendulum: () => import('../pendulum.example').then(e => e.PendulumExample),
   pinball: () => import('../pinball.example').then(e => e.PinballExample),

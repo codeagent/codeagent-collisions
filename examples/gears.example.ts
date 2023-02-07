@@ -13,9 +13,7 @@ export class GearsExample implements ExampleInterface {
   ) {}
 
   install(): void {
-    this.settings.defaultRestitution = 0.25;
     this.settings.defaultPushFactor = 0.65;
-    this.settings.defaultPushFactor = 0.45;
 
     this.createGears();
   }

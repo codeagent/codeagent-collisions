@@ -1,6 +1,6 @@
 import { mat3 } from 'gl-matrix';
 
-import { BodyInterface } from '../dynamics';
+import { BodyInterface, MaterialDef, Material } from '../dynamics';
 
 import { AABB } from './aabb';
 import { Shape } from './shape';
@@ -10,6 +10,7 @@ export interface ColliderDef {
   shape: Shape;
   mask?: number;
   isVirtual?: boolean;
+  material?: MaterialDef;
 }
 
 export interface ColliderInterface {
@@ -20,4 +21,5 @@ export interface ColliderInterface {
   readonly shape: Shape;
   readonly mask: number;
   readonly virtual: boolean;
+  readonly material: Material;
 }

@@ -12,9 +12,7 @@ export class CcdExample implements ExampleInterface {
   ) {}
 
   install(): void {
-    this.settings.defaultRestitution = 0.0;
     this.settings.defaultPushFactor = 0.7;
-    this.settings.defaultFriction = 0.27;
 
     this.createObjects();
   }
@@ -30,7 +28,11 @@ export class CcdExample implements ExampleInterface {
       inertia: Number.POSITIVE_INFINITY,
       position: vec2.fromValues(0.0, -9),
     });
-    this.world.addCollider({ body: body, shape: new Box(20, 0.1) });
+    this.world.addCollider({
+      body: body,
+      shape: new Box(20, 0.1),
+      material: { restitution: 0 },
+    });
 
     const omega = Math.PI * 1.0;
     const velocity = vec2.fromValues(0.0, -10000.0);
@@ -52,6 +54,7 @@ export class CcdExample implements ExampleInterface {
         vec2.fromValues(-0.5, 0.5),
         vec2.fromValues(-1.5, 0.0),
       ]),
+      material: { restitution: 0 },
     });
 
     const box2 = this.world.createBody({
@@ -62,6 +65,10 @@ export class CcdExample implements ExampleInterface {
     });
     box2.omega = omega;
     box2.velocity = velocity;
-    this.world.addCollider({ body: box2, shape: new Box(1, 1) });
+    this.world.addCollider({
+      body: box2,
+      shape: new Box(1, 1),
+      material: { restitution: 0 },
+    });
   }
 }

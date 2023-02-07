@@ -21,9 +21,7 @@ export class StairsExample implements ExampleInterface {
   ) {}
 
   install(): void {
-    this.settings.defaultRestitution = 0.2;
     this.settings.defaultPushFactor = 0.4;
-    this.settings.defaultFriction = 0.2;
 
     this.createStairs(8);
 

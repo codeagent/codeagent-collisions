@@ -12,9 +12,7 @@ export class GaussExample implements ExampleInterface {
   ) {}
 
   install(): void {
-    this.settings.defaultRestitution = 0.5;
     this.settings.defaultPushFactor = 0.4;
-    this.settings.defaultFriction = 0.3;
 
     this.createGauss();
   }

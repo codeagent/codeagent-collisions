@@ -44,9 +44,15 @@ export class ContactConstraint extends ConstraintBase {
     if (strength) {
       const penetration =
         this.penetration - this.world.settings.contactConstraintSlop;
+
       return (Math.max(penetration, 0) / dt) * strength;
     } else {
-      return -this.getCDot() * this.world.settings.defaultRestitution;
+      const restitution = Math.min(
+        this.bodyA.collider.material.restitution,
+        this.bodyB.collider.material.restitution
+      );
+
+      return -this.getCDot() * restitution;
     }
   }
 
