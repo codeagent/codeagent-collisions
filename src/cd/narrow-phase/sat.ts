@@ -212,8 +212,6 @@ export const testPolyCircle = (
   circle: Readonly<Circle>,
   spaceMapping: SpaceMappingInterface
 ): boolean => {
-  out.length = null;
-
   queryBestEdge(beQuery, poly, circle, spaceMapping);
 
   if (beQuery.depth >= 0) {
@@ -229,13 +227,27 @@ export const testPolyCircle = (
   closestPointToLineSegment(bary, p0, p1, c0);
   fromBarycentric(point0, bary, p0, p1);
 
-  vec2.sub(normal, point0, c0);
-  const distance = vec2.length(normal);
+  spaceMapping.fromFirstVector(normal, beQuery.edge.normal);
+  vec2.sub(p1, c0, p0);
 
-  if (distance < circle.radius) {
+  let depth = 0;
+
+  if (vec2.dot(p1, normal) > 0) {
+    // center outside of polygon
+    vec2.sub(normal, point0, c0);
+    depth = circle.radius - vec2.length(normal);
+  } else {
+    // center inside of polygon
+    vec2.sub(normal, c0, point0);
+    depth = vec2.length(normal) + circle.radius;
+  }
+
+  if (depth > 0) {
+    vec2.normalize(normal, normal);
+
     const contactPoint = new ContactPoint();
-    contactPoint.depth = circle.radius - distance;
-    vec2.normalize(contactPoint.normal, normal);
+    contactPoint.depth = depth;
+    vec2.copy(contactPoint.normal, normal);
     vec2.copy(contactPoint.point0, point0);
     vec2.scaleAndAdd(
       contactPoint.point1,
