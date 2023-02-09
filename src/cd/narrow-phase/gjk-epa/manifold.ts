@@ -2,7 +2,6 @@ import { vec2 } from 'gl-matrix';
 
 import {
   SpaceMappingInterface,
-  inverse,
   closestPointToLineSegment,
   clipByPlane,
   fromBarycentric,
@@ -74,7 +73,7 @@ export const getPolyPolyContactManifold = (
     const tmp = incident;
     incident = reference;
     reference = tmp;
-    spaceMapping = inverse(spaceMapping);
+    spaceMapping = spaceMapping.inverted();
     vec2.negate(normal, normal);
     inverted = true;
   }

@@ -2,7 +2,7 @@ import { vec2 } from 'gl-matrix';
 import { Inject, Service } from 'typedi';
 
 import { PairsRegistry, PairsRegistryInterface } from '../../dynamics';
-import { SpaceMappingInterface, inverse } from '../../math';
+import { SpaceMappingInterface } from '../../math';
 import { pairId } from '../../utils';
 import {
   ContactCandidatePair,
@@ -53,7 +53,7 @@ export class SatNarrowPhase implements NarrowPhaseInterface {
       }
       // Circle
       else if (leftShape instanceof Circle && rightShape instanceof Polygon) {
-        spaceMapping = inverse(spaceMapping);
+        spaceMapping = spaceMapping.inverted();
         if (testPolyCircle(contact, rightShape, leftShape, spaceMapping)) {
           yield* this.getContactInfo(contact, right, left, spaceMapping);
         }

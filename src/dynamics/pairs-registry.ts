@@ -3,7 +3,7 @@ import { Service } from 'typedi';
 
 import { Collider, ContactInfo } from '../cd';
 import { Events } from '../events';
-import { betweenPair, SpaceMapping, SpaceMappingInterface } from '../math';
+import { between, SpaceMapping, SpaceMappingInterface } from '../math';
 import { EventDispatcher, pairId } from '../utils';
 
 import { Body } from './body';
@@ -149,7 +149,7 @@ export class Pair {
     public readonly proximityThreshold: number
   ) {
     this.id = pairId(this.collider0.id, this.collider1.id);
-    this.spacesMapping = betweenPair(
+    this.spacesMapping = between(
       this.collider0.transform,
       this.collider1.transform
     );

@@ -1,7 +1,7 @@
 import { mat3, vec2 } from 'gl-matrix';
 
 import { BodyInterface } from '../dynamics';
-import { betweenPair } from '../math';
+import { between } from '../math';
 
 import * as gjk from './narrow-phase/gjk-epa';
 import { Shape } from './shape';
@@ -45,7 +45,7 @@ class BodyProxy {
 
 const initialDir = vec2.create();
 const simplex = new Set<vec2>();
-const spacesMapping = betweenPair(mat3.create(), mat3.create());
+const spacesMapping = between(mat3.create(), mat3.create());
 const proxy0 = new BodyProxy();
 const proxy1 = new BodyProxy();
 

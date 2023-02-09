@@ -1,7 +1,6 @@
 import { vec2 } from 'gl-matrix';
 
 import {
-  inverse,
   SpaceMappingInterface,
   closestPointToLineSegment,
   fromBarycentric,
@@ -135,8 +134,7 @@ export const testPolyPoly = (
     return false;
   }
 
-  const invSpaceMapping = inverse(spaceMapping);
-  queryBestEdgeVertex(evQuery1, poly1, poly0, invSpaceMapping);
+  queryBestEdgeVertex(evQuery1, poly1, poly0, spaceMapping.inverted());
 
   if (evQuery1.depth >= 0) {
     return false;
@@ -147,7 +145,7 @@ export const testPolyPoly = (
 
   if (evQuery1.depth > evQuery0.depth) {
     minQuery = evQuery1;
-    spaceMapping = invSpaceMapping;
+    spaceMapping = spaceMapping.inverted();
     inverted = true;
   }
 

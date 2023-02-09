@@ -2,7 +2,6 @@ import { vec2 } from 'gl-matrix';
 import { Inject, Service } from 'typedi';
 
 import { PairsRegistry, PairsRegistryInterface } from '../../dynamics';
-import { inverse } from '../../math';
 import { Settings } from '../../settings';
 import { pairId } from '../../utils';
 import { ContactCandidatePair, ContactInfo } from '../contact';
@@ -148,7 +147,7 @@ export class GjkEpaNarrowPhase implements NarrowPhaseInterface {
           right.shape,
           left.collider,
           left.shape,
-          inverse(pair.spacesMapping),
+          pair.spacesMapping.inverted(),
           vec2.fromValues(-this.mtv[0], -this.mtv[1])
         );
       } else if (
