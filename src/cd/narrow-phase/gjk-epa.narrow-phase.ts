@@ -1,7 +1,7 @@
 import { vec2 } from 'gl-matrix';
 import { Inject, Service } from 'typedi';
 
-import { PairsRegistry, PairsRegistryInterface } from '../../dynamics';
+import { PairsRegistryInterface } from '../../dynamics';
 import { Settings } from '../../settings';
 import { pairId } from '../../utils';
 import { ContactCandidatePair, ContactInfo } from '../contact';
@@ -25,7 +25,7 @@ export class GjkEpaNarrowPhase implements NarrowPhaseInterface {
 
   constructor(
     @Inject('SETTINGS') private readonly settings: Readonly<Settings>,
-    @Inject(() => PairsRegistry)
+    @Inject('PAIRS_REGISTRY')
     private readonly registry: PairsRegistryInterface
   ) {}
 
@@ -36,9 +36,9 @@ export class GjkEpaNarrowPhase implements NarrowPhaseInterface {
 
     for (const [left, right] of pairs) {
       const id = pairId(left.collider.id, right.collider.id);
+      this.registry.updateTransform(id);
       const pair = this.registry.getPairById(id);
 
-      pair.updateTransforms();
       contact.length = 0;
       this.simplex.clear();
       vec2.subtract(
@@ -51,7 +51,7 @@ export class GjkEpaNarrowPhase implements NarrowPhaseInterface {
         this.simplex,
         left.shape,
         right.shape,
-        pair.spacesMapping,
+        pair.spaceMapping,
         this.initialDir,
         -this.settings.narrowPhaseMargin,
         this.settings.gjkRelError,
@@ -67,7 +67,7 @@ export class GjkEpaNarrowPhase implements NarrowPhaseInterface {
           this.simplex,
           left.shape,
           right.shape,
-          pair.spacesMapping,
+          pair.spaceMapping,
           this.initialDir,
           0,
           this.settings.gjkRelError,
@@ -79,7 +79,7 @@ export class GjkEpaNarrowPhase implements NarrowPhaseInterface {
           this.simplex,
           left.shape,
           right.shape,
-          pair.spacesMapping,
+          pair.spaceMapping,
           0,
           this.settings.epaEpsilon,
           this.settings.epaMaxIterations
@@ -92,15 +92,15 @@ export class GjkEpaNarrowPhase implements NarrowPhaseInterface {
 
         mdv(this.mtv, this.simplex);
 
-        pair.spacesMapping.toSecondVector(point1, this.mtv);
+        pair.spaceMapping.toSecondVector(point1, this.mtv);
         right.shape.support(point1, point1);
-        pair.spacesMapping.fromSecondPoint(point1, point1);
+        pair.spaceMapping.fromSecondPoint(point1, point1);
 
         vec2.negate(this.mtv, this.mtv);
 
-        pair.spacesMapping.toFirstVector(point0, this.mtv);
+        pair.spaceMapping.toFirstVector(point0, this.mtv);
         left.shape.support(point0, point0);
-        pair.spacesMapping.fromFirstPoint(point0, point0);
+        pair.spaceMapping.fromFirstPoint(point0, point0);
 
         vec2.negate(this.mtv, this.mtv);
 
@@ -121,7 +121,7 @@ export class GjkEpaNarrowPhase implements NarrowPhaseInterface {
           left.shape,
           right.collider,
           right.shape,
-          pair.spacesMapping,
+          pair.spaceMapping,
           this.mtv
         );
       } else if (
@@ -134,7 +134,7 @@ export class GjkEpaNarrowPhase implements NarrowPhaseInterface {
           left.shape,
           right.collider,
           right.shape,
-          pair.spacesMapping,
+          pair.spaceMapping,
           this.mtv
         );
       } else if (
@@ -147,7 +147,7 @@ export class GjkEpaNarrowPhase implements NarrowPhaseInterface {
           right.shape,
           left.collider,
           left.shape,
-          pair.spacesMapping.inverted(),
+          pair.spaceMapping.inverted(),
           vec2.fromValues(-this.mtv[0], -this.mtv[1])
         );
       } else if (
@@ -160,7 +160,7 @@ export class GjkEpaNarrowPhase implements NarrowPhaseInterface {
           right.shape,
           left.collider,
           left.shape,
-          pair.spacesMapping,
+          pair.spaceMapping,
           this.mtv
         );
       }

@@ -12,6 +12,7 @@ import {
   SoleIslandGenerator,
   ConstraintsSolver,
   World,
+  PairsRegistry,
 } from './dynamics';
 import { GaussSeidelSolver } from './math';
 import { defaultSettings, Settings } from './settings';
@@ -28,6 +29,7 @@ export const configureContainer = (
   container.set({ id: 'MID_PHASE', type: MidPhase });
   container.set({ id: 'CONSTRAINTS_SOLVER', type: ConstraintsSolver });
   container.set({ id: 'LINEAR_EQUATIONS_SOLVER', type: GaussSeidelSolver });
+  container.set({ id: 'PAIRS_REGISTRY', type: PairsRegistry });
 
   if (settings.narrowPhase === 'sat') {
     container.set({ id: 'NARROW_PHASE', type: SatNarrowPhase });

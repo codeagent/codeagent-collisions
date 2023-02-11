@@ -34,7 +34,7 @@ import {
   MotorDef,
 } from './joint';
 import { Material } from './material';
-import { Pair, PairsRegistry } from './pairs-registry';
+import { PairsRegistryInterface } from './pair';
 import { WorldInterface } from './world.interface';
 
 @Service()
@@ -47,7 +47,8 @@ export class World implements WorldInterface {
     @Inject('SETTINGS') public readonly settings: Readonly<Settings>,
     @Inject('ISLANDS_GENERATOR')
     private readonly islandGenerator: IslandsGeneratorInterface,
-    private readonly registry: PairsRegistry,
+    @Inject('PAIRS_REGISTRY')
+    private readonly registry: PairsRegistryInterface,
     private readonly detector: CollisionDetector,
     private readonly clock: Clock,
     private readonly idManager: IdManager,
@@ -272,13 +273,7 @@ export class World implements WorldInterface {
 
     for (const body of this.bodies.values()) {
       if (body.collider && body.collider !== collider) {
-        this.registry.registerPair(
-          new Pair(
-            body.collider,
-            collider,
-            this.settings.contactProximityThreshold
-          )
-        );
+        this.registry.registerPair(body.collider, collider);
       }
     }
 

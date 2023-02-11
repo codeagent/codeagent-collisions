@@ -6,5 +6,5 @@ export * from './island';
 export * from './material';
 export * from './constraint';
 export * from './joint';
-export * from './pairs-registry';
+export * from './pair';
 export * from './solver';

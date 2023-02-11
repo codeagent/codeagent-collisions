@@ -22,7 +22,7 @@ import {
 @Service()
 export class SatNarrowPhase implements NarrowPhaseInterface {
   constructor(
-    @Inject(() => PairsRegistry)
+    @Inject('PAIRS_REGISTRY')
     private readonly registry: PairsRegistryInterface
   ) {}
 
@@ -35,10 +35,10 @@ export class SatNarrowPhase implements NarrowPhaseInterface {
       const leftShape = left.shape;
       const rightShape = right.shape;
       const id = pairId(left.collider.id, right.collider.id);
+      this.registry.updateTransform(id);
       const pair = this.registry.getPairById(id);
-      let spaceMapping = pair.spacesMapping;
+      let spaceMapping: SpaceMappingInterface = pair.spaceMapping;
 
-      pair.updateTransforms();
       contact.length = 0;
 
       // Polygon
