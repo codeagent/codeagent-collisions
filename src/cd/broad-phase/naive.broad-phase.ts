@@ -58,20 +58,21 @@ export class NaiveBroadPhase implements BroadPhaseInterface {
   *detectCandidates(): Iterable<ContactCandidatePair> {
     this.updateAABBs();
 
-    for (let i = 0; i < this.colliders.length - 1; i++) {
-      for (let j = i + 1; j < this.colliders.length; j++) {
-        const leftCollider = this.colliders[i];
-        const rightCollider = this.colliders[j];
+    for (let i = 0, n = this.colliders.length - 1; i < n; i++) {
+      const left = this.colliders[i];
+      this.candidatePair[0].collider = left;
+      this.candidatePair[0].shape = left.shape;
 
-        if (!(leftCollider.mask & rightCollider.mask)) {
+      for (let j = i + 1, m = this.colliders.length; j < m; j++) {
+        const right = this.colliders[j];
+
+        if (!(left.mask & right.mask)) {
           continue;
         }
 
-        if (testAABBAABB(leftCollider.aabb, rightCollider.aabb)) {
-          this.candidatePair[0].collider = leftCollider;
-          this.candidatePair[0].shape = leftCollider.shape;
-          this.candidatePair[1].collider = rightCollider;
-          this.candidatePair[1].shape = rightCollider.shape;
+        if (testAABBAABB(left.aabb, right.aabb)) {
+          this.candidatePair[1].collider = right;
+          this.candidatePair[1].shape = right.shape;
           yield this.candidatePair;
         }
       }

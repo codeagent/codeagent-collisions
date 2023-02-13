@@ -56,7 +56,18 @@ export class Contact implements JointInterface {
     }
   }
 
-  updatePenetration(penetration: number): void {
+  patchPenetration(penetration: number): void {
     this.contactConstraint.setPenetration(penetration);
+  }
+
+  patch(contact: ContactInfo): void {
+    this.contactConstraint.patch(contact.point0, contact.depth);
+
+    if (this.frictionConstraint) {
+      this.frictionConstraint.patch(
+        contact.point0,
+        vec2.fromValues(-contact.normal[0], -contact.normal[1])
+      );
+    }
   }
 }

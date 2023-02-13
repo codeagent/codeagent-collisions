@@ -3,24 +3,15 @@ import { SpaceMapping, SpaceMappingInterface, between } from '../../math';
 import { pairId } from '../../utils';
 
 import { ContactManifold } from './contact-manifold';
-import { PairInterface } from './pair.interface';
 
-export class Pair implements PairInterface {
+export class Pair {
   public readonly id: number;
 
   public readonly contactManifold: ContactManifold;
 
-  get spaceMapping(): SpaceMappingInterface {
-    return this._spaceMapping;
-  }
+  public readonly spaceMapping: SpaceMappingInterface;
 
-  get intercontact(): boolean {
-    return this._intercontact;
-  }
-
-  private _spaceMapping: SpaceMapping;
-
-  private _intercontact = true;
+  public intercontact = true;
 
   constructor(
     public readonly collider0: Collider,
@@ -28,7 +19,7 @@ export class Pair implements PairInterface {
     public readonly proximityThreshold: number
   ) {
     this.id = pairId(this.collider0.id, this.collider1.id);
-    this._spaceMapping = between(
+    this.spaceMapping = between(
       this.collider0.transform,
       this.collider1.transform
     );
@@ -40,7 +31,7 @@ export class Pair implements PairInterface {
   }
 
   updateTransform(): void {
-    this._spaceMapping.update(
+    (this.spaceMapping as SpaceMapping).update(
       this.collider0.transform,
       this.collider1.transform
     );
@@ -52,13 +43,5 @@ export class Pair implements PairInterface {
 
   addContact(contactInfo: ContactInfo): void {
     this.contactManifold.addContact(contactInfo);
-  }
-
-  disableIntercontacts(): void {
-    this._intercontact = false;
-  }
-
-  enableIntercontacts(): void {
-    this._intercontact = true;
   }
 }

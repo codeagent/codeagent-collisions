@@ -1,7 +1,7 @@
 import { vec2 } from 'gl-matrix';
 import { Inject, Service } from 'typedi';
 
-import { PairsRegistry, PairsRegistryInterface } from '../../dynamics';
+import { PairsRegistryInterface } from '../../dynamics';
 import { SpaceMappingInterface } from '../../math';
 import { pairId } from '../../utils';
 import {
@@ -32,34 +32,57 @@ export class SatNarrowPhase implements NarrowPhaseInterface {
     const contact: ContactPoint[] = [];
 
     for (const [left, right] of pairs) {
-      const leftShape = left.shape;
-      const rightShape = right.shape;
       const id = pairId(left.collider.id, right.collider.id);
-      this.registry.updateTransform(id);
       const pair = this.registry.getPairById(id);
-      let spaceMapping: SpaceMappingInterface = pair.spaceMapping;
+
+      if (!pair.intercontact) {
+        continue;
+      }
+
+      pair.updateTransform();
 
       contact.length = 0;
 
       // Polygon
-      if (leftShape instanceof Polygon && rightShape instanceof Polygon) {
-        if (testPolyPoly(contact, leftShape, rightShape, spaceMapping)) {
-          yield* this.getContactInfo(contact, left, right, spaceMapping);
+      if (left.shape instanceof Polygon && right.shape instanceof Polygon) {
+        if (testPolyPoly(contact, left.shape, right.shape, pair.spaceMapping)) {
+          yield* this.getContactInfo(contact, left, right, pair.spaceMapping);
         }
-      } else if (leftShape instanceof Polygon && rightShape instanceof Circle) {
-        if (testPolyCircle(contact, leftShape, rightShape, spaceMapping)) {
-          yield* this.getContactInfo(contact, left, right, spaceMapping);
+      } else if (
+        left.shape instanceof Polygon &&
+        right.shape instanceof Circle
+      ) {
+        if (
+          testPolyCircle(contact, left.shape, right.shape, pair.spaceMapping)
+        ) {
+          yield* this.getContactInfo(contact, left, right, pair.spaceMapping);
         }
       }
       // Circle
-      else if (leftShape instanceof Circle && rightShape instanceof Polygon) {
-        spaceMapping = spaceMapping.inverted();
-        if (testPolyCircle(contact, rightShape, leftShape, spaceMapping)) {
-          yield* this.getContactInfo(contact, right, left, spaceMapping);
+      else if (left.shape instanceof Circle && right.shape instanceof Polygon) {
+        if (
+          testPolyCircle(
+            contact,
+            right.shape,
+            left.shape,
+            pair.spaceMapping.inverted()
+          )
+        ) {
+          yield* this.getContactInfo(
+            contact,
+            right,
+            left,
+            pair.spaceMapping.inverted()
+          );
         }
-      } else if (leftShape instanceof Circle && rightShape instanceof Circle) {
-        if (testCircleCircle(contact, leftShape, rightShape, spaceMapping)) {
-          yield* this.getContactInfo(contact, left, right, spaceMapping);
+      } else if (
+        left.shape instanceof Circle &&
+        right.shape instanceof Circle
+      ) {
+        if (
+          testCircleCircle(contact, left.shape, right.shape, pair.spaceMapping)
+        ) {
+          yield* this.getContactInfo(contact, left, right, pair.spaceMapping);
         }
       }
     }

@@ -20,7 +20,16 @@ import { defaultSettings, Settings } from './settings';
 export const configureContainer = (
   settings: Partial<Settings> = {}
 ): ContainerInstance => {
-  settings = { ...defaultSettings, ...settings };
+  const defaultMaterial = {
+    ...defaultSettings.defaultMaterial,
+    ...(settings.defaultMaterial ?? {}),
+  };
+
+  settings = {
+    ...defaultSettings,
+    ...settings,
+    defaultMaterial,
+  };
 
   const container = Container.of(settings.uid);
 

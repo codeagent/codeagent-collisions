@@ -101,7 +101,7 @@ export class PairsRegistry implements PairsRegistryInterface {
         Events.Collide,
         pair.collider0,
         pair.collider1,
-        pair.contactManifold.contacts
+        pair.contactManifold
       );
       this.added.delete(pair);
     }
@@ -111,32 +111,8 @@ export class PairsRegistry implements PairsRegistryInterface {
         Events.CollisionStart,
         pair.collider0,
         pair.collider1,
-        pair.contactManifold.contacts
+        pair.contactManifold
       );
-    }
-  }
-
-  disableIntercontacts(id: number): void {
-    const pair = this.getPairById(id);
-
-    if (pair) {
-      pair.disableIntercontacts();
-    }
-  }
-
-  enableIntercontacts(id: number): void {
-    const pair = this.getPairById(id);
-
-    if (pair) {
-      pair.enableIntercontacts();
-    }
-  }
-
-  updateTransform(id: number): void {
-    const pair = this.getPairById(id);
-
-    if (pair) {
-      pair.updateTransform();
     }
   }
 }

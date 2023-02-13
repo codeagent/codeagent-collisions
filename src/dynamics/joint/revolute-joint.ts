@@ -22,6 +22,7 @@ export interface RevoluteJointDef {
   maxAngle?: number;
   stiffness?: number;
   damping?: number;
+  contacts?: boolean;
 }
 
 export class RevoluteJoint implements JointInterface {

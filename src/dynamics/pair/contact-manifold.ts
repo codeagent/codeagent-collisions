@@ -76,7 +76,7 @@ export class ContactManifold {
         vec2.sqrLen(this.db) <= this.threshold
       ) {
         // if so, update penetration depth and do nothing
-        contact.updatePenetration(contactInfo.depth);
+        contact.patch(contactInfo);
         return;
       }
     }

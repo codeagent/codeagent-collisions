@@ -16,8 +16,8 @@ export class ContactConstraint extends ConstraintBase {
     public readonly world: WorldInterface,
     public readonly bodyA: Readonly<BodyInterface>,
     public readonly bodyB: Readonly<BodyInterface>,
-    public readonly joint: Readonly<vec2>,
-    public readonly normal: Readonly<vec2>, // normal at bodyA
+    public readonly joint: vec2,
+    public readonly normal: vec2, // normal at bodyA
     public penetration: number
   ) {
     super();
@@ -61,6 +61,11 @@ export class ContactConstraint extends ConstraintBase {
   }
 
   setPenetration(penetration: number) {
+    this.penetration = penetration;
+  }
+
+  patch(point: vec2, penetration: number): void {
+    vec2.copy(this.joint, point);
     this.penetration = penetration;
   }
 

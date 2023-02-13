@@ -61,4 +61,9 @@ export class FrictionConstraint extends ConstraintBase {
 
     return { min: -c1, max: c1 };
   }
+
+  patch(point: vec2, normal: vec2): void {
+    vec2.copy(this.joint, point);
+    vec2.copy(this.normal, normal);
+  }
 }

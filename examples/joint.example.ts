@@ -60,7 +60,7 @@ export class JointExample implements ExampleInterface {
       position: vec2.fromValues(-1, -7),
       angle: 0,
     });
-    this.world.addCollider({ body: capsule0, shape: capsuleShape, mask: 0x01 });
+    this.world.addCollider({ body: capsule0, shape: capsuleShape });
 
     const capsule1 = this.world.createBody({
       mass: mass,
@@ -68,7 +68,7 @@ export class JointExample implements ExampleInterface {
       position: vec2.fromValues(1, -7),
       angle: 0,
     });
-    this.world.addCollider({ body: capsule1, shape: capsuleShape, mask: 0x02 });
+    this.world.addCollider({ body: capsule1, shape: capsuleShape });
 
     this.world.addRevoluteJoint({
       bodyA: hinge,
@@ -87,6 +87,7 @@ export class JointExample implements ExampleInterface {
       maxAngle: Math.PI * 0.25,
       stiffness: 1000,
       damping: 10,
+      contacts: false,
     });
   }
 
@@ -108,7 +109,7 @@ export class JointExample implements ExampleInterface {
       position: vec2.fromValues(-5, -2),
       angle: 0,
     });
-    this.world.addCollider({ body: box0, shape: boxShape, mask: 0x0 });
+    this.world.addCollider({ body: box0, shape: boxShape });
 
     const box1 = this.world.createBody({
       mass: mass,
@@ -116,7 +117,7 @@ export class JointExample implements ExampleInterface {
       position: vec2.fromValues(-5, -5),
       angle: 0,
     });
-    this.world.addCollider({ body: box1, shape: boxShape, mask: 0x0 });
+    this.world.addCollider({ body: box1, shape: boxShape });
 
     this.world.addDistanceJoint({
       bodyA: hinge,

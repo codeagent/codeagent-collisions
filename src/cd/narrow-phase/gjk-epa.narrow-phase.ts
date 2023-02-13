@@ -36,11 +36,16 @@ export class GjkEpaNarrowPhase implements NarrowPhaseInterface {
 
     for (const [left, right] of pairs) {
       const id = pairId(left.collider.id, right.collider.id);
-      this.registry.updateTransform(id);
       const pair = this.registry.getPairById(id);
+
+      if (!pair.intercontact) {
+        continue;
+      }
+      pair.updateTransform();
 
       contact.length = 0;
       this.simplex.clear();
+
       vec2.subtract(
         this.initialDir,
         left.collider.body.position,

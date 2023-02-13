@@ -55,6 +55,7 @@ export class LocalIslandsGenerator implements IslandsGeneratorInterface {
       // Depth first dependency traverse
       this.stack.length = 0;
       this.stack.push(body);
+
       while (this.stack.length) {
         const body = this.stack.pop();
 

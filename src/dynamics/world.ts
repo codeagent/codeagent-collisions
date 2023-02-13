@@ -153,6 +153,20 @@ export class World implements WorldInterface {
     jointDef.bodyA.addJoint(joint);
     jointDef.bodyB.addJoint(joint);
 
+    jointDef.contacts ??= true;
+
+    if (
+      !jointDef.contacts &&
+      jointDef.bodyA.collider &&
+      jointDef.bodyB.collider
+    ) {
+      const pair = this.registry.getPairById(
+        pairId(jointDef.bodyA.collider.id, jointDef.bodyB.collider.id)
+      );
+
+      pair.intercontact = false;
+    }
+
     this.dispatch(Events.JointAdded, joint);
 
     return joint;
@@ -170,6 +184,14 @@ export class World implements WorldInterface {
 
     jointDef.bodyA.addJoint(joint);
     jointDef.bodyB.addJoint(joint);
+
+    if (jointDef.bodyA.collider && jointDef.bodyB.collider) {
+      const pair = this.registry.getPairById(
+        pairId(jointDef.bodyA.collider.id, jointDef.bodyB.collider.id)
+      );
+
+      pair.intercontact = false;
+    }
 
     this.dispatch(Events.JointAdded, joint);
 
@@ -272,7 +294,11 @@ export class World implements WorldInterface {
     this.detector.registerCollider(collider);
 
     for (const body of this.bodies.values()) {
-      if (body.collider && body.collider !== collider) {
+      if (
+        !(collider.body.isStatic && body.isStatic) &&
+        body.collider &&
+        body.collider !== collider
+      ) {
         this.registry.registerPair(body.collider, collider);
       }
     }
