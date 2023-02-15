@@ -3,17 +3,19 @@ import { Service } from 'typedi';
 
 import { AABB } from '../aabb';
 import { Collider } from '../collider';
-import { ContactCandidate, ContactCandidatePair } from '../contact';
+import {
+  BroadPhaseInterface,
+  ContactCandidate,
+  ContactCandidatePair,
+} from '../types';
 
-import { BroadPhaseInterface } from './broad-phase.interface';
 import { AABBIntervalKeeper, IntervalType } from './interval';
-import { testAABBAABB, testAABBCapsule } from './tests';
 
 @Service()
 export class SapBroadPhase implements BroadPhaseInterface {
   private readonly colliders = new Set<Collider>();
 
-  private readonly capsuleAABB: AABB = [vec2.create(), vec2.create()];
+  private readonly capsuleAABB = new AABB();
 
   private readonly candidatePair: [ContactCandidate, ContactCandidate] = [
     new ContactCandidate(),
@@ -42,12 +44,12 @@ export class SapBroadPhase implements BroadPhaseInterface {
     radius: number
   ): Iterable<Collider> {
     vec2.set(
-      this.capsuleAABB[0],
+      this.capsuleAABB.min,
       Math.min(p0[0], p1[0]) - radius,
       Math.min(p0[1], p1[1]) - radius
     );
     vec2.set(
-      this.capsuleAABB[1],
+      this.capsuleAABB.max,
       Math.max(p0[0], p1[0]) + radius,
       Math.max(p0[1], p1[1]) + radius
     );
@@ -56,8 +58,8 @@ export class SapBroadPhase implements BroadPhaseInterface {
 
     for (const collider of this.colliders) {
       if (
-        testAABBAABB(this.capsuleAABB, collider.aabb) &&
-        testAABBCapsule(collider.aabb, p0, p1, radius)
+        AABB.testAABB(this.capsuleAABB, collider.aabb) &&
+        AABB.testCapsule(collider.aabb, p0, p1, radius)
       ) {
         yield collider;
       }

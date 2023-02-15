@@ -3,16 +3,17 @@ import { Service } from 'typedi';
 
 import { AABB } from '../aabb';
 import { Collider } from '../collider';
-import { ContactCandidate, ContactCandidatePair } from '../contact';
-
-import { BroadPhaseInterface } from './broad-phase.interface';
-import { testAABBAABB, testAABBCapsule } from './tests';
+import {
+  ContactCandidate,
+  ContactCandidatePair,
+  BroadPhaseInterface,
+} from '../types';
 
 @Service()
 export class NaiveBroadPhase implements BroadPhaseInterface {
   private readonly colliders: Collider[] = [];
 
-  private readonly capsuleAABB: AABB = [vec2.create(), vec2.create()];
+  private readonly capsuleAABB = new AABB();
 
   private readonly candidatePair: [ContactCandidate, ContactCandidate] = [
     new ContactCandidate(),
@@ -33,12 +34,12 @@ export class NaiveBroadPhase implements BroadPhaseInterface {
     radius: number
   ): Iterable<Collider> {
     vec2.set(
-      this.capsuleAABB[0],
+      this.capsuleAABB.min,
       Math.min(p0[0], p1[0]) - radius,
       Math.min(p0[1], p1[1]) - radius
     );
     vec2.set(
-      this.capsuleAABB[1],
+      this.capsuleAABB.max,
       Math.max(p0[0], p1[0]) + radius,
       Math.max(p0[1], p1[1]) + radius
     );
@@ -47,8 +48,8 @@ export class NaiveBroadPhase implements BroadPhaseInterface {
 
     for (const collider of this.colliders) {
       if (
-        testAABBAABB(this.capsuleAABB, collider.aabb) &&
-        testAABBCapsule(collider.aabb, p0, p1, radius)
+        AABB.testAABB(this.capsuleAABB, collider.aabb) &&
+        AABB.testCapsule(collider.aabb, p0, p1, radius)
       ) {
         yield collider;
       }
@@ -70,7 +71,11 @@ export class NaiveBroadPhase implements BroadPhaseInterface {
           continue;
         }
 
-        if (testAABBAABB(left.aabb, right.aabb)) {
+        if (left.body.isStatic && right.body.isStatic) {
+          continue;
+        }
+
+        if (AABB.testAABB(left.aabb, right.aabb)) {
           this.candidatePair[1].collider = right;
           this.candidatePair[1].shape = right.shape;
           yield this.candidatePair;

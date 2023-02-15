@@ -1,9 +1,9 @@
 import { Inject, Service } from 'typedi';
 
-import { Settings } from '../../settings';
-import { Matrix, projectedGaussSeidel } from '../csr';
+import { Settings } from '../settings';
 
-import { LinearEquationsSolverInterface } from './linear-equations-solver.interface';
+import { Matrix, projectedGaussSeidel } from './csr';
+import { LinearEquationsSolverInterface } from './types';
 
 @Service()
 export class GaussSeidelSolver implements LinearEquationsSolverInterface {

@@ -1,9 +1,9 @@
 import { mat3 } from 'gl-matrix';
 
-import { BodyInterface, MaterialDef, Material } from '../dynamics';
+import { BodyInterface, MaterialDef, Material } from '../../dynamics';
+import { AABB } from '../aabb';
 
-import { AABB } from './aabb';
-import { Shape } from './shape';
+import { Shape } from './shape.interface';
 
 export interface ColliderDef {
   body: BodyInterface;

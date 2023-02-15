@@ -1,4 +1,4 @@
-import { Collider, ContactInfo } from '../../cd';
+import { Collider, ContactInfo } from '..';
 import { SpaceMapping, SpaceMappingInterface, between } from '../../math';
 import { pairId } from '../../utils';
 

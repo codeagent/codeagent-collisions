@@ -7,7 +7,7 @@ import {
   ORIGIN,
   SpaceMappingInterface,
 } from '../../../math';
-import { Convex } from '../../shape';
+import { Convex } from '../../types';
 
 import { support } from './support';
 

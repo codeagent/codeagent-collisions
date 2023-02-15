@@ -1,4 +1,4 @@
-import { ContactCandidatePair } from '../contact';
+import { ContactCandidatePair } from './contact';
 
 export interface MidPhaseInterface {
   detectCandidates(

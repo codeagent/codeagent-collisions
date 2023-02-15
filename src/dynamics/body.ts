@@ -4,8 +4,8 @@ import { Collider } from '../cd';
 import { Events } from '../events';
 import { affineInverse, cross } from '../math';
 
-import { BodyInterface } from './body.interface';
-import { Contact, JointInterface } from './joint';
+import { Contact } from './joint';
+import { BodyInterface, JointInterface } from './types';
 import { World } from './world';
 
 export class Body implements BodyInterface {

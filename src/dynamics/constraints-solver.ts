@@ -11,13 +11,12 @@ import {
   MxDxMt,
   LinearEquationsSolverInterface,
   Matrix,
-} from '../../math';
-import { Settings } from '../../settings';
-import { Memory, Stack } from '../../utils';
-import { Body } from '../body';
-import { ConstraintInterface } from '../constraint';
+} from '../math';
+import { Settings } from '../settings';
+import { Memory, Stack } from '../utils';
 
-import { ConstraintsSolverInterface } from './constraints-solver.interface';
+import { Body } from './body';
+import { ConstraintsSolverInterface, ConstraintInterface } from './types';
 
 @Service()
 export class ConstraintsSolver implements ConstraintsSolverInterface {

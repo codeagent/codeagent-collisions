@@ -3,13 +3,16 @@ import { Inject, Service } from 'typedi';
 
 import { Settings } from '../settings';
 
-import { BroadPhaseInterface, testCapsuleCapsule } from './broad-phase';
+import { testCapsuleCapsule } from './broad-phase';
 import { Collider } from './collider';
-import { ContactInfo } from './contact';
-import { MidPhaseInterface } from './mid-phase';
-import { NarrowPhaseInterface } from './narrow-phase';
 import { MeshShape } from './shape';
 import { getToi } from './toi';
+import {
+  ContactInfo,
+  MidPhaseInterface,
+  BroadPhaseInterface,
+  NarrowPhaseInterface,
+} from './types';
 
 @Service()
 export class CollisionDetector {

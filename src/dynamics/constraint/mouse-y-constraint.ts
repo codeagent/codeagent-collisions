@@ -1,8 +1,6 @@
 import { vec2 } from 'gl-matrix';
 
-import { BodyInterface } from '../body.interface';
-import { MouseControlInterface } from '../joint';
-import { WorldInterface } from '../world.interface';
+import { BodyInterface, WorldInterface, MouseControlInterface } from '../types';
 
 import { ConstraintBase } from './constraint.base';
 

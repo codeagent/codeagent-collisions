@@ -1,17 +1,15 @@
 import { mat3, vec2 } from 'gl-matrix';
 
+import { getUnique, getConvexHull } from '../../utils';
+import { AABB } from '../aabb';
 import {
-  getUnique,
-  getConvexHull,
+  Mesh,
+  MeshOBBNode,
   generateOBBTree,
   getMeshCentroid,
   getMeshItertia,
-  Mesh,
-  MeshOBBNode,
-} from '../../utils';
-import { AABB } from '../aabb';
-
-import { TestTarget, MassDistribution, Shape } from './shape.interface';
+} from '../mesh';
+import { TestTarget, MassDistribution, Shape } from '../types';
 
 export class MeshShape implements Shape, MassDistribution {
   readonly radius: number = 0;
@@ -70,8 +68,8 @@ export class MeshShape implements Shape, MassDistribution {
       }
     }
 
-    vec2.set(out[0], minX, minY);
-    vec2.set(out[1], maxX, maxY);
+    vec2.set(out.min, minX, minY);
+    vec2.set(out.max, maxX, maxY);
 
     return out;
   }

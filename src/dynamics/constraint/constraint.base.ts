@@ -1,9 +1,8 @@
-import { BodyInterface } from '../body.interface';
-
 import {
+  BodyInterface,
   ConstraintInterface,
   ConstraintClamping,
-} from './constraint.interface';
+} from '../types';
 
 export abstract class ConstraintBase implements ConstraintInterface {
   readonly bodyA: Readonly<BodyInterface> = null;

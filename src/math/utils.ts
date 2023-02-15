@@ -1,5 +1,17 @@
 import { mat3, vec2, vec3 } from 'gl-matrix';
 
+const ab = vec2.create();
+const ap = vec2.create();
+const ac = vec2.create();
+const ad = vec2.create();
+const cd = vec2.create();
+const ca = vec2.create();
+const cb = vec2.create();
+const c0 = vec2.create();
+const c1 = vec2.create();
+const c2 = vec2.create();
+const c3 = vec2.create();
+
 export const ORIGIN: Readonly<vec2> = vec2.create();
 
 export const cross = (a: Readonly<vec2>, b: Readonly<vec2>) =>
@@ -35,18 +47,6 @@ export const areEqual = <T extends ArrayLike<number>>(
   }
   return true;
 };
-
-const ab = vec2.create();
-const ap = vec2.create();
-const ac = vec2.create();
-const ad = vec2.create();
-const cd = vec2.create();
-const ca = vec2.create();
-const cb = vec2.create();
-const c0 = vec2.create();
-const c1 = vec2.create();
-const c2 = vec2.create();
-const c3 = vec2.create();
 
 export const closestPointToLineSegment = (
   out: vec2,

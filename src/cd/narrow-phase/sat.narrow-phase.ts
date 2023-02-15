@@ -1,17 +1,17 @@
 import { vec2 } from 'gl-matrix';
 import { Inject, Service } from 'typedi';
 
-import { PairsRegistryInterface } from '../../dynamics';
 import { SpaceMappingInterface } from '../../math';
 import { pairId } from '../../utils';
+import { Circle, Polygon } from '../shape';
 import {
+  PairsRegistryInterface,
   ContactCandidatePair,
   ContactInfo,
   ContactCandidate,
-} from '../contact';
-import { Circle, Polygon } from '../shape';
+  NarrowPhaseInterface,
+} from '../types';
 
-import { NarrowPhaseInterface } from './narrow-phase.interface';
 import {
   testCircleCircle,
   ContactPoint,

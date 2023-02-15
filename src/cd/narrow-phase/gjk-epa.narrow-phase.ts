@@ -1,11 +1,15 @@
 import { vec2 } from 'gl-matrix';
 import { Inject, Service } from 'typedi';
 
-import { PairsRegistryInterface } from '../../dynamics';
 import { Settings } from '../../settings';
 import { pairId } from '../../utils';
-import { ContactCandidatePair, ContactInfo } from '../contact';
 import { Circle, Polygon } from '../shape';
+import {
+  PairsRegistryInterface,
+  ContactCandidatePair,
+  ContactInfo,
+} from '../types';
+import { NarrowPhaseInterface } from '../types/narrow-phase.interface';
 
 import { distance, epa, mdv } from './gjk-epa';
 import {
@@ -13,7 +17,6 @@ import {
   getPolyCircleContactManifold,
   getPolyPolyContactManifold,
 } from './gjk-epa/manifold';
-import { NarrowPhaseInterface } from './narrow-phase.interface';
 
 @Service()
 export class GjkEpaNarrowPhase implements NarrowPhaseInterface {

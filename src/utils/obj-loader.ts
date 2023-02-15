@@ -1,6 +1,6 @@
 import { vec2 } from 'gl-matrix';
 
-import { Mesh, MeshTriangle } from './mesh';
+import { Mesh, MeshTriangle } from '../cd/mesh';
 
 export interface MeshCollection {
   [name: string]: Mesh;

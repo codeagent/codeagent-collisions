@@ -1,4 +1,4 @@
-import { BodyInterface } from '../body.interface';
+import { BodyInterface } from './body.interface';
 
 export interface ConstraintClamping {
   min: number;

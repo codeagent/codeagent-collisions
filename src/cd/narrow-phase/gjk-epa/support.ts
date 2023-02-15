@@ -1,7 +1,7 @@
 import { vec2 } from 'gl-matrix';
 
 import { SpaceMappingInterface } from '../../../math';
-import { Convex } from '../../shape';
+import { Convex } from '../../types';
 
 const support0 = vec2.create();
 const support1 = vec2.create();

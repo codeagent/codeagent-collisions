@@ -6,17 +6,15 @@ import {
   Collider,
   ColliderDef,
   ColliderInterface,
+  PairsRegistryInterface,
 } from '../cd';
 import { Events } from '../events';
 import { Settings } from '../settings';
 import { Clock, EventDispatcher, IdManager, pairId } from '../utils';
 
 import { Body } from './body';
-import { BodyDef, BodyInterface } from './body.interface';
-import { IslandsGeneratorInterface } from './island';
 import {
   DistanceJoint,
-  JointInterface,
   MouseJoint,
   PrismaticJoint,
   RevoluteJoint,
@@ -34,8 +32,13 @@ import {
   MotorDef,
 } from './joint';
 import { Material } from './material';
-import { PairsRegistryInterface } from './pair';
-import { WorldInterface } from './world.interface';
+import {
+  IslandsGeneratorInterface,
+  BodyDef,
+  BodyInterface,
+  WorldInterface,
+  JointInterface,
+} from './types';
 
 @Service()
 export class World implements WorldInterface {

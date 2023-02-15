@@ -1,8 +1,8 @@
 import { vec2 } from 'gl-matrix';
 
-import { Collider, ContactInfo } from '../../cd';
-import { Body } from '../body';
-import { Contact } from '../joint';
+import { Body, Contact } from '../../dynamics';
+import { Collider } from '../collider';
+import { ContactInfo } from '../types/contact';
 
 export class ContactManifold {
   private readonly a = vec2.create();

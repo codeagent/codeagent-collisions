@@ -1,7 +1,8 @@
 import { vec2 } from 'gl-matrix';
 
 import { Collider } from '../collider';
-import { ContactCandidatePair } from '../contact';
+
+import { ContactCandidatePair } from './contact';
 
 export interface BroadPhaseInterface {
   registerCollider(collider: Collider): void;

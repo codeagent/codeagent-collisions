@@ -3,8 +3,7 @@ import { mat3, vec2 } from 'gl-matrix';
 import { BodyInterface, Material } from '../dynamics';
 
 import { AABB } from './aabb';
-import { ColliderInterface } from './collider.interface';
-import { Shape } from './shape';
+import { Shape, ColliderInterface } from './types';
 
 export class Collider implements ColliderInterface {
   get id(): number {
@@ -15,11 +14,7 @@ export class Collider implements ColliderInterface {
     return this.body.transform;
   }
 
-  get aabb(): Readonly<AABB> {
-    return this._aabb;
-  }
-
-  private readonly _aabb: AABB = [vec2.create(), vec2.create()];
+  public readonly aabb = new AABB();
 
   constructor(
     public readonly body: BodyInterface,
@@ -30,6 +25,6 @@ export class Collider implements ColliderInterface {
   ) {}
 
   updateAABB(): void {
-    this.shape.aabb(this._aabb, this.body.transform);
+    this.shape.aabb(this.aabb, this.body.transform);
   }
 }

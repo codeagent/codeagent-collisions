@@ -1,6 +1,7 @@
-import { Collider, ContactInfo } from '../../cd';
+import { Collider } from '../collider';
+import { Pair } from '../pair';
 
-import { Pair } from './pair';
+import { ContactInfo } from './contact';
 
 export interface PairsRegistryInterface {
   getPairById(id: number): Pair;

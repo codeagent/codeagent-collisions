@@ -1,5 +1,6 @@
 import { Body } from '../body';
-import { ConstraintInterface } from '../constraint';
+
+import { ConstraintInterface } from './constraint.interface';
 
 export interface ConstraintsSolverInterface {
   solve(

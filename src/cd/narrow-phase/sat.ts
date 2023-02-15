@@ -6,7 +6,8 @@ import {
   fromBarycentric,
   clipByPlane,
 } from '../../math';
-import { Circle, Convex, Edge, Polygon, Vertex } from '../shape';
+import { Circle, Edge, Polygon, Vertex } from '../shape';
+import { Convex } from '../types';
 
 // --
 class BestEdgeVertexQuery {

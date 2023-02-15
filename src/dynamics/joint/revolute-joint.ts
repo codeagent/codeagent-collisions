@@ -1,17 +1,18 @@
 import { vec2 } from 'gl-matrix';
 
-import { BodyInterface } from '../body.interface';
 import {
-  ConstraintInterface,
   MaxAngleConstraint,
   MinAngleConstraint,
   RevoluteXConstraint,
   RevoluteYConstraint,
   SpiralSpringConstraint,
 } from '../constraint';
-import { WorldInterface } from '../world.interface';
-
-import { JointInterface } from './joint.interface';
+import {
+  BodyInterface,
+  WorldInterface,
+  JointInterface,
+  ConstraintInterface,
+} from '../types';
 
 export interface RevoluteJointDef {
   bodyA: Readonly<BodyInterface>;

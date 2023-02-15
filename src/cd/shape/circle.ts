@@ -1,8 +1,7 @@
 import { mat3, vec2 } from 'gl-matrix';
 
 import { AABB } from '../aabb';
-
-import { Shape, MassDistribution } from './shape.interface';
+import { Shape, MassDistribution } from '../types';
 
 export class Circle implements Shape, MassDistribution {
   constructor(readonly radius: number) {}
@@ -15,8 +14,8 @@ export class Circle implements Shape, MassDistribution {
   aabb(out: AABB, transform: mat3): AABB {
     const cx = transform[6];
     const cy = transform[7];
-    vec2.set(out[0], cx - this.radius, cy - this.radius);
-    vec2.set(out[1], cx + this.radius, cy + this.radius);
+    vec2.set(out.min, cx - this.radius, cy - this.radius);
+    vec2.set(out.max, cx + this.radius, cy + this.radius);
     return out;
   }
 

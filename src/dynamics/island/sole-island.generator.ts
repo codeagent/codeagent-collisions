@@ -3,10 +3,12 @@ import { Inject, Service } from 'typedi';
 import { Settings } from '../../settings';
 import { Memory } from '../../utils';
 import { Body } from '../body';
-import { JointInterface } from '../joint';
-import { ConstraintsSolverInterface } from '../solver';
+import {
+  JointInterface,
+  ConstraintsSolverInterface,
+  IslandsGeneratorInterface,
+} from '../types';
 
-import { IslandsGeneratorInterface } from './islands-generator.interface';
 import { WorldIsland } from './world-island';
 
 @Service()

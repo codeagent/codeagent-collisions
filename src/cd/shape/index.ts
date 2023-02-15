@@ -1,4 +1,3 @@
-export * from './shape.interface';
 export * from './box';
 export * from './circle';
 export * from './mesh';

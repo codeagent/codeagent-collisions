@@ -1,5 +1,4 @@
-import { BodyInterface } from '../body.interface';
-import { WorldInterface } from '../world.interface';
+import { BodyInterface, WorldInterface } from '../types';
 
 import { ConstraintBase } from './constraint.base';
 

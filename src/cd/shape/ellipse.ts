@@ -1,15 +1,18 @@
 import { mat3, vec2 } from 'gl-matrix';
 
-import { AABB, getAABBFromSupport } from '../aabb';
+import { AABB } from '../aabb';
+import { Convex } from '../types';
 
 import { Polygon } from './polygon';
 
-const createEllipseSupportFunc = (r0: number, r1: number) => {
-  return (out: vec2, dir: vec2): vec2 => {
-    const a2 = r0 * r0;
-    const b2 = r1 * r1;
-    const denom = Math.sqrt(dir[0] * dir[0] * a2 + dir[1] * dir[1] * b2);
-    return vec2.set(out, (dir[0] * a2) / denom, (dir[1] * b2) / denom);
+const createEllipseConvex = (r0: number, r1: number): Convex => {
+  return {
+    support(out: vec2, dir: vec2): vec2 {
+      const a2 = r0 * r0;
+      const b2 = r1 * r1;
+      const denom = Math.sqrt(dir[0] * dir[0] * a2 + dir[1] * dir[1] * b2);
+      return vec2.set(out, (dir[0] * a2) / denom, (dir[1] * b2) / denom);
+    },
   };
 };
 
@@ -34,7 +37,7 @@ const createEllipsePoints = (
 };
 
 export class Ellipse extends Polygon {
-  private ellipseSupportFun: (out: vec2, dir: Readonly<vec2>) => vec2;
+  private readonly convex: Convex;
 
   /**
    * @param a radius along x axis
@@ -46,11 +49,7 @@ export class Ellipse extends Polygon {
     public readonly subdivisions = 32
   ) {
     super(createEllipsePoints(a, b, subdivisions));
-    this.ellipseSupportFun = createEllipseSupportFunc(a, b);
-  }
-
-  aabb(out: AABB, transform: mat3): AABB {
-    return getAABBFromSupport(out, this.ellipseSupportFun, transform);
+    this.convex = createEllipseConvex(a, b);
   }
 
   testPoint(point: vec2): boolean {
@@ -59,5 +58,9 @@ export class Ellipse extends Polygon {
         (point[1] * point[1]) / this.b / this.b <
       1.0
     );
+  }
+
+  aabb(out: AABB, transform: mat3): AABB {
+    return AABB.fromConvex(out, this.convex, transform);
   }
 }

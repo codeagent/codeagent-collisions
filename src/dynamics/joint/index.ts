@@ -1,4 +1,3 @@
-export * from './joint.interface';
 export * from './distance-joint';
 export * from './prismatic-joint';
 export * from './revolute-joint';

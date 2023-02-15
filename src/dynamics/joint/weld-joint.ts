@@ -1,14 +1,11 @@
 import { vec2 } from 'gl-matrix';
 
-import { BodyInterface } from '../body.interface';
 import {
   AngleConstraint,
   RevoluteXConstraint,
   RevoluteYConstraint,
 } from '../constraint';
-import { WorldInterface } from '../world.interface';
-
-import { JointInterface } from './joint.interface';
+import { BodyInterface, WorldInterface, JointInterface } from '../types';
 
 export interface WeldJointDef {
   bodyA: Readonly<BodyInterface>;

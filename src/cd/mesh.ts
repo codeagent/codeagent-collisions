@@ -1,7 +1,10 @@
 import { mat2, mat3, vec2, vec3 } from 'gl-matrix';
 
-import { Polygon as PolygonShape, OBB, OBBNode } from '../cd';
 import { affineInverse, getPolygonSignedArea } from '../math';
+
+import { OBB } from './obb';
+import { OBBNode } from './obb-tree';
+import { Polygon } from './shape';
 
 export interface MeshTriangle {
   p0: vec2;
@@ -146,7 +149,7 @@ export const calculateOBB = (mesh: Readonly<Mesh>): OBB => {
 
 export type MeshOBBNode = OBBNode<{
   triangle: MeshTriangle;
-  triangleShape: PolygonShape;
+  triangleShape: Polygon;
 }>;
 
 export const centroid = (triangle: MeshTriangle) =>
@@ -156,11 +159,7 @@ export const centroid = (triangle: MeshTriangle) =>
   );
 
 export const generateOBBTree = (mesh: Readonly<Mesh>): MeshOBBNode => {
-  const root: MeshOBBNode = {
-    obb: calculateOBB(mesh),
-    children: [],
-    leaf: false,
-  };
+  const root: MeshOBBNode = new OBBNode(calculateOBB(mesh));
 
   const queue: { node: MeshOBBNode; soup: Readonly<Mesh> }[] = [
     {
@@ -213,22 +212,14 @@ export const generateOBBTree = (mesh: Readonly<Mesh>): MeshOBBNode => {
             continue;
           }
 
-          const left: MeshOBBNode = {
-            obb: calculateOBB(negative),
-            children: [],
-            leaf: false,
-          };
+          const left: MeshOBBNode = new OBBNode(calculateOBB(negative));
           parent.children.push(left);
           queue.push({
             node: left,
             soup: negative,
           });
 
-          const right: MeshOBBNode = {
-            obb: calculateOBB(positive),
-            children: [],
-            leaf: false,
-          };
+          const right: MeshOBBNode = new OBBNode(calculateOBB(positive));
           parent.children.push(right);
           queue.push({
             node: right,
@@ -245,11 +236,7 @@ export const generateOBBTree = (mesh: Readonly<Mesh>): MeshOBBNode => {
       // still nothing: drop each triangle in its own node
       if (!done) {
         for (const triangle of soup) {
-          const node: MeshOBBNode = {
-            obb: calculateOBB([triangle]),
-            children: [],
-            leaf: false,
-          };
+          const node: MeshOBBNode = new OBBNode(calculateOBB([triangle]));
           parent.children.push(node);
           queue.push({
             node,
@@ -260,10 +247,7 @@ export const generateOBBTree = (mesh: Readonly<Mesh>): MeshOBBNode => {
     } else {
       parent.payload = {
         triangle: soup[0],
-        triangleShape: new PolygonShape(
-          [soup[0].p0, soup[0].p1, soup[0].p2],
-          false
-        ),
+        triangleShape: new Polygon([soup[0].p0, soup[0].p1, soup[0].p2], false),
       };
       parent.leaf = true;
     }

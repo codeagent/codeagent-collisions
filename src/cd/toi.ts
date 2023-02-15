@@ -4,7 +4,7 @@ import { BodyInterface } from '../dynamics';
 import { between } from '../math';
 
 import * as gjk from './narrow-phase/gjk-epa';
-import { Shape } from './shape';
+import { Shape } from './types';
 
 class BodyProxy {
   public shape: Shape;

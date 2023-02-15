@@ -1,7 +1,8 @@
 import { vec2 } from 'gl-matrix';
 
-import { Collider } from './collider';
-import { Shape } from './shape';
+import { Collider } from '../collider';
+
+import { Shape } from './shape.interface';
 
 export class ContactCandidate {
   constructor(
@@ -11,7 +12,7 @@ export class ContactCandidate {
 }
 
 export type ContactCandidatePair = Readonly<
-  [Readonly<ContactCandidate>, Readonly<ContactCandidate>]
+  [ContactCandidate, ContactCandidate]
 >;
 
 export interface ContactInfo {

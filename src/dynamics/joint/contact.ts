@@ -1,10 +1,8 @@
 import { vec2 } from 'gl-matrix';
 
 import { ContactInfo } from '../../cd';
-import { BodyInterface } from '../body.interface';
 import { ContactConstraint, FrictionConstraint } from '../constraint';
-
-import { JointInterface } from './joint.interface';
+import { BodyInterface, JointInterface } from '../types';
 
 export class Contact implements JointInterface {
   get bodyA(): BodyInterface {

@@ -4,9 +4,11 @@ import { VmV, VpVxS } from '../../math';
 import { Settings } from '../../settings';
 import { Memory, Stack } from '../../utils';
 import { Body } from '../body';
-import { ConstraintInterface } from '../constraint';
-import { JointInterface } from '../joint';
-import { ConstraintsSolverInterface } from '../solver';
+import {
+  ConstraintInterface,
+  JointInterface,
+  ConstraintsSolverInterface,
+} from '../types';
 
 export class WorldIsland {
   get sleeping() {

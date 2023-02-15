@@ -1,18 +1,13 @@
 import { vec2 } from 'gl-matrix';
 
-import { BodyInterface } from '../body.interface';
+import { MouseXConstraint, MouseYConstraint } from '../constraint';
 import {
+  BodyInterface,
+  WorldInterface,
+  JointInterface,
   ConstraintInterface,
-  MouseXConstraint,
-  MouseYConstraint,
-} from '../constraint';
-import { WorldInterface } from '../world.interface';
-
-import { JointInterface } from './joint.interface';
-
-export interface MouseControlInterface {
-  getCursorPosition(out: vec2): Readonly<vec2>;
-}
+  MouseControlInterface,
+} from '../types';
 
 export interface MouseJointDef {
   control: MouseControlInterface;

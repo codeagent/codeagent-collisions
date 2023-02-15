@@ -1,18 +1,21 @@
 import { mat3, vec2 } from 'gl-matrix';
 
 import { closestPointToLineSegment, fromBarycentric } from '../../math';
-import { AABB, getAABBFromSupport } from '../aabb';
+import { AABB } from '../aabb';
+import { Convex } from '../types';
 
 import { Polygon } from './polygon';
 
-const createCapsuleSupportFunc = (radius: number, height: number) => {
-  return (out: vec2, dir: vec2): vec2 => {
-    vec2.normalize(out, dir);
-    return vec2.set(
-      out,
-      out[0] * radius,
-      out[1] * radius + Math.sign(out[1]) * height
-    );
+const createCapsuleConvex = (radius: number, height: number): Convex => {
+  return {
+    support(out: vec2, dir: vec2): vec2 {
+      vec2.normalize(out, dir);
+      return vec2.set(
+        out,
+        out[0] * radius,
+        out[1] * radius + Math.sign(out[1]) * height
+      );
+    },
   };
 };
 
@@ -39,7 +42,7 @@ const createCapsulePoints = (
 
 // vertically aligned capsule
 export class Capsule extends Polygon {
-  private capsuleSupportFun: (out: vec2, dir: Readonly<vec2>) => vec2;
+  private readonly convex: Convex;
 
   constructor(
     public readonly r: number,
@@ -47,7 +50,7 @@ export class Capsule extends Polygon {
     public readonly subdivisions = 16
   ) {
     super(createCapsulePoints(r, height, subdivisions));
-    this.capsuleSupportFun = createCapsuleSupportFunc(r, height * 0.5);
+    this.convex = createCapsuleConvex(r, height * 0.5);
   }
 
   testPoint(point: vec2): boolean {
@@ -62,6 +65,6 @@ export class Capsule extends Polygon {
   }
 
   aabb(out: AABB, transform: mat3): AABB {
-    return getAABBFromSupport(out, this.capsuleSupportFun, transform);
+    return AABB.fromConvex(out, this.convex, transform);
   }
 }

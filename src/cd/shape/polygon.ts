@@ -2,10 +2,10 @@ import { mat3, vec2, vec3 } from 'gl-matrix';
 
 import { getPolygonCentroid, getPolygonSignedArea } from '../../math';
 import { AABB } from '../aabb';
-
-import { Shape, MassDistribution } from './shape.interface';
+import { Shape, MassDistribution } from '../types';
 
 const v = vec2.create();
+
 export class Vertex {
   public readonly normal: Readonly<vec2>;
 
@@ -15,7 +15,7 @@ export class Vertex {
 
   public readonly edge0: Edge = null; // incoming
 
-  public readonly edge1: Edge = null; // outcoming
+  public readonly edge1: Edge = null; // outgoing
 
   constructor(public readonly point: Readonly<vec2>) {}
 }
@@ -112,8 +112,8 @@ export class Polygon implements Shape, MassDistribution {
       }
     }
 
-    vec2.set(out[0], minX, minY);
-    vec2.set(out[1], maxX, maxY);
+    vec2.set(out.min, minX, minY);
+    vec2.set(out.max, maxX, maxY);
 
     return out;
   }

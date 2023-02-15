@@ -1,11 +1,8 @@
-import { ColliderDef, ColliderInterface } from '../cd';
-import { Events } from '../events';
-import { Settings } from '../settings';
-
-import { BodyDef, BodyInterface } from './body.interface';
+import { ColliderDef, ColliderInterface } from '../../cd';
+import { Events } from '../../events';
+import { Settings } from '../../settings';
 import {
   DistanceJointDef,
-  JointInterface,
   MotorDef,
   MouseJointDef,
   PrismaticJointDef,
@@ -13,7 +10,10 @@ import {
   SpringDef,
   WeldJointDef,
   WheelJointDef,
-} from './joint';
+} from '../joint';
+
+import { BodyDef, BodyInterface } from './body.interface';
+import { JointInterface } from './joint.interface';
 
 export interface WorldInterface extends Iterable<BodyInterface> {
   readonly settings: Readonly<Settings>;

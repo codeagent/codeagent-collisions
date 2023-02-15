@@ -6,13 +6,13 @@ import {
   MidPhase,
   GjkEpaNarrowPhase,
   SatNarrowPhase,
+  PairsRegistry,
 } from './cd';
 import {
   LocalIslandsGenerator,
   SoleIslandGenerator,
   ConstraintsSolver,
   World,
-  PairsRegistry,
 } from './dynamics';
 import { GaussSeidelSolver } from './math';
 import { defaultSettings, Settings } from './settings';

@@ -1,4 +1,3 @@
-export * from './constraint.interface';
 export * from './contact-constraint';
 export * from './distance-constraint';
 export * from './min-distance-constraint';

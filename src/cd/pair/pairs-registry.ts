@@ -1,12 +1,12 @@
 import { Inject, Service } from 'typedi';
 
-import { Collider, ContactInfo } from '../../cd';
+import { Collider, ContactInfo } from '..';
 import { Events } from '../../events';
 import { Settings } from '../../settings';
 import { EventDispatcher, pairId } from '../../utils';
+import { PairsRegistryInterface } from '../types';
 
 import { Pair } from './pair';
-import { PairsRegistryInterface } from './pair-registry.interface';
 
 @Service()
 export class PairsRegistry implements PairsRegistryInterface {
