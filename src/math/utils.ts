@@ -1,16 +1,19 @@
 import { mat3, vec2, vec3 } from 'gl-matrix';
 
 const ab = vec2.create();
-const ap = vec2.create();
 const ac = vec2.create();
 const ad = vec2.create();
-const cd = vec2.create();
-const ca = vec2.create();
-const cb = vec2.create();
+const ap = vec2.create();
+const bc = vec2.create();
+const bp = vec2.create();
 const c0 = vec2.create();
 const c1 = vec2.create();
 const c2 = vec2.create();
 const c3 = vec2.create();
+const ca = vec2.create();
+const cb = vec2.create();
+const cd = vec2.create();
+const cp = vec2.create();
 
 export const ORIGIN: Readonly<vec2> = vec2.create();
 
@@ -151,12 +154,12 @@ export const closestPointToTriangle = (
   c: Readonly<vec2>,
   p: Readonly<vec2>
 ): vec3 => {
-  const ab = vec2.subtract(vec2.create(), b, a);
-  const ac = vec2.subtract(vec2.create(), c, a);
-  const bc = vec2.subtract(vec2.create(), c, b);
-  const ap = vec2.subtract(vec2.create(), p, a);
-  const bp = vec2.subtract(vec2.create(), p, b);
-  const cp = vec2.subtract(vec2.create(), p, c);
+  vec2.subtract(ab, b, a);
+  vec2.subtract(ac, c, a);
+  vec2.subtract(bc, c, b);
+  vec2.subtract(ap, p, a);
+  vec2.subtract(bp, p, b);
+  vec2.subtract(cp, p, c);
 
   // Compute parametric position s for projection P’ of P on AB,
   // P’ = A + s*AB, s = snom/(snom+sdenom)
@@ -183,7 +186,7 @@ export const closestPointToTriangle = (
   }
 
   // P is outside (or on) AB if the triple scalar product [N PA PB] <= 0
-  const n = vec2.cross(vec3.create(), ab, ac)[2];
+  const n = cross(ab, ac);
   const vc = n * cross(ap, bp);
 
   // If P outside AB and within feature region of AB,
@@ -227,7 +230,7 @@ export const fromBarycentric = <T extends ArrayLike<number>>(
   ...points: Readonly<vec2>[]
 ) => {
   vec2.set(out, 0.0, 0.0);
-  for (let i = 0; i < barycentric.length; i++) {
+  for (let i = 0, len = barycentric.length; i < len; i++) {
     vec2.scaleAndAdd(out, out, points[i], barycentric[i]);
   }
   return out;
@@ -244,7 +247,7 @@ export const transformMat3Vec = (
 
 export const getPolygonSignedArea = (polygon: Readonly<vec2[]>): number => {
   let area = 0.0;
-  for (let i = 0; i < polygon.length; i++) {
+  for (let i = 0, len = polygon.length; i < len; i++) {
     const p0 = polygon[i];
     const p1 = polygon[(i + 1) % polygon.length];
     area += p0[0] * p1[1] - p1[0] * p0[1];
@@ -258,7 +261,7 @@ export const getPolygonCentroid = (
 ): vec2 => {
   let cx = 0.0;
   let cy = 0.0;
-  for (let i = 0; i < polygon.length; i++) {
+  for (let i = 0, len = polygon.length; i < len; i++) {
     const p0 = polygon[i];
     const p1 = polygon[(i + 1) % polygon.length];
     const cross = p0[0] * p1[1] - p1[0] * p0[1];

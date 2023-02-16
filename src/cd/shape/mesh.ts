@@ -6,19 +6,22 @@ import {
   Mesh,
   MeshOBBNode,
   generateOBBTree,
+  getLeafs,
   getMeshCentroid,
   getMeshItertia,
 } from '../mesh';
-import { TestTarget, MassDistribution, Shape } from '../types';
+import { MassDistribution, Shape } from '../types';
+
+import { Polygon } from './polygon';
 
 export class MeshShape implements Shape, MassDistribution {
   readonly radius: number = 0;
 
   readonly obbTree: MeshOBBNode;
 
-  private readonly triangles = new Array<TestTarget>();
+  readonly triangles: Polygon[] = [];
 
-  private readonly hull = new Array<vec2>();
+  private readonly hull: vec2[] = [];
 
   constructor(
     public readonly mesh: Readonly<Mesh>,
@@ -27,9 +30,10 @@ export class MeshShape implements Shape, MassDistribution {
     if (transformOrigin) {
       this.mesh = this.transformOriginToCentroid(this.mesh);
     }
-    this.obbTree = generateOBBTree(this.mesh);
 
-    this.getLeafs();
+    this.obbTree = generateOBBTree(this.mesh);
+    getLeafs(this.triangles, this.obbTree);
+
     this.getConvexHull();
     this.radius = this.getRadius();
   }
@@ -76,22 +80,6 @@ export class MeshShape implements Shape, MassDistribution {
 
   inetria(mass: number): number {
     return getMeshItertia(this.mesh, mass);
-  }
-
-  private getLeafs() {
-    const q = [this.obbTree];
-
-    while (q.length) {
-      const { payload, children } = q.pop();
-
-      if (payload) {
-        this.triangles.push(payload.triangleShape);
-      }
-
-      for (const child of children) {
-        q.push(child);
-      }
-    }
   }
 
   private getConvexHull() {

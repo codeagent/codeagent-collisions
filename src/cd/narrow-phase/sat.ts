@@ -131,13 +131,13 @@ export const testPolyPoly = (
 
   queryBestEdgeVertex(evQuery0, poly0, poly1, spaceMapping);
 
-  if (evQuery0.depth >= 0) {
+  if (!evQuery0.edge || evQuery0.depth >= 0) {
     return false;
   }
 
   queryBestEdgeVertex(evQuery1, poly1, poly0, spaceMapping.inverted());
 
-  if (evQuery1.depth >= 0) {
+  if (!evQuery1.edge || evQuery1.depth >= 0) {
     return false;
   }
 
@@ -213,8 +213,12 @@ export const testPolyCircle = (
 ): boolean => {
   queryBestEdge(beQuery, poly, circle, spaceMapping);
 
-  if (beQuery.depth >= 0) {
+  if (!beQuery.edge || beQuery.depth >= 0) {
     return false;
+  }
+
+  if (!beQuery.edge) {
+    // debugger
   }
 
   spaceMapping.fromFirstPoint(p0, beQuery.edge.v0.point);

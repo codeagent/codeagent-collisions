@@ -11,6 +11,10 @@ import { Convex } from '../../types';
 
 import { support } from './support';
 
+const barycentric2 = vec2.create();
+const barycentric3 = vec3.create();
+const dir = vec2.create();
+
 export const distance = (
   simplex: Set<vec2>,
   shape0: Readonly<Convex>,
@@ -23,9 +27,7 @@ export const distance = (
 ): number => {
   const e = Number.EPSILON * 1.0e4;
   const epsilon = 1.0e-4;
-  const dir = vec2.clone(initialDir);
-  const barycentric2 = vec2.create();
-  const barycentric3 = vec3.create();
+  vec2.copy(dir, initialDir);
 
   let lower = Number.NEGATIVE_INFINITY;
   let upper = Number.POSITIVE_INFINITY;
@@ -98,9 +100,6 @@ export const distance = (
 };
 
 export const mdv = (mdv: vec2, simplex: Readonly<Set<vec2>>): void => {
-  const barycentric2 = vec2.create();
-  const barycentric3 = vec3.create();
-
   if (simplex.size === 1) {
     const p = Array.from(simplex.values());
     vec2.copy(mdv, p[0]);

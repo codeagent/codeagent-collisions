@@ -1,10 +1,10 @@
 import { mat2, mat3, vec2, vec3 } from 'gl-matrix';
 
-import { affineInverse, getPolygonSignedArea } from '../math';
+import { affineInverse, cross, getPolygonSignedArea } from '../math';
 
 import { OBB } from './obb';
 import { OBBNode } from './obb-tree';
-import { Polygon } from './shape';
+import { Edge, Polygon } from './shape';
 
 export interface MeshTriangle {
   p0: vec2;
@@ -85,8 +85,7 @@ export const calculateOBB = (mesh: Readonly<Mesh>): OBB => {
   vec2.normalize(e0, e0);
   vec2.normalize(e1, e1);
 
-  const z = vec3.create();
-  if (vec2.cross(z, e0, e1)[2] < 0) {
+  if (cross(e0, e1) < 0) {
     vec2.negate(e0, e0);
   }
 
@@ -254,6 +253,27 @@ export const generateOBBTree = (mesh: Readonly<Mesh>): MeshOBBNode => {
   }
 
   return root;
+};
+
+export const getLeafs = (
+  leafs: Polygon[],
+  tree: Readonly<MeshOBBNode>
+): Polygon[] => {
+  const q = [tree];
+
+  while (q.length) {
+    const { payload, children } = q.pop();
+
+    if (payload) {
+      leafs.push(payload.triangleShape);
+    }
+
+    for (const child of children) {
+      q.push(child);
+    }
+  }
+
+  return leafs;
 };
 
 export const getMeshCentroid = (mesh: Readonly<Mesh>): vec2 => {

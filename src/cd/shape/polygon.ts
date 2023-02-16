@@ -1,6 +1,6 @@
-import { mat3, vec2, vec3 } from 'gl-matrix';
+import { mat3, vec2 } from 'gl-matrix';
 
-import { getPolygonCentroid, getPolygonSignedArea } from '../../math';
+import { cross, getPolygonCentroid, getPolygonSignedArea } from '../../math';
 import { AABB } from '../aabb';
 import { Shape, MassDistribution } from '../types';
 
@@ -121,15 +121,13 @@ export class Polygon implements Shape, MassDistribution {
   testPoint(point: vec2): boolean {
     const e = vec2.create();
     const r = vec2.create();
-    const x = vec3.create();
 
     for (const vertex of this.vertices()) {
       const p0 = vertex.point;
       const p1 = vertex.next.point;
       vec2.sub(e, p1, p0);
       vec2.sub(r, point, p0);
-      vec2.cross(x, e, r);
-      if (x[2] < 0) {
+      if (cross(e, r) < 0) {
         return false;
       }
     }
@@ -166,6 +164,7 @@ export class Polygon implements Shape, MassDistribution {
 
     do {
       yield edge;
+
       edge = edge.next;
     } while (edge !== this.edgeLoop);
   }
