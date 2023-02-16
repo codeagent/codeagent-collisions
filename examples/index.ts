@@ -21,10 +21,19 @@ import {
 } from './services';
 
 const canvas = document.getElementById('canvas') as HTMLCanvasElement;
+canvas.width = Math.max(
+  document.documentElement.clientWidth || 0,
+  window.innerWidth || 0
+);
+canvas.height = Math.max(
+  document.documentElement.clientHeight || 0,
+  window.innerHeight || 0
+);
+
 const world = createWorld({});
 const viewport = createViewport(canvas)
   .addMousePickingControl(world)
-  .addViewportAdjustingControl();
+  .addViewportAdjustingControl({ width: 50 });
 
 const renderer = createWorldRenderer(viewport, world);
 
@@ -62,8 +71,6 @@ fromEvent(self.document.querySelectorAll('.nav-link'), 'click')
   });
 
 const dt = 1.0 / 60.0;
-let statistics = '';
-const statisitcsPos = vec2.fromValues(-14.7, 9.5);
 
 interval(dt * 1000).subscribe(() => {
   profiler.begin('step');

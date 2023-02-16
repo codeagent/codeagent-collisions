@@ -10,237 +10,256 @@
     <meta name="description" content="Physics 2D demos" />
     <title>Physics 2D</title>
     <link
-      href="https://cdn.jsdelivr.net/npm/bootstrap@5.0.0-beta3/dist/css/bootstrap.min.css"
+      href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/css/bootstrap.min.css"
       rel="stylesheet"
-      integrity="sha384-eOJMYsd53ii+scO/bJGFsiCZc+5NDVN2yr8+0RDqr0Ql0h+rP48ckxlpbzKgwra6"
+      integrity="sha384-GLhlTQ8iRABdZLl6O3oVMWSktQOp6b7In1Zl3/Jr59b6EGGoI1aFkw7cmDA6j6gD"
       crossorigin="anonymous"
     />
+
     <style>
       * {
         font-size: 14px;
         color: #444;
       }
 
-      .container {
-        padding-top: 32px;
+      #canvas {
+        position: absolute;
+        display: block;
+        top: 0;
       }
 
-      canvas {
-        position: relative;
-        display: block;
-        border: 1px dashed #ddd;
+      #perf {
+        position: absolute;
+        z-index: 1;
+        user-select: none;
+      }
+
+      #container {
+        margin: 0;
+        padding: 0;
       }
     </style>
   </head>
 
   <body>
-    <div class="container text-right">
-      <div class="row">
-        <label id="perf"></label>
-        <div class="col col-sm-2 d-flex align-items-start justify-content-end">
-          <div
-            class="nav flex-column nav-pills me-3"
-            id="v-pills-tab"
-            role="tablist"
-            aria-orientation="vertical"
+    <div class="container-fluid" id="container">
+      <nav
+        class="navbar navbar-expand-lg bg-body-tertiary sticky-top shadow-sm"
+      >
+        <div class="container-fluid">
+          <a class="navbar-brand fs-4"> RbPhys2D </a>
+          <button
+            class="navbar-toggler"
+            type="button"
+            data-bs-toggle="collapse"
+            data-bs-target="#navbarNavDropdown"
+            aria-controls="navbarNavDropdown"
+            aria-expanded="false"
+            aria-label="Toggle navigation"
           >
-            <a
-              class="nav-link text-center active"
-              id="chain"
-              href="/#chain"
-              data-bs-toggle="pill"
-              type="button"
-              role="tab"
-              aria-controls="v-pills-home"
-              aria-selected="true"
-            >
-              Chain
-            </a>
-            <a
-              href="/#pendulum"
-              class="nav-link text-center"
-              id="pendulum"
-              data-bs-toggle="pill"
-              type="button"
-              role="tab"
-              aria-controls="v-pills-profile"
-              aria-selected="false"
-            >
-              Pendulum
-            </a>
-            <a
-              href="/#stairs"
-              class="nav-link text-center"
-              id="stairs"
-              data-bs-toggle="pill"
-              type="button"
-              role="tab"
-              aria-controls="v-pills-messages"
-              aria-selected="false"
-            >
-              Stairs
-            </a>
-            <a
-              href="/#stack"
-              class="nav-link text-center"
-              id="stack"
-              data-bs-toggle="pill"
-              type="button"
-              role="tab"
-              aria-controls="v-pills-settings"
-              aria-selected="false"
-            >
-              Stack
-            </a>
-            <a
-              href="/#gauss"
-              class="nav-link text-center"
-              id="gauss"
-              data-bs-toggle="pill"
-              type="button"
-              role="tab"
-              aria-controls="v-pills-settings"
-              aria-selected="false"
-            >
-              Gaussian
-            </a>
-            <a
-              href="/#conveyor"
-              class="nav-link text-center"
-              id="conveyor"
-              data-bs-toggle="pill"
-              type="button"
-              role="tab"
-              aria-controls="v-pills-settings"
-              aria-selected="false"
-            >
-              Conveyor
-            </a>
+            <span class="navbar-toggler-icon"></span>
+          </button>
+          <div class="collapse navbar-collapse" id="navbarNavDropdown">
+            <ul class="navbar-nav flex-grow-1">
+              <li class="nav-item">
+                <a
+                  class="nav-link active"
+                  aria-current="page"
+                  href="/#chain"
+                  id="chain"
+                >
+                  Chain
+                </a>
+              </li>
+
+              <li class="nav-item">
+                <a
+                  class="nav-link active"
+                  aria-current="page"
+                  href="/#pendulum"
+                  id="pendulum"
+                >
+                  Pendulum
+                </a>
+              </li>
+
+              <li class="nav-item">
+                <a
+                  class="nav-link active"
+                  aria-current="page"
+                  href="/#stairs"
+                  id="stairs"
+                >
+                  Stairs
+                </a>
+              </li>
+
+              <li class="nav-item">
+                <a
+                  class="nav-link active"
+                  aria-current="page"
+                  href="/#stack"
+                  id="stack"
+                >
+                  Stack
+                </a>
+              </li>
+
+              <li class="nav-item">
+                <a
+                  class="nav-link active"
+                  aria-current="page"
+                  href="/#gauss"
+                  id="gauss"
+                >
+                  Gauss
+                </a>
+              </li>
+
+              <li class="nav-item">
+                <a
+                  class="nav-link active"
+                  aria-current="page"
+                  href="/#conveyor"
+                  id="conveyor"
+                >
+                  Conveyor
+                </a>
+              </li>
+
+              <li class="nav-item">
+                <a
+                  class="nav-link active"
+                  aria-current="page"
+                  href="/#joint"
+                  id="joint"
+                >
+                  Joint
+                </a>
+              </li>
+
+              <li class="nav-item">
+                <a
+                  class="nav-link active"
+                  aria-current="page"
+                  href="/#suspension"
+                  id="suspension"
+                >
+                  Suspension
+                </a>
+              </li>
+
+              <li class="nav-item">
+                <a
+                  class="nav-link active"
+                  aria-current="page"
+                  href="/#helix"
+                  id="helix"
+                >
+                  Helix
+                </a>
+              </li>
+
+              <li class="nav-item">
+                <a
+                  class="nav-link active"
+                  aria-current="page"
+                  href="/#piston"
+                  id="piston"
+                >
+                  Piston
+                </a>
+              </li>
+
+              <li class="nav-item">
+                <a
+                  class="nav-link active"
+                  aria-current="page"
+                  href="/#mesh"
+                  id="mesh"
+                >
+                  Mesh
+                </a>
+              </li>
+
+              <li class="nav-item">
+                <a
+                  class="nav-link active"
+                  aria-current="page"
+                  href="/#pinball"
+                  id="pinball"
+                >
+                  Pinball
+                </a>
+              </li>
+
+              <li class="nav-item">
+                <a
+                  class="nav-link active"
+                  aria-current="page"
+                  href="/#gears"
+                  id="gears"
+                >
+                  Gears
+                </a>
+              </li>
+
+              <li class="nav-item">
+                <a
+                  class="nav-link active"
+                  aria-current="page"
+                  href="/#ccd"
+                  id="ccd"
+                >
+                  CCD
+                </a>
+              </li>
+
+              <li class="nav-item">
+                <a
+                  class="nav-link active"
+                  aria-current="page"
+                  href="/#material"
+                  id="material"
+                >
+                  Material
+                </a>
+              </li>
+            </ul>
 
             <a
-              href="/#joint"
-              class="nav-link text-center"
-              id="joint"
-              data-bs-toggle="pill"
-              type="button"
-              role="tab"
-              aria-controls="v-pills-settings"
-              aria-selected="false"
+              class="navbar-brand"
+              href="https://github.com/codeagent/rb-phys2d"
+              target="_blank"
             >
-              Joint
-            </a>
-
-            <a
-              href="/#suspension"
-              class="nav-link text-center"
-              id="suspension"
-              data-bs-toggle="pill"
-              type="button"
-              role="tab"
-              aria-controls="v-pills-settings"
-              aria-selected="suspension"
-            >
-              Suspension
-            </a>
-            <a
-              href="/#helix"
-              class="nav-link text-center"
-              id="helix"
-              data-bs-toggle="pill"
-              type="button"
-              role="tab"
-              aria-controls="v-pills-settings"
-              aria-selected="false"
-            >
-              Helix
-            </a>
-            <a
-              href="/#piston"
-              class="nav-link text-center"
-              id="piston"
-              data-bs-toggle="pill"
-              type="button"
-              role="tab"
-              aria-controls="v-pills-settings"
-              aria-selected="false"
-            >
-              Piston
-            </a>
-            <a
-              href="/#mesh"
-              class="nav-link text-center"
-              id="mesh"
-              data-bs-toggle="pill"
-              type="button"
-              role="tab"
-              aria-controls="v-pills-settings"
-              aria-selected="false"
-            >
-              Mesh
-            </a>
-            <a
-              href="/#pinball"
-              class="nav-link text-center"
-              id="pinball"
-              data-bs-toggle="pill"
-              type="button"
-              role="tab"
-              aria-controls="v-pills-settings"
-              aria-selected="false"
-            >
-              Pinball
-            </a>
-
-            <a
-              href="/#gears"
-              class="nav-link text-center"
-              id="gears"
-              data-bs-toggle="pill"
-              type="button"
-              role="tab"
-              aria-controls="v-pills-settings"
-              aria-selected="false"
-            >
-              Gears
-            </a>
-
-            <a
-              href="/#ccd"
-              class="nav-link text-center"
-              id="ccd"
-              data-bs-toggle="pill"
-              type="button"
-              role="tab"
-              aria-controls="v-pills-settings"
-              aria-selected="false"
-            >
-              CCD
-            </a>
-
-            <a
-              href="/#material"
-              class="nav-link text-center"
-              id="material"
-              data-bs-toggle="pill"
-              type="button"
-              role="tab"
-              aria-controls="v-pills-settings"
-              aria-selected="false"
-            >
-              Material
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                width="16"
+                height="16"
+                fill="currentColor"
+                class="bi bi-github"
+                viewBox="0 0 16 16"
+              >
+                <path
+                  d="M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59.4.07.55-.17.55-.38 0-.19-.01-.82-.01-1.49-2.01.37-2.53-.49-2.69-.94-.09-.23-.48-.94-.82-1.13-.28-.15-.68-.52-.01-.53.63-.01 1.08.58 1.23.82.72 1.21 1.87.87 2.33.66.07-.52.28-.87.51-1.07-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82.64-.18 1.32-.27 2-.27.68 0 1.36.09 2 .27 1.53-1.04 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12.51.56.82 1.27.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48 0 1.07-.01 1.93-.01 2.2 0 .21.15.46.55.38A8.012 8.012 0 0 0 16 8c0-4.42-3.58-8-8-8z"
+                />
+              </svg>
             </a>
           </div>
         </div>
-        <div
-          class="col col-sm-10 d-flex align-items-start justify-content-start"
-        >
-          <canvas id="canvas" width="1200" height="800"></canvas>
-        </div>
-      </div>
+      </nav>
+      <label id="perf"></label>
+
+      <canvas id="canvas" width="1200" height="800"></canvas>
     </div>
 
     <script type="module">
       import './index.js';
     </script>
+    <script
+      src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/js/bootstrap.bundle.min.js"
+      integrity="sha384-w76AqPfDkMBDXo30jS1Sgez6pr3x5MlQ1ZAGC+nuZB+EYdgRZgiwxhTBTkF7CXvN"
+      crossorigin="anonymous"
+    ></script>
   </body>
 </html>
