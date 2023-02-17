@@ -1,8 +1,6 @@
-/* eslint-disable import/no-extraneous-dependencies */
 /// <reference path="./declarations.d.ts" />
 import 'reflect-metadata';
 
-import { vec2 } from 'gl-matrix';
 import { createWorld } from 'rb-phys2d';
 import { createViewport, createWorldRenderer } from 'rb-phys2d-renderer';
 // import { createWorld } from 'rb-phys2d-threaded';
@@ -21,6 +19,7 @@ import {
 } from './services';
 
 const canvas = document.getElementById('canvas') as HTMLCanvasElement;
+
 canvas.width = Math.max(
   document.documentElement.clientWidth || 0,
   window.innerWidth || 0
