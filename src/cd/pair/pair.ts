@@ -1,6 +1,7 @@
-import { Collider, ContactInfo } from '..';
 import { SpaceMapping, SpaceMappingInterface, between } from '../../math';
 import { pairId } from '../../utils';
+import { Collider } from '../collider';
+import { ContactInfo } from '../types';
 
 import { ContactManifold } from './contact-manifold';
 

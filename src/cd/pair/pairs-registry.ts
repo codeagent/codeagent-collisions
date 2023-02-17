@@ -1,10 +1,10 @@
 import { Inject, Service } from 'typedi';
 
-import { Collider, ContactInfo } from '..';
 import { Events } from '../../events';
 import { Settings } from '../../settings';
 import { EventDispatcher, pairId } from '../../utils';
-import { PairsRegistryInterface } from '../types';
+import { Collider } from '../collider';
+import { ContactInfo, PairsRegistryInterface } from '../types';
 
 import { Pair } from './pair';
 

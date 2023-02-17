@@ -217,10 +217,6 @@ export const testPolyCircle = (
     return false;
   }
 
-  if (!beQuery.edge) {
-    // debugger
-  }
-
   spaceMapping.fromFirstPoint(p0, beQuery.edge.v0.point);
   spaceMapping.fromFirstPoint(p1, beQuery.edge.v1.point);
 

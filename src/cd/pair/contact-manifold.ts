@@ -4,7 +4,9 @@ import { Body, Contact } from '../../dynamics';
 import { Collider } from '../collider';
 import { ContactInfo } from '../types/contact';
 
-export class ContactManifold {
+export class ContactManifold implements Iterable<Contact> {
+  public static readonly MAX_CONTACTS = 2;
+
   private readonly a = vec2.create();
 
   private readonly b = vec2.create();
@@ -15,9 +17,7 @@ export class ContactManifold {
 
   private readonly db = vec2.create();
 
-  public static readonly MAX_CONTACTS = 2;
-
-  public readonly contacts = new Set<Contact>();
+  private readonly contacts = new Set<Contact>();
 
   constructor(
     public readonly collider0: Collider,
@@ -65,7 +65,7 @@ export class ContactManifold {
     return this.contacts.size > 0;
   }
 
-  addContact(contactInfo: ContactInfo) {
+  addContact(contactInfo: ContactInfo): void {
     // check if manifold already includes contact with the same proximity
     for (const contact of this.contacts) {
       vec2.sub(this.da, contactInfo.point0, contact.contactInfo.point0);
@@ -132,5 +132,9 @@ export class ContactManifold {
       (newContact.bodyA as Body).addContact(newContact);
       (newContact.bodyB as Body).addContact(newContact);
     }
+  }
+
+  *[Symbol.iterator]() {
+    yield* this.contacts;
   }
 }
