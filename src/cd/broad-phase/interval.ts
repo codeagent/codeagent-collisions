@@ -13,14 +13,11 @@ export enum IntervalPointType {
 }
 
 export class IntervalPoint {
+  constructor(readonly type: IntervalPointType, readonly interval: Interval) {}
+
   get value(): number {
     return this.interval.aabb[this.type][this.interval.type];
   }
-
-  constructor(
-    public readonly type: IntervalPointType,
-    public readonly interval: Interval
-  ) {}
 }
 
 export class Interval {
@@ -29,10 +26,10 @@ export class Interval {
   readonly end: IntervalPoint;
 
   constructor(
-    public readonly id: number,
-    public readonly aabb: Readonly<AABB>,
-    public readonly collider: Readonly<Collider>,
-    public readonly type: IntervalType
+    readonly id: number,
+    readonly aabb: Readonly<AABB>,
+    readonly collider: Readonly<Collider>,
+    readonly type: IntervalType
   ) {
     this.start = new IntervalPoint(IntervalPointType.Start, this);
     this.end = new IntervalPoint(IntervalPointType.End, this);
@@ -43,15 +40,15 @@ export const intervalPredicate = (a: IntervalPoint, b: IntervalPoint): number =>
   a.value - b.value;
 
 export class AABBIntervalKeeper {
+  readonly intersected = new Map<number, [Interval, Interval]>();
+
   private readonly aabbInterval = new Map<Readonly<AABB>, Interval>();
 
   private readonly queue = new PriorityQueue<IntervalPoint>(intervalPredicate);
 
   private readonly active = new Set<Interval>();
 
-  public readonly intersected = new Map<number, [Interval, Interval]>();
-
-  constructor(public readonly type: IntervalType) {}
+  constructor(readonly type: IntervalType) {}
 
   registerAABB(collider: Readonly<Collider>): void {
     const interval = new Interval(

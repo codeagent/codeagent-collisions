@@ -8,19 +8,19 @@ export const VxV = (V1: Vector, V2: Vector): number => {
   return dot;
 };
 
-export const VmV = (out: Vector, V1: Vector, V2: Vector) => {
+export const VmV = (out: Vector, V1: Vector, V2: Vector): void => {
   for (let i = 0, length = out.length; i < length; i++) {
     out[i] = V1[i] * V2[i];
   }
 };
 
-export const VpVxS = (out: Vector, V1: Vector, V2: Vector, S: number) => {
+export const VpVxS = (out: Vector, V1: Vector, V2: Vector, S: number): void => {
   for (let i = 0, length = out.length; i < length; i++) {
     out[i] = V1[i] + V2[i] * S;
   }
 };
 
-export const VpV = (out: Vector, V1: Vector, V2: Vector) => {
+export const VpV = (out: Vector, V1: Vector, V2: Vector): void => {
   for (let i = 0, length = out.length; i < length; i++) {
     out[i] = V1[i] + V2[i];
   }
@@ -32,12 +32,12 @@ export const VxSpVxS = (
   S1: number,
   V2: Vector,
   S2: number
-) => {
+): void => {
   for (let i = 0, length = out.length; i < length; i++) {
     out[i] = V1[i] * S1 + V2[i] * S2;
   }
 };
 
-export const VcV = (out: Vector, from: Vector) => {
+export const VcV = (out: Vector, from: Vector): void => {
   out.set(from, 0);
 };

@@ -5,7 +5,7 @@ interface Item {
 }
 
 describe('PriorityQueue', () => {
-  const predicate = (a: Item, b: Item) => a.value - b.value;
+  const predicate = (a: Item, b: Item): number => a.value - b.value;
 
   afterEach(() => {
     // restore the spy created with spyOn

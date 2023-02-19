@@ -1,8 +1,8 @@
 class StackEntry<T extends ArrayBufferView> {
   constructor(
-    public readonly block: T,
-    public readonly offset: number, // in bytes
-    public readonly size: number // in butes
+    readonly block: T,
+    readonly offset: number, // in bytes
+    readonly size: number // in butes
   ) {}
 }
 
@@ -17,7 +17,7 @@ type TypedArrayConstructor =
   | Float64ArrayConstructor;
 
 export class Stack {
-  public readonly size: number = 0;
+  readonly size: number = 0;
 
   private readonly stack: StackEntry<ArrayBufferView>[] = [];
 
@@ -25,7 +25,7 @@ export class Stack {
 
   private offset = 0;
 
-  constructor(public readonly buffer: Uint8Array) {
+  constructor(readonly buffer: Uint8Array) {
     this.size = buffer.length;
     this.offset = buffer.byteOffset;
     this.end = buffer.byteOffset + buffer.length;

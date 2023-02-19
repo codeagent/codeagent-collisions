@@ -6,7 +6,11 @@ const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 const srcDir = __dirname + '/../examples';
 const destPath = __dirname + '/../examples/services/examples.ts';
-const header = "/** Don't edit this file! It was generated automaticaly */";
+const header = [
+  "/** Don't edit this file! It was generated automaticaly */",
+  "import { Constructable } from 'typedi';",
+  "import { ExampleInterface } from '../example.interface';",
+];
 
 // --
 const isExample = name => name.match(/\.example\.ts$/);
@@ -56,13 +60,13 @@ const assembly = (packs, output) => {
   let statements = [];
   for (const pack of packs) {
     statements.push(
-      `${pack.key}: () => import('../${pack.fileName}').then((e) => e.${pack.className})`
+      `${pack.key}: (): Promise<Constructable<ExampleInterface>> => import('../${pack.fileName}').then((e) => e.${pack.className})`
     );
   }
 
-  const contents = `${header}\nexport default {\n\t${statements.join(
-    ',\n\t'
-  )}\n}\n`;
+  const contents = `${header.join(
+    '\n\n'
+  )}\n\nexport default {\n\t${statements.join(',\n\t')}\n}\n`;
   fs.writeFileSync(output, contents, { flag: 'w' });
   console.log('\x1b[32m✔ \x1b[37m %s \x1b[0m', path.normalize(output));
 };

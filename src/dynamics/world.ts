@@ -47,7 +47,7 @@ export class World implements WorldInterface {
   private readonly bodyForce = vec2.create();
 
   constructor(
-    @Inject('SETTINGS') public readonly settings: Readonly<Settings>,
+    @Inject('SETTINGS') readonly settings: Readonly<Settings>,
     @Inject('ISLANDS_GENERATOR')
     private readonly islandGenerator: IslandsGeneratorInterface,
     @Inject('PAIRS_REGISTRY')
@@ -367,38 +367,7 @@ export class World implements WorldInterface {
     this.dispatcher.dispatch(eventName, ...payload);
   }
 
-  *[Symbol.iterator](): Iterator<BodyInterface> {
-    yield* this.bodies.values();
-  }
-
-  private applyGlobalForces() {
-    for (const body of this) {
-      vec2.copy(this.bodyForce, body.force);
-
-      if (body.invMass) {
-        vec2.scaleAndAdd(
-          this.bodyForce,
-          this.bodyForce,
-          this.settings.gravity,
-          body.mass
-        );
-      }
-
-      if (body.collider) {
-        vec2.scaleAndAdd(
-          this.bodyForce,
-          this.bodyForce,
-          body.velocity,
-          -body.collider.material.damping
-        );
-        body.force = this.bodyForce;
-
-        body.torque -= body.collider.material.angularDamping * body.omega;
-      }
-    }
-  }
-
-  step(dt: number) {
+  step(dt: number): void {
     this.clock.tick(dt);
     this.dispatch(Events.PreStep, this.clock.frame, this.clock.time);
 
@@ -432,13 +401,44 @@ export class World implements WorldInterface {
     this.dispatch(Events.PostStep, this.clock.frame, this.clock.time);
   }
 
-  private clearForces() {
+  *[Symbol.iterator](): Iterator<BodyInterface> {
+    yield* this.bodies.values();
+  }
+
+  private applyGlobalForces(): void {
+    for (const body of this) {
+      vec2.copy(this.bodyForce, body.force);
+
+      if (body.invMass) {
+        vec2.scaleAndAdd(
+          this.bodyForce,
+          this.bodyForce,
+          this.settings.gravity,
+          body.mass
+        );
+      }
+
+      if (body.collider) {
+        vec2.scaleAndAdd(
+          this.bodyForce,
+          this.bodyForce,
+          body.velocity,
+          -body.collider.material.damping
+        );
+        body.force = this.bodyForce;
+
+        body.torque -= body.collider.material.angularDamping * body.omega;
+      }
+    }
+  }
+
+  private clearForces(): void {
     for (const body of this.bodies.values()) {
       body.clearForces();
     }
   }
 
-  private advance(dt: number) {
+  private advance(dt: number): void {
     for (const island of this.islandGenerator.generate(this.bodies.values())) {
       if (!island.sleeping) {
         this.dispatch(Events.IslandPreStep, island);
@@ -448,7 +448,7 @@ export class World implements WorldInterface {
     }
   }
 
-  private detectCollisions() {
+  private detectCollisions(): void {
     this.registry.validatePairs();
 
     for (const contactInfo of this.detector.detectCollisions()) {

@@ -44,9 +44,9 @@ export class Ellipse extends Polygon {
    * @param b radius along y axis
    */
   constructor(
-    public readonly a: number,
-    public readonly b: number,
-    public readonly subdivisions = 32
+    readonly a: number,
+    readonly b: number,
+    readonly subdivisions = 32
   ) {
     super(createEllipsePoints(a, b, subdivisions));
     this.convex = createEllipseConvex(a, b);

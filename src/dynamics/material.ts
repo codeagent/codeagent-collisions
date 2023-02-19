@@ -6,10 +6,10 @@ export interface MaterialDef {
 }
 
 export class Material {
-  public constructor(
-    public readonly friction: number,
-    public readonly restitution: number,
-    public readonly damping: number,
-    public readonly angularDamping: number
+  constructor(
+    readonly friction: number,
+    readonly restitution: number,
+    readonly damping: number,
+    readonly angularDamping: number
   ) {}
 }

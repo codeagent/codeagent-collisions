@@ -7,30 +7,27 @@ import { Shape, MassDistribution } from '../types';
 const v = vec2.create();
 
 export class Vertex {
-  public readonly normal: Readonly<vec2>;
+  readonly normal: Readonly<vec2>;
 
-  public readonly prev: Vertex = null;
+  readonly prev: Vertex = null;
 
-  public readonly next: Vertex = null;
+  readonly next: Vertex = null;
 
-  public readonly edge0: Edge = null; // incoming
+  readonly edge0: Edge = null; // incoming
 
-  public readonly edge1: Edge = null; // outgoing
+  readonly edge1: Edge = null; // outgoing
 
-  constructor(public readonly point: Readonly<vec2>) {}
+  constructor(readonly point: Readonly<vec2>) {}
 }
 
 export class Edge {
-  public readonly normal = vec2.create();
+  readonly normal = vec2.create();
 
-  public readonly prev: Edge = null;
+  readonly prev: Edge = null;
 
-  public readonly next: Edge = null;
+  readonly next: Edge = null;
 
-  constructor(
-    public readonly v0: Readonly<Vertex>,
-    public readonly v1: Readonly<Vertex>
-  ) {
+  constructor(readonly v0: Readonly<Vertex>, readonly v1: Readonly<Vertex>) {
     vec2.sub(this.normal, this.v1.point, this.v0.point);
     vec2.normalize(this.normal, this.normal);
     vec2.set(this.normal, this.normal[1], -this.normal[0]);
@@ -51,8 +48,8 @@ export class Polygon implements Shape, MassDistribution {
    * @param transformOrigin
    */
   constructor(
-    public readonly points: Readonly<vec2[]>,
-    public readonly transformOrigin: boolean = true
+    readonly points: Readonly<vec2[]>,
+    readonly transformOrigin: boolean = true
   ) {
     if (transformOrigin) {
       points = this.transformOriginToCentroid(points);

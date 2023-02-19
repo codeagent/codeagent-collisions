@@ -1,15 +1,15 @@
-import { BodyInterface, WorldInterface } from '../types';
+import { BodyInterface, ConstraintClamping, WorldInterface } from '../types';
 
 import { ConstraintBase } from './constraint.base';
 
 export class SpiralSpringConstraint extends ConstraintBase {
   constructor(
-    public readonly world: WorldInterface,
-    public readonly bodyA: BodyInterface,
-    public readonly bodyB: BodyInterface,
-    public readonly angle: number,
-    public readonly stiffness: number,
-    public readonly extinction: number
+    readonly world: WorldInterface,
+    readonly bodyA: BodyInterface,
+    readonly bodyB: BodyInterface,
+    readonly angle: number,
+    readonly stiffness: number,
+    readonly extinction: number
   ) {
     super();
   }
@@ -34,7 +34,7 @@ export class SpiralSpringConstraint extends ConstraintBase {
     return 0.0;
   }
 
-  getClamping() {
+  getClamping(): ConstraintClamping {
     // Damping force
     const fd = -this.extinction * (this.bodyB.omega - this.bodyA.omega);
 

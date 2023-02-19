@@ -21,7 +21,7 @@ export class GaussExample implements ExampleInterface {
     this.world.clear();
   }
 
-  private createGauss() {
+  private createGauss(): void {
     const n = 512;
     let columns = 9;
     const band = 2.0;

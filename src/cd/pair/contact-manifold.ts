@@ -5,7 +5,7 @@ import { Collider } from '../collider';
 import { ContactInfo } from '../types/contact';
 
 export class ContactManifold implements Iterable<Contact> {
-  public static readonly MAX_CONTACTS = 2;
+  static readonly MAX_CONTACTS = 2;
 
   private readonly a = vec2.create();
 
@@ -20,9 +20,9 @@ export class ContactManifold implements Iterable<Contact> {
   private readonly contacts = new Set<Contact>();
 
   constructor(
-    public readonly collider0: Collider,
-    public readonly collider1: Collider,
-    public readonly threshold: number
+    readonly collider0: Collider,
+    readonly collider1: Collider,
+    readonly threshold: number
   ) {}
 
   validate(): boolean {
@@ -134,7 +134,7 @@ export class ContactManifold implements Iterable<Contact> {
     }
   }
 
-  *[Symbol.iterator]() {
+  *[Symbol.iterator](): Iterator<Contact> {
     yield* this.contacts;
   }
 }

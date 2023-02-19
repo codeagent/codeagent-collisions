@@ -1,7 +1,7 @@
 import { vec2 } from 'gl-matrix';
 
 import { cross, transformMat3Vec } from '../../math';
-import { BodyInterface, WorldInterface } from '../types';
+import { BodyInterface, ConstraintClamping, WorldInterface } from '../types';
 
 import { ConstraintBase } from './constraint.base';
 
@@ -19,12 +19,12 @@ export class LineConstraint extends ConstraintBase {
   private readonly rb = vec2.create();
 
   constructor(
-    public readonly world: WorldInterface,
-    public readonly bodyA: BodyInterface,
-    public readonly jointA: vec2,
-    public readonly bodyB: BodyInterface,
-    public readonly jointB: vec2,
-    public readonly axisA: vec2
+    readonly world: WorldInterface,
+    readonly bodyA: BodyInterface,
+    readonly jointA: vec2,
+    readonly bodyB: BodyInterface,
+    readonly jointB: vec2,
+    readonly axisA: vec2
   ) {
     super();
   }
@@ -66,7 +66,7 @@ export class LineConstraint extends ConstraintBase {
     return -(vec2.dot(this.tangent, this.u) / dt) * strength;
   }
 
-  getClamping() {
+  getClamping(): ConstraintClamping {
     return { min: Number.NEGATIVE_INFINITY, max: Number.POSITIVE_INFINITY };
   }
 }

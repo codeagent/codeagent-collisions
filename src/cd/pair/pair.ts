@@ -6,18 +6,18 @@ import { ContactInfo } from '../types';
 import { ContactManifold } from './contact-manifold';
 
 export class Pair {
-  public readonly id: number;
+  readonly id: number;
 
-  public readonly contactManifold: ContactManifold;
+  readonly contactManifold: ContactManifold;
 
-  public readonly spaceMapping: SpaceMappingInterface;
+  readonly spaceMapping: SpaceMappingInterface;
 
-  public intercontact = true;
+  intercontact = true;
 
   constructor(
-    public readonly collider0: Collider,
-    public readonly collider1: Collider,
-    public readonly proximityThreshold: number
+    readonly collider0: Collider,
+    readonly collider1: Collider,
+    readonly proximityThreshold: number
   ) {
     this.id = pairId(this.collider0.id, this.collider1.id);
     this.spaceMapping = between(

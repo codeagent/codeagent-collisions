@@ -6,13 +6,13 @@ import { AABB } from './aabb';
 import { OBB } from './obb';
 
 export class OBBNode<T = unknown> {
-  public readonly children: OBBNode<T>[] = [];
+  readonly children: OBBNode<T>[] = [];
 
-  public leaf: boolean = false;
+  leaf: boolean = false;
 
-  public payload?: T;
+  payload?: T;
 
-  constructor(public readonly obb: OBB) {}
+  constructor(readonly obb: OBB) {}
 }
 
 export module OBBNode {
@@ -23,7 +23,7 @@ export module OBBNode {
   const firstToSecondBodyTransform = mat3.create();
   const secondToFirstBodyTransform = mat3.create();
 
-  export const area = (obb: OBB) => obb.extent[0] * obb.extent[1] * 4.0;
+  export const area = (obb: OBB): number => obb.extent[0] * obb.extent[1] * 4.0;
 
   export const testAABB = (
     candidates: Set<OBBNode>,

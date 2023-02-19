@@ -1,6 +1,7 @@
 import { vec2 } from 'gl-matrix';
 
 import { DistanceConstraint } from '../constraint';
+import { ConstraintClamping } from '../types';
 
 export class MinDistanceConstraint extends DistanceConstraint {
   getPushFactor(dt: number, strength = 1.0): number {
@@ -13,7 +14,7 @@ export class MinDistanceConstraint extends DistanceConstraint {
     return violation < 0 ? violation / dt : (strength * violation) / dt;
   }
 
-  getClamping() {
+  getClamping(): ConstraintClamping {
     return { min: 0, max: Number.POSITIVE_INFINITY };
   }
 }

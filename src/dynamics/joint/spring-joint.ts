@@ -1,7 +1,12 @@
 import { vec2 } from 'gl-matrix';
 
 import { SpringConstraint } from '../constraint';
-import { BodyInterface, WorldInterface, JointInterface } from '../types';
+import {
+  BodyInterface,
+  WorldInterface,
+  JointInterface,
+  ConstraintInterface,
+} from '../types';
 
 export interface SpringDef {
   bodyA: Readonly<BodyInterface>;
@@ -18,13 +23,13 @@ export class SpringJoint implements JointInterface {
 
   constructor(
     readonly world: WorldInterface,
-    public readonly bodyA: Readonly<BodyInterface>,
-    public readonly pivotA: Readonly<vec2>,
-    public readonly bodyB: Readonly<BodyInterface>,
-    public readonly pivotB: Readonly<vec2>,
-    public readonly distance: number,
-    public readonly stiffness: number,
-    public readonly extinction: number
+    readonly bodyA: Readonly<BodyInterface>,
+    readonly pivotA: Readonly<vec2>,
+    readonly bodyB: Readonly<BodyInterface>,
+    readonly pivotB: Readonly<vec2>,
+    readonly distance: number,
+    readonly stiffness: number,
+    readonly extinction: number
   ) {
     this.springConstraint = new SpringConstraint(
       world,
@@ -38,7 +43,7 @@ export class SpringJoint implements JointInterface {
     );
   }
 
-  *[Symbol.iterator]() {
+  *[Symbol.iterator](): Iterator<ConstraintInterface> {
     yield this.springConstraint;
   }
 }

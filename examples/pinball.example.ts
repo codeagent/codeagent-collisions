@@ -28,7 +28,7 @@ export class PinballExample implements ExampleInterface {
     this.world.clear();
   }
 
-  private createPinball() {
+  private createPinball(): void {
     this.world.addCollider({
       body: this.world.createBody({
         mass: 10,

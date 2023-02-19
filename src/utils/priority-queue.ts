@@ -5,10 +5,6 @@ interface QueueEntry<T> {
 }
 
 export class PriorityQueue<T extends object> implements Iterable<T> {
-  get size() {
-    return this._size;
-  }
-
   private lookup = new WeakMap<T, QueueEntry<T>>();
 
   private begin: QueueEntry<T> = null;
@@ -19,7 +15,11 @@ export class PriorityQueue<T extends object> implements Iterable<T> {
 
   constructor(private readonly predicate: (a: T, b: T) => number) {}
 
-  enqueue(value: T) {
+  get size(): number {
+    return this._size;
+  }
+
+  enqueue(value: T): void {
     let entry: QueueEntry<T>;
 
     if (this.end === null) {
@@ -118,7 +118,7 @@ export class PriorityQueue<T extends object> implements Iterable<T> {
     return value;
   }
 
-  remove(value: T) {
+  remove(value: T): void {
     if (!this.lookup.has(value)) {
       return;
     }
@@ -142,7 +142,7 @@ export class PriorityQueue<T extends object> implements Iterable<T> {
     this._size--;
   }
 
-  *[Symbol.iterator]() {
+  *[Symbol.iterator](): Iterator<T> {
     for (let p = this.begin; p != null; p = p.next) {
       yield p.value;
     }

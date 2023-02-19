@@ -7,17 +7,17 @@ import * as gjk from './narrow-phase/gjk-epa';
 import { Shape } from './types';
 
 class BodyProxy {
-  public shape: Shape;
+  shape: Shape;
 
-  public readonly transform = mat3.create();
+  readonly transform = mat3.create();
 
-  public readonly position = vec2.create();
+  readonly position = vec2.create();
 
-  public readonly velocity = vec2.create();
+  readonly velocity = vec2.create();
 
-  public angle = 0.0;
+  angle = 0.0;
 
-  public omega = 0.0;
+  omega = 0.0;
 
   advance(dt: number): void {
     vec2.scaleAndAdd(this.position, this.position, this.velocity, dt);
@@ -25,7 +25,7 @@ class BodyProxy {
     this.updateTransform();
   }
 
-  public wrap(body: Readonly<BodyInterface>) {
+  wrap(body: Readonly<BodyInterface>): void {
     this.shape = body.collider.shape;
 
     vec2.copy(this.position, body.position);
@@ -37,7 +37,7 @@ class BodyProxy {
     this.updateTransform();
   }
 
-  private updateTransform() {
+  private updateTransform(): void {
     mat3.fromTranslation(this.transform, this.position);
     mat3.rotate(this.transform, this.transform, this.angle);
   }

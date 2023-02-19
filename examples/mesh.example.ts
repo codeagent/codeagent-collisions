@@ -29,7 +29,7 @@ export class MeshExample implements ExampleInterface {
     this.world.clear();
   }
 
-  private createMesh() {
+  private createMesh(): void {
     this.world.addCollider({
       body: this.world.createBody({
         mass: 10,

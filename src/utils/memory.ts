@@ -3,16 +3,16 @@ import { Inject, Service } from 'typedi';
 import { Settings } from '../settings';
 
 class MemoryBlock {
-  public prev: MemoryBlock = null;
+  prev: MemoryBlock = null;
 
-  public next: MemoryBlock = null;
+  next: MemoryBlock = null;
 
-  public readonly end: number;
+  readonly end: number;
 
   constructor(
-    public readonly array: Uint8Array,
-    public readonly start: number,
-    public readonly size: number
+    readonly array: Uint8Array,
+    readonly start: number,
+    readonly size: number
   ) {
     this.end = this.start + this.size;
   }
@@ -22,7 +22,7 @@ class MemoryBlock {
 export class Memory {
   private static readonly MIN_BLOCK_SIZE = 32;
 
-  public readonly size: number;
+  readonly size: number;
 
   private readonly buffer: Uint8Array;
 

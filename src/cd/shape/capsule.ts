@@ -45,9 +45,9 @@ export class Capsule extends Polygon {
   private readonly convex: Convex;
 
   constructor(
-    public readonly r: number,
-    public readonly height: number,
-    public readonly subdivisions = 16
+    readonly r: number,
+    readonly height: number,
+    readonly subdivisions = 16
   ) {
     super(createCapsulePoints(r, height, subdivisions));
     this.convex = createCapsuleConvex(r, height * 0.5);

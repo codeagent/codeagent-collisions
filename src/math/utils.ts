@@ -17,7 +17,7 @@ const cp = vec2.create();
 
 export const ORIGIN: Readonly<vec2> = vec2.create();
 
-export const cross = (a: Readonly<vec2>, b: Readonly<vec2>) =>
+export const cross = (a: Readonly<vec2>, b: Readonly<vec2>): number =>
   a[0] * b[1] - a[1] * b[0];
 
 export const affineInverse = (out: mat3, m: Readonly<mat3>): mat3 => {
@@ -228,11 +228,13 @@ export const fromBarycentric = <T extends ArrayLike<number>>(
   out: vec2,
   barycentric: T,
   ...points: Readonly<vec2>[]
-) => {
+): vec2 => {
   vec2.set(out, 0.0, 0.0);
+
   for (let i = 0, len = barycentric.length; i < len; i++) {
     vec2.scaleAndAdd(out, out, points[i], barycentric[i]);
   }
+
   return out;
 };
 
@@ -243,7 +245,7 @@ export const transformMat3Vec = (
   out: vec2,
   v: Readonly<vec2>,
   m: Readonly<mat3>
-) => vec2.set(out, m[0] * v[0] + m[3] * v[1], m[1] * v[0] + m[4] * v[1]);
+): vec2 => vec2.set(out, m[0] * v[0] + m[3] * v[1], m[1] * v[0] + m[4] * v[1]);
 
 export const getPolygonSignedArea = (polygon: Readonly<vec2[]>): number => {
   let area = 0.0;

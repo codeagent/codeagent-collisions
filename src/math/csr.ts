@@ -53,21 +53,26 @@ export const compress = (mat: Float32Array, m: number, n: number): Matrix => {
  */
 export const decompress = (csr: Matrix): Float32Array => {
   const mat = new Float32Array(csr.m * csr.n);
+
   for (let i = 0; i < csr.m; i++) {
     for (let k = csr.rows[i]; k < csr.rows[i + 1]; k++) {
       mat[i * csr.n + csr.columns[k]] = csr.values[k];
     }
   }
+
   return mat;
 };
 
-export const MxV = (out: Vector, mat: Matrix, vec: Vector) => {
+export const MxV = (out: Vector, mat: Matrix, vec: Vector): Vector => {
   out.fill(0.0);
+
   for (let i = 0; i < mat.m; i++) {
     for (let k = mat.rows[i], k1 = mat.rows[i + 1]; k < k1; k++) {
       out[i] += vec[mat.columns[k]] * mat.values[k];
     }
   }
+
+  return out;
 };
 
 export const MxDxMt = (
@@ -121,7 +126,7 @@ export const MxDxMt = (
   };
 };
 
-export const MtxV = (out: Vector, mat: Matrix, vec: Vector) => {
+export const MtxV = (out: Vector, mat: Matrix, vec: Vector): Vector => {
   out.fill(0.0);
 
   for (let i = 0; i < mat.m; i++) {
@@ -129,6 +134,8 @@ export const MtxV = (out: Vector, mat: Matrix, vec: Vector) => {
       out[mat.columns[k]] += vec[i] * mat.values[k];
     }
   }
+
+  return out;
 };
 
 export const projectedGaussSeidel = (
@@ -138,7 +145,7 @@ export const projectedGaussSeidel = (
   min: Vector,
   max: Vector,
   maxIterations: number
-) => {
+): void => {
   const n = b.length;
 
   while (maxIterations-- > 0) {

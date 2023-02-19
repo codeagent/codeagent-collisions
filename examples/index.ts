@@ -2,7 +2,11 @@
 import 'reflect-metadata';
 
 import { createWorld } from 'rb-phys2d';
-import { createViewport, createWorldRenderer } from 'rb-phys2d-renderer';
+import {
+  RenderMask,
+  createViewport,
+  createWorldRenderer,
+} from 'rb-phys2d-renderer';
 // import { createWorld } from 'rb-phys2d-threaded';
 import { animationFrames, fromEvent, interval } from 'rxjs';
 import { map, startWith, switchMap, tap } from 'rxjs/operators';
@@ -29,7 +33,7 @@ canvas.height = Math.max(
   window.innerHeight || 0
 );
 
-const world = createWorld({});
+const world = createWorld();
 const viewport = createViewport(canvas)
   .addMousePickingControl(world)
   .addViewportAdjustingControl({ width: 50 });
@@ -80,7 +84,7 @@ interval(dt * 1000).subscribe(() => {
 animationFrames().subscribe(() => {
   profiler.begin('draw');
   renderer.clear();
-  renderer.render();
+  renderer.render(RenderMask.Default);
   profiler.end('draw');
 });
 

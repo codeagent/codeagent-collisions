@@ -1,10 +1,10 @@
-import { mat2, mat3, vec2, vec3 } from 'gl-matrix';
+import { mat2, mat3, vec2 } from 'gl-matrix';
 
 import { affineInverse, cross, getPolygonSignedArea } from '../math';
 
 import { OBB } from './obb';
 import { OBBNode } from './obb-tree';
-import { Edge, Polygon } from './shape';
+import { Polygon } from './shape';
 
 export interface MeshTriangle {
   p0: vec2;
@@ -24,7 +24,7 @@ const getPoints = (mesh: Readonly<Mesh>): vec2[] =>
     }, new Set<vec2>())
   );
 
-const getMedian = (mesh: Readonly<Mesh>) => {
+const getMedian = (mesh: Readonly<Mesh>): vec2 => {
   const points = getPoints(mesh);
   const median = vec2.create();
   for (const point of points) {
@@ -33,7 +33,7 @@ const getMedian = (mesh: Readonly<Mesh>) => {
   return vec2.scale(median, median, 1.0 / points.length);
 };
 
-const getCovarianceMatrix = (mesh: Readonly<Mesh>) => {
+const getCovarianceMatrix = (mesh: Readonly<Mesh>): mat2 => {
   const points = getPoints(mesh);
   const median = getMedian(mesh);
   let c00 = 0.0;
@@ -151,7 +151,7 @@ export type MeshOBBNode = OBBNode<{
   triangleShape: Polygon;
 }>;
 
-export const centroid = (triangle: MeshTriangle) =>
+export const centroid = (triangle: MeshTriangle): vec2 =>
   vec2.fromValues(
     (triangle.p0[0] + triangle.p1[0] + triangle.p2[0]) / 3.0,
     (triangle.p0[1] + triangle.p1[1] + triangle.p2[1]) / 3.0

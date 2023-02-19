@@ -21,7 +21,7 @@ export class CcdExample implements ExampleInterface {
     this.world.clear();
   }
 
-  private createObjects() {
+  private createObjects(): void {
     // floor
     const body = this.world.createBody({
       mass: Number.POSITIVE_INFINITY,

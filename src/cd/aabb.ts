@@ -5,10 +5,7 @@ import { sqDistanceToLineSegment } from '../math';
 import { Convex } from './types';
 
 export class AABB {
-  constructor(
-    public readonly min = vec2.create(),
-    public readonly max = vec2.create()
-  ) {}
+  constructor(readonly min = vec2.create(), readonly max = vec2.create()) {}
 }
 
 export module AABB {
@@ -20,7 +17,10 @@ export module AABB {
 
   export const EPSILON = 1.0e-3;
 
-  export const testAABB = (aabb0: Readonly<AABB>, aabb1: Readonly<AABB>) => {
+  export const testAABB = (
+    aabb0: Readonly<AABB>,
+    aabb1: Readonly<AABB>
+  ): boolean => {
     return (
       aabb1.min[0] < aabb0.max[0] &&
       aabb1.max[0] > aabb0.min[0] &&
@@ -35,7 +35,7 @@ export module AABB {
     aabb: Readonly<AABB>,
     p0: Readonly<vec2>,
     p1: Readonly<vec2>
-  ) => {
+  ): boolean => {
     let entry = 0;
     let leave = 1;
 
@@ -84,7 +84,7 @@ export module AABB {
     p0: Readonly<vec2>,
     p1: Readonly<vec2>,
     radius: number
-  ) => {
+  ): boolean => {
     vec2.set(swollen.min, aabb.min[0] - radius, aabb.min[1] - radius);
     vec2.set(swollen.max, aabb.max[0] + radius, aabb.max[1] + radius);
 

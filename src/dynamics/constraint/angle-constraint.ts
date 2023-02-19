@@ -1,13 +1,13 @@
-import { BodyInterface, WorldInterface } from '../types';
+import { BodyInterface, ConstraintClamping, WorldInterface } from '../types';
 
 import { ConstraintBase } from './constraint.base';
 
 export class AngleConstraint extends ConstraintBase {
   constructor(
-    public readonly world: WorldInterface,
-    public readonly bodyA: BodyInterface,
-    public readonly bodyB: BodyInterface,
-    public readonly angle: number
+    readonly world: WorldInterface,
+    readonly bodyA: BodyInterface,
+    readonly bodyB: BodyInterface,
+    readonly angle: number
   ) {
     super();
   }
@@ -34,7 +34,7 @@ export class AngleConstraint extends ConstraintBase {
     );
   }
 
-  getClamping() {
+  getClamping(): ConstraintClamping {
     return { min: Number.NEGATIVE_INFINITY, max: Number.POSITIVE_INFINITY };
   }
 }

@@ -1,6 +1,6 @@
 import { vec2 } from 'gl-matrix';
 
-import { BodyInterface, WorldInterface } from '../types';
+import { BodyInterface, ConstraintClamping, WorldInterface } from '../types';
 
 import { ConstraintBase } from './constraint.base';
 
@@ -14,11 +14,11 @@ export class RevoluteXConstraint extends ConstraintBase {
   private readonly rb = vec2.create();
 
   constructor(
-    public readonly world: WorldInterface,
-    public readonly bodyA: BodyInterface,
-    public readonly jointA: vec2,
-    public readonly bodyB: BodyInterface,
-    public readonly jointB: vec2
+    readonly world: WorldInterface,
+    readonly bodyA: BodyInterface,
+    readonly jointA: vec2,
+    readonly bodyB: BodyInterface,
+    readonly jointB: vec2
   ) {
     super();
   }
@@ -48,7 +48,7 @@ export class RevoluteXConstraint extends ConstraintBase {
     return -((this.pa[0] - this.pb[0]) / dt) * strength;
   }
 
-  getClamping() {
+  getClamping(): ConstraintClamping {
     return { min: Number.NEGATIVE_INFINITY, max: Number.POSITIVE_INFINITY };
   }
 }

@@ -5,9 +5,9 @@ import { affineInverse } from '../math';
 import { AABB } from './aabb';
 
 export class OBB {
-  public readonly invTransform = mat3.create();
+  readonly invTransform = mat3.create();
 
-  constructor(public readonly extent: vec2, public readonly transform: mat3) {
+  constructor(readonly extent: vec2, readonly transform: mat3) {
     affineInverse(this.invTransform, transform);
   }
 }
@@ -25,7 +25,7 @@ export module OBB {
     obb: Readonly<OBB>,
     transform: Readonly<mat3>, // obb -> abb
     invTransform: Readonly<mat3> // abb -> obb
-  ) => {
+  ): boolean => {
     vec2.set(points[0], -obb.extent[0], -obb.extent[1]);
     vec2.set(points[1], obb.extent[0], -obb.extent[1]);
     vec2.set(points[2], obb.extent[0], obb.extent[1]);
@@ -70,7 +70,7 @@ export module OBB {
     obb1: Readonly<OBB>,
     firstToSecondTransform: mat3, // obb0 -> obb1
     secondToFirstTransform: mat3 // obb1 -> obb0
-  ) => {
+  ): boolean => {
     vec2.set(points[0], -obb1.extent[0], -obb1.extent[1]);
     vec2.set(points[1], obb1.extent[0], -obb1.extent[1]);
     vec2.set(points[2], obb1.extent[0], obb1.extent[1]);

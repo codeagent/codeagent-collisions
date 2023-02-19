@@ -11,14 +11,6 @@ import {
 } from '../types';
 
 export class WorldIsland {
-  get sleeping() {
-    return this._sleeping;
-  }
-
-  get empty() {
-    return this.bodies.length === 0;
-  }
-
   private readonly bodies: Body[] = [];
 
   private readonly constraints: ConstraintInterface[] = [];
@@ -53,28 +45,36 @@ export class WorldIsland {
     );
   }
 
-  setId(id: number) {
+  get sleeping(): boolean {
+    return this._sleeping;
+  }
+
+  get empty(): boolean {
+    return this.bodies.length === 0;
+  }
+
+  setId(id: number): void {
     this.id = id;
   }
 
-  addBody(body: Body) {
+  addBody(body: Body): void {
     body.bodyIndex = this.bodies.length;
     body.islandId = this.id;
     this._sleeping = this._sleeping && body.isSleeping;
     this.bodies.push(body);
   }
 
-  addJoint(joint: JointInterface) {
+  addJoint(joint: JointInterface): void {
     this.constraints.push(...joint);
   }
 
-  clear() {
+  clear(): void {
     this.bodies.length = 0;
     this.constraints.length = 0;
     this._sleeping = true;
   }
 
-  public step(dt: number): void {
+  step(dt: number): void {
     if (this.constraints.length > 0) {
       this.solve(dt);
     } else {
@@ -117,7 +117,7 @@ export class WorldIsland {
     this.stack.clear();
   }
 
-  private serializeBodies(bodies: Readonly<Body>[]) {
+  private serializeBodies(bodies: Readonly<Body>[]): void {
     let i = 0;
     for (const body of bodies) {
       const position = body.position;
@@ -143,7 +143,10 @@ export class WorldIsland {
     }
   }
 
-  private arraysToBodies(positions: Float32Array, velocities: Float32Array) {
+  private arraysToBodies(
+    positions: Float32Array,
+    velocities: Float32Array
+  ): void {
     const n = this.bodies.length * 3;
 
     for (let i = 0, j = 0; i < n; i += 3, j++) {

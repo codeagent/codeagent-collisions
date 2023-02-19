@@ -28,7 +28,7 @@ export class PistonExample implements ExampleInterface {
     this.world.clear();
   }
 
-  private createPiston() {
+  private createPiston(): void {
     this.world.addCollider({
       body: this.world.createBody({
         mass: 1,

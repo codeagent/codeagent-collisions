@@ -20,5 +20,5 @@ export class IdManager {
   }
 }
 
-export const pairId = (id0: number, id1: number) =>
+export const pairId = (id0: number, id1: number): number =>
   id0 > id1 ? (id0 << 15) | id1 : (id1 << 15) | id0;

@@ -9,99 +9,21 @@ import { BodyInterface, JointInterface } from './types';
 import { World } from './world';
 
 export class Body implements BodyInterface {
-  get transform(): Readonly<mat3> {
-    return this._transform;
-  }
+  omega = 0;
 
-  get invTransform(): Readonly<mat3> {
-    return this._invTransform;
-  }
+  angle = 0;
 
-  get position(): Readonly<vec2> {
-    return this._position;
-  }
+  collider: Collider;
 
-  set position(position: Readonly<vec2>) {
-    vec2.copy(this._position, position);
-  }
+  bodyIndex = -1; // index in host island
 
-  get velocity(): Readonly<vec2> {
-    return this._velocity;
-  }
+  islandId = -1; // id of host island
 
-  set velocity(velocity: Readonly<vec2>) {
-    vec2.copy(this._velocity, velocity);
-  }
+  readonly joints = new Set<JointInterface>();
 
-  get force(): Readonly<vec2> {
-    return this._force;
-  }
+  readonly contacts = new Set<Contact>();
 
-  set force(force: Readonly<vec2>) {
-    vec2.copy(this._force, force);
-  }
-
-  get torque(): number {
-    return this._torque;
-  }
-
-  set torque(torque: number) {
-    this._torque = torque;
-  }
-
-  get invMass(): number {
-    return this._invMass;
-  }
-
-  get mass(): number {
-    return this._mass;
-  }
-
-  set mass(mass: number) {
-    this._mass = mass;
-    this._invMass = 1.0 / mass;
-    this._isStatic =
-      !Number.isFinite(this._mass) && !Number.isFinite(this._inertia);
-  }
-
-  get invInertia(): number {
-    return this._invInertia;
-  }
-
-  get inertia(): number {
-    return this._inertia;
-  }
-
-  set inertia(inertia: number) {
-    this._inertia = inertia;
-    this._invInertia = 1.0 / inertia;
-    this._isStatic =
-      !Number.isFinite(this._mass) && !Number.isFinite(this._inertia);
-  }
-
-  get isStatic(): boolean {
-    return this._isStatic;
-  }
-
-  get isSleeping(): boolean {
-    return this._isSleeping;
-  }
-
-  public omega = 0;
-
-  public angle = 0;
-
-  public collider: Collider;
-
-  public bodyIndex = -1; // index in host island
-
-  public islandId = -1; // id of host island
-
-  public readonly joints = new Set<JointInterface>();
-
-  public readonly contacts = new Set<Contact>();
-
-  public readonly solverConstraints: number[] = []; // the list of constraints in island with witch given body will be interacted
+  readonly solverConstraints: number[] = []; // the list of constraints in island with witch given body will be interacted
 
   private readonly _position = vec2.create();
 
@@ -130,10 +52,88 @@ export class Body implements BodyInterface {
   private readonly _invTransform = mat3.create();
 
   constructor(
-    public readonly id: number,
-    public readonly world: World,
-    public readonly continuous: boolean
+    readonly id: number,
+    readonly world: World,
+    readonly continuous: boolean
   ) {}
+
+  get velocity(): Readonly<vec2> {
+    return this._velocity;
+  }
+
+  get force(): Readonly<vec2> {
+    return this._force;
+  }
+
+  get torque(): number {
+    return this._torque;
+  }
+
+  get invMass(): number {
+    return this._invMass;
+  }
+
+  get mass(): number {
+    return this._mass;
+  }
+
+  get invInertia(): number {
+    return this._invInertia;
+  }
+
+  get inertia(): number {
+    return this._inertia;
+  }
+
+  get isStatic(): boolean {
+    return this._isStatic;
+  }
+
+  get isSleeping(): boolean {
+    return this._isSleeping;
+  }
+
+  get transform(): Readonly<mat3> {
+    return this._transform;
+  }
+
+  get invTransform(): Readonly<mat3> {
+    return this._invTransform;
+  }
+
+  get position(): Readonly<vec2> {
+    return this._position;
+  }
+
+  set position(position: Readonly<vec2>) {
+    vec2.copy(this._position, position);
+  }
+
+  set velocity(velocity: Readonly<vec2>) {
+    vec2.copy(this._velocity, velocity);
+  }
+
+  set force(force: Readonly<vec2>) {
+    vec2.copy(this._force, force);
+  }
+
+  set torque(torque: number) {
+    this._torque = torque;
+  }
+
+  set mass(mass: number) {
+    this._mass = mass;
+    this._invMass = 1.0 / mass;
+    this._isStatic =
+      !Number.isFinite(this._mass) && !Number.isFinite(this._inertia);
+  }
+
+  set inertia(inertia: number) {
+    this._inertia = inertia;
+    this._invInertia = 1.0 / inertia;
+    this._isStatic =
+      !Number.isFinite(this._mass) && !Number.isFinite(this._inertia);
+  }
 
   addJoint(joint: JointInterface): void {
     this.joints.add(joint);

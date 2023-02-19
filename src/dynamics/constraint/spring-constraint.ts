@@ -1,7 +1,7 @@
 import { vec2 } from 'gl-matrix';
 
 import { cross } from '../../math';
-import { BodyInterface, WorldInterface } from '../types';
+import { BodyInterface, ConstraintClamping, WorldInterface } from '../types';
 
 import { ConstraintBase } from './constraint.base';
 
@@ -23,14 +23,14 @@ export class SpringConstraint extends ConstraintBase {
   private readonly normal = vec2.create();
 
   constructor(
-    public readonly world: WorldInterface,
-    public readonly bodyA: BodyInterface,
-    public readonly jointA: vec2,
-    public readonly bodyB: BodyInterface,
-    public readonly jointB: vec2,
-    public readonly length: number,
-    public readonly stiffness: number,
-    public readonly extinction: number
+    readonly world: WorldInterface,
+    readonly bodyA: BodyInterface,
+    readonly jointA: vec2,
+    readonly bodyB: BodyInterface,
+    readonly jointB: vec2,
+    readonly length: number,
+    readonly stiffness: number,
+    readonly extinction: number
   ) {
     super();
   }
@@ -61,7 +61,7 @@ export class SpringConstraint extends ConstraintBase {
     return 0.0;
   }
 
-  getClamping() {
+  getClamping(): ConstraintClamping {
     vec2.transformMat3(this.pa, this.jointA, this.bodyA.transform);
     vec2.transformMat3(this.pb, this.jointB, this.bodyB.transform);
 

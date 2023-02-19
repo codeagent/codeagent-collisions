@@ -1,6 +1,6 @@
 import * as csr from 'rb-phys2d/math/csr';
 
-const MxV = (out: Float32Array, M: Float32Array, V: Float32Array) => {
+const MxV = (out: Float32Array, M: Float32Array, V: Float32Array): void => {
   const n = V.length;
   const m = M.length / n;
 
@@ -12,7 +12,7 @@ const MxV = (out: Float32Array, M: Float32Array, V: Float32Array) => {
   }
 };
 
-const MtxV = (out: Float32Array, M: Float32Array, V: Float32Array) => {
+const MtxV = (out: Float32Array, M: Float32Array, V: Float32Array): void => {
   const n = V.length;
   const m = M.length / n;
 
@@ -24,7 +24,7 @@ const MtxV = (out: Float32Array, M: Float32Array, V: Float32Array) => {
   }
 };
 
-const random = (a: number, b: number, decimals = 2) =>
+const random = (a: number, b: number, decimals = 2): number =>
   Number((Math.random() * (b - a) + a).toFixed(decimals));
 
 const generateRandomVector = (n: number, d = 0.5): Float32Array =>

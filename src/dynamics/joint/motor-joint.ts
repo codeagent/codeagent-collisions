@@ -13,15 +13,15 @@ export interface MotorDef {
 }
 
 export class MotorJoint implements JointInterface {
-  public readonly bodyB: Readonly<BodyInterface> = null;
+  readonly bodyB: Readonly<BodyInterface> = null;
 
   private readonly motorConstraint: ConstraintInterface;
 
   constructor(
     readonly world: WorldInterface,
-    public readonly bodyA: Readonly<BodyInterface>,
-    public readonly speed: number,
-    public readonly torque: number
+    readonly bodyA: Readonly<BodyInterface>,
+    readonly speed: number,
+    readonly torque: number
   ) {
     this.motorConstraint = new AngularMotorConstraint(
       world,
@@ -31,7 +31,7 @@ export class MotorJoint implements JointInterface {
     );
   }
 
-  *[Symbol.iterator]() {
+  *[Symbol.iterator](): Iterator<ConstraintInterface> {
     yield this.motorConstraint;
   }
 }

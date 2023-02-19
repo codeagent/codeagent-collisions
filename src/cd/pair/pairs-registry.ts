@@ -22,7 +22,7 @@ export class PairsRegistry implements PairsRegistryInterface {
 
   constructor(
     private readonly dispatcher: EventDispatcher,
-    @Inject('SETTINGS') public readonly settings: Readonly<Settings>
+    @Inject('SETTINGS') readonly settings: Readonly<Settings>
   ) {}
 
   getPairById(id: number): Pair {

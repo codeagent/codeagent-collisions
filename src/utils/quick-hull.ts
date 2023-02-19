@@ -3,11 +3,15 @@ import { vec2 } from 'gl-matrix';
 import { cross } from '../math';
 
 class Edge {
-  constructor(public readonly p0: vec2, public readonly p1: vec2) {}
+  constructor(readonly p0: vec2, readonly p1: vec2) {}
 }
 
-export const getUnique = (set: Set<vec2>, soup: Readonly<Iterable<vec2>>) => {
+export const getUnique = (
+  set: Set<vec2>,
+  soup: Readonly<Iterable<vec2>>
+): void => {
   const uniqueMap = new Map<string, vec2>();
+
   for (const point of soup) {
     const key = point.toString();
     if (!uniqueMap.has(key)) {
@@ -20,7 +24,7 @@ export const getUnique = (set: Set<vec2>, soup: Readonly<Iterable<vec2>>) => {
 export const getConvexHull = (
   hull: Array<vec2>,
   soup: Readonly<Iterable<vec2>>
-) => {
+): void => {
   interface StackEntry {
     edge: Edge;
     points: Set<vec2>;

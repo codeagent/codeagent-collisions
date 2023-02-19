@@ -13,8 +13,6 @@ import { ExampleInterface } from './example.interface';
 
 @Service()
 export class StairsExample implements ExampleInterface {
-  private readonly listener = (body: BodyInterface) => this.onEvent(body);
-
   constructor(
     @Inject('SETTINGS') private readonly settings: Settings,
     @Inject('WORLD') private readonly world: WorldInterface
@@ -33,7 +31,9 @@ export class StairsExample implements ExampleInterface {
     this.world.clear();
   }
 
-  private createStairs(n: number) {
+  private readonly listener = (body: BodyInterface): void => this.onEvent(body);
+
+  private createStairs(n: number): void {
     Object.assign(this.world.settings, { defaultRestitution: 0.2 });
     Object.assign(this.world.settings, { defaultPushFactor: 0.4 });
     Object.assign(this.world.settings, { defaultFriction: 0.2 });
@@ -47,7 +47,7 @@ export class StairsExample implements ExampleInterface {
 
     let k = 3;
 
-    const spawn = () => {
+    const spawn = (): void => {
       this.world.addCollider({
         body: this.world.createBody({
           mass: m,

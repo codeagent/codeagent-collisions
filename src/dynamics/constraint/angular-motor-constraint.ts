@@ -1,13 +1,13 @@
-import { BodyInterface, WorldInterface } from '../types';
+import { BodyInterface, ConstraintClamping, WorldInterface } from '../types';
 
 import { ConstraintBase } from './constraint.base';
 
 export class AngularMotorConstraint extends ConstraintBase {
   constructor(
-    public readonly world: WorldInterface,
-    public readonly bodyA: BodyInterface,
-    public readonly speed: number,
-    public readonly torque: number
+    readonly world: WorldInterface,
+    readonly bodyA: BodyInterface,
+    readonly speed: number,
+    readonly torque: number
   ) {
     super();
   }
@@ -26,7 +26,7 @@ export class AngularMotorConstraint extends ConstraintBase {
     return this.speed;
   }
 
-  getClamping() {
+  getClamping(): ConstraintClamping {
     return { min: -this.torque, max: this.torque };
   }
 }

@@ -21,11 +21,11 @@ export class DistanceJoint implements JointInterface {
 
   constructor(
     readonly world: WorldInterface,
-    public readonly bodyA: Readonly<BodyInterface>,
-    public readonly pivotA: Readonly<vec2>,
-    public readonly bodyB: Readonly<BodyInterface>,
-    public readonly pivotB: Readonly<vec2>,
-    public readonly distance: number
+    readonly bodyA: Readonly<BodyInterface>,
+    readonly pivotA: Readonly<vec2>,
+    readonly bodyB: Readonly<BodyInterface>,
+    readonly pivotB: Readonly<vec2>,
+    readonly distance: number
   ) {
     this.distanceConstraint = new DistanceConstraint(
       world,
@@ -37,7 +37,7 @@ export class DistanceJoint implements JointInterface {
     );
   }
 
-  *[Symbol.iterator]() {
+  *[Symbol.iterator](): Iterator<ConstraintInterface> {
     yield this.distanceConstraint;
   }
 }

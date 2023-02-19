@@ -28,15 +28,15 @@ export class PrismaticJoint implements JointInterface {
   private readonly constraints: ConstraintInterface[] = [];
 
   constructor(
-    public readonly world: WorldInterface,
-    public readonly bodyA: Readonly<BodyInterface>,
-    public readonly pivotA: Readonly<vec2>,
-    public readonly bodyB: Readonly<BodyInterface>,
-    public readonly pivotB: Readonly<vec2>,
-    public readonly localAxis: Readonly<vec2>,
-    public readonly refAngle: number,
-    public readonly minDistance: number,
-    public readonly maxDistance: number
+    readonly world: WorldInterface,
+    readonly bodyA: Readonly<BodyInterface>,
+    readonly pivotA: Readonly<vec2>,
+    readonly bodyB: Readonly<BodyInterface>,
+    readonly pivotB: Readonly<vec2>,
+    readonly localAxis: Readonly<vec2>,
+    readonly refAngle: number,
+    readonly minDistance: number,
+    readonly maxDistance: number
   ) {
     this.constraints.push(
       new LineConstraint(
@@ -77,7 +77,7 @@ export class PrismaticJoint implements JointInterface {
     }
   }
 
-  *[Symbol.iterator]() {
+  *[Symbol.iterator](): Iterator<ConstraintInterface> {
     yield* this.constraints;
   }
 }

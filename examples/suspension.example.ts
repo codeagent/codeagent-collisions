@@ -21,7 +21,7 @@ export class SuspensionExample implements ExampleInterface {
     this.world.clear();
   }
 
-  private createSuspension() {
+  private createSuspension(): void {
     const stiffness = 25;
     const extinction = 1;
 

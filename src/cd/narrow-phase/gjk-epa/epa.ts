@@ -12,16 +12,13 @@ import { PriorityQueue } from '../../../utils';
 import { support } from './support';
 
 class Edge {
-  public readonly closest = vec2.create();
+  readonly closest = vec2.create();
 
-  public readonly closestBarycentric = vec2.create();
+  readonly closestBarycentric = vec2.create();
 
-  public distance = 0;
+  distance = 0;
 
-  constructor(
-    public readonly p0: Readonly<vec2>,
-    public readonly p1: Readonly<vec2>
-  ) {}
+  constructor(readonly p0: Readonly<vec2>, readonly p1: Readonly<vec2>) {}
 }
 
 type Polytope = PriorityQueue<Edge>;

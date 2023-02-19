@@ -113,7 +113,7 @@ export class ConstraintsSolver implements ConstraintsSolverInterface {
     this.deallocate();
   }
 
-  private allocate(rows: number, columns: number) {
+  private allocate(rows: number, columns: number): void {
     this.rows = rows;
     this.columns = columns;
     this.positions = this.stack.pushFloat32(columns);
@@ -137,7 +137,7 @@ export class ConstraintsSolver implements ConstraintsSolverInterface {
     this.bt1 = this.stack.pushFloat32(rows);
   }
 
-  private serializeBodies(bodies: Readonly<Body>[]) {
+  private serializeBodies(bodies: Readonly<Body>[]): void {
     let i = 0;
     for (const body of bodies) {
       const position = body.position;
@@ -259,7 +259,9 @@ export class ConstraintsSolver implements ConstraintsSolverInterface {
     rows.push(this.J.values.length);
   }
 
-  private createConstraintLookup(constraints: Readonly<ConstraintInterface>[]) {
+  private createConstraintLookup(
+    constraints: Readonly<ConstraintInterface>[]
+  ): void {
     this.lookup.length = this.rows;
 
     let k = 0;
@@ -301,7 +303,7 @@ export class ConstraintsSolver implements ConstraintsSolverInterface {
     outForces0: Float32Array,
     outForces1: Float32Array,
     dt: number
-  ) {
+  ): void {
     // A = J * Minv * Jt
     // b = 1.0 / ∆t * v − J * (1 / ∆t * v1 + Minv * fext)
 
@@ -340,7 +342,7 @@ export class ConstraintsSolver implements ConstraintsSolverInterface {
     }
   }
 
-  private correctPositions(outPositions: Float32Array, dt: number) {
+  private correctPositions(outPositions: Float32Array, dt: number): void {
     VpV(this.tmpForces, this.forces, this.cvForces);
     VcV(this.tmpVelocities, this.velocities);
     VmV(this.accelerations, this.tmpForces, this.invMasses);
@@ -348,17 +350,20 @@ export class ConstraintsSolver implements ConstraintsSolverInterface {
     VpVxS(outPositions, this.positions, this.tmpVelocities, dt);
   }
 
-  private correctVelocities(outVelocities: Float32Array, dt: number) {
+  private correctVelocities(outVelocities: Float32Array, dt: number): void {
     VpV(this.tmpForces, this.forces, this.c0Forces);
     VmV(this.accelerations, this.tmpForces, this.invMasses);
     VpVxS(outVelocities, this.velocities, this.accelerations, dt);
   }
 
-  private deallocate() {
+  private deallocate(): void {
     this.stack.clear();
   }
 
-  private getRequiredMemorySize(maxBodies: number, maxConstraints: number) {
+  private getRequiredMemorySize(
+    maxBodies: number,
+    maxConstraints: number
+  ): number {
     return 120 * maxBodies + 36 * maxConstraints;
   }
 }

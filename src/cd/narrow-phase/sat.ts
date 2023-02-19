@@ -11,17 +11,17 @@ import { Convex } from '../types';
 
 // --
 class BestEdgeVertexQuery {
-  public edge: Edge = null; // reference edge
+  edge: Edge = null; // reference edge
 
-  public vertex: Vertex = null; // incident vertex
+  vertex: Vertex = null; // incident vertex
 
-  public depth: number = Number.NEGATIVE_INFINITY;
+  depth: number = Number.NEGATIVE_INFINITY;
 }
 
 class BestEdgeQuery {
-  public edge: Edge = null;
+  edge: Edge = null;
 
-  public depth: number = Number.NEGATIVE_INFINITY;
+  depth: number = Number.NEGATIVE_INFINITY;
 }
 
 const dir = vec2.create();
@@ -112,13 +112,13 @@ const queryBestEdge = (
 };
 
 export class ContactPoint {
-  public readonly point0 = vec2.create();
+  readonly point0 = vec2.create();
 
-  public readonly point1 = vec2.create();
+  readonly point1 = vec2.create();
 
-  public readonly normal = vec2.create();
+  readonly normal = vec2.create();
 
-  public depth = 0;
+  depth = 0;
 }
 
 export const testPolyPoly = (

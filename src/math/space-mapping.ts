@@ -130,7 +130,7 @@ export class SpaceMapping implements SpaceMappingInterface {
     return this.inverse;
   }
 
-  update(first: Readonly<mat3>, second: Readonly<mat3>) {
+  update(first: Readonly<mat3>, second: Readonly<mat3>): void {
     mat3.copy(this.first, first);
     mat3.copy(this.second, second);
     affineInverse(this.invFirst, first);
@@ -140,5 +140,7 @@ export class SpaceMapping implements SpaceMappingInterface {
   }
 }
 
-export const between = (first: Readonly<mat3>, second: Readonly<mat3>) =>
-  new SpaceMapping(first, second);
+export const between = (
+  first: Readonly<mat3>,
+  second: Readonly<mat3>
+): SpaceMapping => new SpaceMapping(first, second);

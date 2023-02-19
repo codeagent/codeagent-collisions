@@ -5,7 +5,12 @@ import {
   RevoluteXConstraint,
   RevoluteYConstraint,
 } from '../constraint';
-import { BodyInterface, WorldInterface, JointInterface } from '../types';
+import {
+  BodyInterface,
+  WorldInterface,
+  JointInterface,
+  ConstraintInterface,
+} from '../types';
 
 export interface WeldJointDef {
   bodyA: Readonly<BodyInterface>;
@@ -24,11 +29,11 @@ export class WeldJoint implements JointInterface {
 
   constructor(
     readonly world: WorldInterface,
-    public readonly bodyA: Readonly<BodyInterface>,
-    public readonly pivotA: Readonly<vec2>,
-    public readonly bodyB: Readonly<BodyInterface>,
-    public readonly pivotB: Readonly<vec2>,
-    public readonly refAngle: number
+    readonly bodyA: Readonly<BodyInterface>,
+    readonly pivotA: Readonly<vec2>,
+    readonly bodyB: Readonly<BodyInterface>,
+    readonly pivotB: Readonly<vec2>,
+    readonly refAngle: number
   ) {
     this.revoluteXConstraint = new RevoluteXConstraint(
       world,
@@ -54,7 +59,7 @@ export class WeldJoint implements JointInterface {
     );
   }
 
-  *[Symbol.iterator]() {
+  *[Symbol.iterator](): Iterator<ConstraintInterface> {
     yield this.revoluteXConstraint;
     yield this.revoluteYConstraint;
     yield this.angleConstraint;

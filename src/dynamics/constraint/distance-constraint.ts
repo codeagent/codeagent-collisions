@@ -1,7 +1,7 @@
 import { vec2 } from 'gl-matrix';
 
 import { cross } from '../../math';
-import { BodyInterface, WorldInterface } from '../types';
+import { BodyInterface, ConstraintClamping, WorldInterface } from '../types';
 
 import { ConstraintBase } from './constraint.base';
 
@@ -17,12 +17,12 @@ export class DistanceConstraint extends ConstraintBase {
   protected readonly rb = vec2.create();
 
   constructor(
-    public readonly world: WorldInterface,
-    public readonly bodyA: BodyInterface,
-    public readonly jointA: vec2,
-    public readonly bodyB: BodyInterface,
-    public readonly jointB: vec2,
-    public readonly distance: number
+    readonly world: WorldInterface,
+    readonly bodyA: BodyInterface,
+    readonly jointA: vec2,
+    readonly bodyB: BodyInterface,
+    readonly jointB: vec2,
+    readonly distance: number
   ) {
     super();
   }
@@ -56,7 +56,7 @@ export class DistanceConstraint extends ConstraintBase {
     return ((this.distance - vec2.distance(this.pb, this.pa)) * strength) / dt;
   }
 
-  getClamping() {
+  getClamping(): ConstraintClamping {
     return { min: Number.NEGATIVE_INFINITY, max: Number.POSITIVE_INFINITY };
   }
 }

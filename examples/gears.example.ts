@@ -22,7 +22,7 @@ export class GearsExample implements ExampleInterface {
     this.world.clear();
   }
 
-  private createGears() {
+  private createGears(): void {
     const collection = loadObj(GEARS);
 
     // for (const object in collection) {

@@ -1,5 +1,4 @@
-/* eslint-disable import/no-extraneous-dependencies */
-import { Subject } from 'rxjs';
+import { Observable, Subject } from 'rxjs';
 import { bufferTime, filter, map } from 'rxjs/operators';
 import { Service } from 'typedi';
 
@@ -16,6 +15,8 @@ export class Profiler {
 
   private readonly broadcast$ = new Subject<ProfilerStream>();
 
+  constructor(readonly bufferTime = 1000) {}
+
   static get instance(): Profiler {
     if (!this._instance) {
       this._instance = new Profiler();
@@ -23,13 +24,11 @@ export class Profiler {
     return this._instance;
   }
 
-  constructor(public bufferTime = 1000) {}
-
-  begin(name: string) {
+  begin(name: string): void {
     this.records.set(name, performance.now());
   }
 
-  end(name: string) {
+  end(name: string): void {
     if (!this.records.has(name)) {
       return;
     }
@@ -40,7 +39,7 @@ export class Profiler {
     });
   }
 
-  listen(...names: string[]) {
+  listen(...names: string[]): Observable<Record<string, number>> {
     return this.broadcast$.pipe(
       filter(stream => names.includes(stream.name)),
       bufferTime(this.bufferTime),

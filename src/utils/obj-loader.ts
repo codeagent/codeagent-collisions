@@ -6,7 +6,7 @@ export interface MeshCollection {
   [name: string]: Mesh;
 }
 
-export const loadObj = (content: string) => {
+export const loadObj = (content: string): MeshCollection => {
   const positions: vec2[] = [];
   const collection: MeshCollection = {};
   let name = '';

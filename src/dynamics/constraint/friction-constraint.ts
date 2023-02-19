@@ -1,7 +1,7 @@
 import { vec2 } from 'gl-matrix';
 
 import { cross } from '../../math';
-import { BodyInterface, WorldInterface } from '../types';
+import { BodyInterface, ConstraintClamping, WorldInterface } from '../types';
 
 import { ConstraintBase } from './constraint.base';
 
@@ -11,12 +11,12 @@ const rb = vec2.create();
 
 export class FrictionConstraint extends ConstraintBase {
   constructor(
-    public readonly world: WorldInterface,
-    public readonly bodyA: BodyInterface,
-    public readonly bodyB: BodyInterface,
-    public readonly joint: vec2,
-    public readonly normal: vec2, // normal at bodyA
-    public readonly mu: number
+    readonly world: WorldInterface,
+    readonly bodyA: BodyInterface,
+    readonly bodyB: BodyInterface,
+    readonly joint: vec2,
+    readonly normal: vec2, // normal at bodyA
+    readonly mu: number
   ) {
     super();
   }
@@ -41,7 +41,7 @@ export class FrictionConstraint extends ConstraintBase {
     return 0.0;
   }
 
-  getClamping() {
+  getClamping(): ConstraintClamping {
     const m1 = this.bodyA.mass;
     const m2 = this.bodyB.mass;
 

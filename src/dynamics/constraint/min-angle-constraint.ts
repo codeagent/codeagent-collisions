@@ -1,3 +1,5 @@
+import { ConstraintClamping } from '../types';
+
 import { AngleConstraint } from './angle-constraint';
 
 export class MinAngleConstraint extends AngleConstraint {
@@ -7,7 +9,7 @@ export class MinAngleConstraint extends AngleConstraint {
     return violation < 0 ? violation / dt : 0;
   }
 
-  getClamping() {
+  getClamping(): ConstraintClamping {
     return { min: 0, max: Number.POSITIVE_INFINITY };
   }
 }

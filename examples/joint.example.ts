@@ -21,7 +21,7 @@ export class JointExample implements ExampleInterface {
     this.world.clear();
   }
 
-  private createJoints() {
+  private createJoints(): void {
     this.createRevoluteJoint();
     this.createDistanceJoint();
     this.createWeldJoint();
@@ -42,7 +42,7 @@ export class JointExample implements ExampleInterface {
     });
   }
 
-  private createRevoluteJoint() {
+  private createRevoluteJoint(): void {
     // Revolute joint
     const hinge = this.world.createBody({
       mass: Number.POSITIVE_INFINITY,
@@ -91,7 +91,7 @@ export class JointExample implements ExampleInterface {
     });
   }
 
-  private createDistanceJoint() {
+  private createDistanceJoint(): void {
     // Revolute joint
     const hinge = this.world.createBody({
       mass: Number.POSITIVE_INFINITY,
@@ -136,7 +136,7 @@ export class JointExample implements ExampleInterface {
     });
   }
 
-  private createWeldJoint() {
+  private createWeldJoint(): void {
     // Revolute joint
     const hinge = this.world.createBody({
       mass: Number.POSITIVE_INFINITY,
@@ -193,7 +193,7 @@ export class JointExample implements ExampleInterface {
     });
   }
 
-  private createPrismaticJoint() {
+  private createPrismaticJoint(): void {
     // Revolute joint
 
     const mass = 1.0;
@@ -243,7 +243,7 @@ export class JointExample implements ExampleInterface {
     });
   }
 
-  private createSprings() {
+  private createSprings(): void {
     // Revolute joint
     const hinge = this.world.createBody({
       mass: Number.POSITIVE_INFINITY,
@@ -290,7 +290,7 @@ export class JointExample implements ExampleInterface {
     });
   }
 
-  private createFreeBody() {
+  private createFreeBody(): void {
     const mass = 1.0;
     const boxShape = new Box(1.0, 1.0);
 
@@ -303,7 +303,7 @@ export class JointExample implements ExampleInterface {
     this.world.addCollider({ body: box, shape: boxShape });
   }
 
-  private createWheels(wheels: number, length: number) {
+  private createWheels(wheels: number, length: number): void {
     const stiffness = 25;
     const extinction = 1;
     const position = vec2.fromValues(6.0, -6.0);

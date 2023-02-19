@@ -27,7 +27,7 @@ export class ConveyorExample implements ExampleInterface {
     this.world.clear();
   }
 
-  private createJoints() {
+  private createJoints(): void {
     const wheel = this.world.createBody({
       mass: Number.POSITIVE_INFINITY,
       inertia: 1.0,

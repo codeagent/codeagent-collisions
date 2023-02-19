@@ -19,7 +19,7 @@ export const createWorld = (
   return configureContainer(settings).get('WORLD');
 };
 
-export const destroyWorld = (world: WorldInterface) => {
+export const destroyWorld = (world: WorldInterface): Container => {
   world.clear();
   return Container.reset(world.settings.uid);
 };

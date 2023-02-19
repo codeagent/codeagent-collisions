@@ -24,8 +24,8 @@ export class MeshShape implements Shape, MassDistribution {
   private readonly hull: vec2[] = [];
 
   constructor(
-    public readonly mesh: Readonly<Mesh>,
-    public readonly transformOrigin: boolean = true
+    readonly mesh: Readonly<Mesh>,
+    readonly transformOrigin: boolean = true
   ) {
     if (transformOrigin) {
       this.mesh = this.transformOriginToCentroid(this.mesh);
@@ -82,7 +82,7 @@ export class MeshShape implements Shape, MassDistribution {
     return getMeshItertia(this.mesh, mass);
   }
 
-  private getConvexHull() {
+  private getConvexHull(): void {
     const points = new Set<vec2>();
     for (const triangle of this.mesh) {
       points.add(triangle.p0);

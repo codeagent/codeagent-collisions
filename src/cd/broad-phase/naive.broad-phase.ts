@@ -20,7 +20,7 @@ export class NaiveBroadPhase implements BroadPhaseInterface {
     new ContactCandidate(),
   ];
 
-  registerCollider(collider: Collider) {
+  registerCollider(collider: Collider): void {
     this.colliders.push(collider);
   }
 
@@ -87,7 +87,7 @@ export class NaiveBroadPhase implements BroadPhaseInterface {
     }
   }
 
-  private updateAABBs() {
+  private updateAABBs(): void {
     for (const collider of this.colliders) {
       collider.updateAABB();
     }

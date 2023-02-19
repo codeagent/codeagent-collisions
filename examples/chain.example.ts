@@ -21,7 +21,7 @@ export class ChainExample implements ExampleInterface {
     this.world.clear();
   }
 
-  private createChain(links: number) {
+  private createChain(links: number): void {
     const chain = new Array<BodyInterface>(links);
     const size = 0.5;
     const distance = 1.0;

@@ -26,7 +26,7 @@ export class SapBroadPhase implements BroadPhaseInterface {
 
   private readonly yIntervalKeeper = new AABBIntervalKeeper(IntervalType.Y);
 
-  registerCollider(collider: Collider) {
+  registerCollider(collider: Collider): void {
     this.colliders.add(collider);
     this.xIntervalKeeper.registerAABB(collider);
     this.yIntervalKeeper.registerAABB(collider);
@@ -99,7 +99,7 @@ export class SapBroadPhase implements BroadPhaseInterface {
     }
   }
 
-  private updateAABBs() {
+  private updateAABBs(): void {
     for (const collider of this.colliders) {
       collider.updateAABB();
     }

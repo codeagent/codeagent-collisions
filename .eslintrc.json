@@ -29,17 +29,24 @@
       }
     ],
     "import/no-unresolved": ["error", { "ignore": ["rb-phys2d"] }],
-    "import/no-extraneous-dependencies": ["off"],
-    "@typescript-eslint/triple-slash-reference": ["off"],
-    "@typescript-eslint/no-shadow": ["off"],
-    "@typescript-eslint/no-unused-vars": ["off"]
+    "import/no-extraneous-dependencies": "off",
+    "@typescript-eslint/triple-slash-reference": "off",
+    "@typescript-eslint/no-shadow": "off",
+    "@typescript-eslint/no-unused-vars": "warn",
+    "@typescript-eslint/explicit-member-accessibility": [
+      "error",
+      { "accessibility": "no-public" }
+    ],
+    "@typescript-eslint/explicit-function-return-type": "error",
+    "@typescript-eslint/member-ordering": "error"
   },
   "overrides": [
     {
       "files": ["jest.config.js", "rollup.config.js", "scripts/**"],
       "env": {
         "node": true
-      }
+      },
+      "rules": { "@typescript-eslint/explicit-function-return-type": "off" }
     },
     {
       "files": "*.spec.ts",

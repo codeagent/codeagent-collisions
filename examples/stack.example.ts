@@ -21,7 +21,7 @@ export class StackExample implements ExampleInterface {
     this.world.clear();
   }
 
-  private createStacks() {
+  private createStacks(): void {
     // floor
     this.world.addCollider({
       body: this.world.createBody({

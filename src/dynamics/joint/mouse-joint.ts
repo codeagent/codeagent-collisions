@@ -18,7 +18,7 @@ export interface MouseJointDef {
 }
 
 export class MouseJoint implements JointInterface {
-  public readonly bodyB: BodyInterface = null;
+  readonly bodyB: BodyInterface = null;
 
   private mouseXConstraint: ConstraintInterface;
 
@@ -26,11 +26,11 @@ export class MouseJoint implements JointInterface {
 
   constructor(
     readonly world: WorldInterface,
-    public readonly control: MouseControlInterface,
-    public readonly bodyA: Readonly<BodyInterface>,
-    public readonly joint: Readonly<vec2>,
-    public readonly stiffness: number,
-    public readonly maxForce: number
+    readonly control: MouseControlInterface,
+    readonly bodyA: Readonly<BodyInterface>,
+    readonly joint: Readonly<vec2>,
+    readonly stiffness: number,
+    readonly maxForce: number
   ) {
     this.mouseXConstraint = new MouseXConstraint(
       world,
@@ -51,7 +51,7 @@ export class MouseJoint implements JointInterface {
     );
   }
 
-  *[Symbol.iterator]() {
+  *[Symbol.iterator](): Iterator<ConstraintInterface> {
     yield this.mouseXConstraint;
     yield this.mouseYConstraint;
   }

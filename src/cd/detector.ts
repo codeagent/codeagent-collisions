@@ -1,9 +1,9 @@
 import { vec2 } from 'gl-matrix';
 import { Inject, Service } from 'typedi';
 
+import { closestPointsBetweenLineSegments } from '..';
 import { Settings } from '../settings';
 
-import { testCapsuleCapsule } from './broad-phase';
 import { Collider } from './collider';
 import { MeshShape } from './shape';
 import { getToi } from './toi';
@@ -25,6 +25,10 @@ export class CollisionDetector {
   private readonly q0 = vec2.create();
 
   private readonly q1 = vec2.create();
+
+  private readonly c0 = vec2.create();
+
+  private readonly c1 = vec2.create();
 
   constructor(
     @Inject('SETTINGS') private readonly settings: Settings,
@@ -55,7 +59,7 @@ export class CollisionDetector {
         vec2.scaleAndAdd(this.q1, this.q0, right.body.velocity, dt);
 
         if (
-          testCapsuleCapsule(
+          this.testCapsuleCapsule(
             this.p0,
             this.p1,
             left.shape.radius,
@@ -113,7 +117,7 @@ export class CollisionDetector {
     return minToi;
   }
 
-  registerCollider(collider: Collider) {
+  registerCollider(collider: Collider): void {
     this.broadPhase.registerCollider(collider);
 
     if (collider.body.continuous) {
@@ -121,7 +125,7 @@ export class CollisionDetector {
     }
   }
 
-  unregisterCollider(collider: Collider) {
+  unregisterCollider(collider: Collider): void {
     this.broadPhase.unregisterCollider(collider);
 
     if (collider.body.continuous) {
@@ -133,5 +137,19 @@ export class CollisionDetector {
     const midCandidates = this.broadPhase.detectCandidates();
     const contactCandidates = this.midPhase.detectCandidates(midCandidates);
     yield* this.narrowPhase.detectContacts(contactCandidates);
+  }
+
+  private testCapsuleCapsule(
+    p0: Readonly<vec2>,
+    p1: Readonly<vec2>,
+    radius0: number,
+    q0: Readonly<vec2>,
+    q1: Readonly<vec2>,
+    radius1: number
+  ): boolean {
+    closestPointsBetweenLineSegments(this.c0, this.c1, p0, p1, q0, q1);
+
+    const r = radius0 + radius1;
+    return vec2.squaredDistance(this.c0, this.c1) < r * r;
   }
 }

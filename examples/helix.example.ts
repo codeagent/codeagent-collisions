@@ -28,7 +28,7 @@ export class HelixExample implements ExampleInterface {
     this.world.clear();
   }
 
-  private createHelix() {
+  private createHelix(): void {
     this.world.addCollider({
       body: this.world.createBody({
         mass: 10,

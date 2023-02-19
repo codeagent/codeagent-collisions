@@ -1,6 +1,11 @@
 import { vec2 } from 'gl-matrix';
 
-import { BodyInterface, WorldInterface, MouseControlInterface } from '../types';
+import {
+  BodyInterface,
+  WorldInterface,
+  MouseControlInterface,
+  ConstraintClamping,
+} from '../types';
 
 import { ConstraintBase } from './constraint.base';
 
@@ -12,12 +17,12 @@ export class MouseYConstraint extends ConstraintBase {
   private readonly cursor = vec2.create();
 
   constructor(
-    public readonly world: WorldInterface,
-    public readonly bodyA: BodyInterface,
-    public readonly joint: Readonly<vec2>,
-    public readonly control: MouseControlInterface,
-    public readonly stiffness: number,
-    public readonly maxForce: number = Number.POSITIVE_INFINITY
+    readonly world: WorldInterface,
+    readonly bodyA: BodyInterface,
+    readonly joint: Readonly<vec2>,
+    readonly control: MouseControlInterface,
+    readonly stiffness: number,
+    readonly maxForce: number = Number.POSITIVE_INFINITY
   ) {
     super();
   }
@@ -40,7 +45,7 @@ export class MouseYConstraint extends ConstraintBase {
     return -((this.pa[1] - this.cursor[1]) / dt) * this.stiffness;
   }
 
-  getClamping() {
+  getClamping(): ConstraintClamping {
     return { min: -this.maxForce, max: this.maxForce };
   }
 }

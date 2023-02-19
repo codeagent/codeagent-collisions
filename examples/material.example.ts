@@ -1,5 +1,5 @@
 import { vec2 } from 'gl-matrix';
-import { Settings, Box, Polygon, WorldInterface } from 'rb-phys2d';
+import { Settings, Box, WorldInterface } from 'rb-phys2d';
 import { Inject, Service } from 'typedi';
 
 import { ExampleInterface } from './example.interface';
@@ -24,7 +24,7 @@ export class MaterialExample implements ExampleInterface {
     this.world.clear();
   }
 
-  private createRestitutionObjects(n: number) {
+  private createRestitutionObjects(n: number): void {
     // floor
     const floor = this.world.createBody({
       mass: Number.POSITIVE_INFINITY,
@@ -62,7 +62,7 @@ export class MaterialExample implements ExampleInterface {
     }
   }
 
-  private createAngularDampingObjects(n: number) {
+  private createAngularDampingObjects(n: number): void {
     let dd = 1.0 / n;
     let dx = 4.0;
 
@@ -135,7 +135,7 @@ export class MaterialExample implements ExampleInterface {
     }
   }
 
-  private createDampingObjects(n: number) {
+  private createDampingObjects(n: number): void {
     let dd = 6.0 / n;
     let dx = 4.0;
 

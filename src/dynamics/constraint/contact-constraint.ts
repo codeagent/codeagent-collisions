@@ -1,7 +1,7 @@
 import { vec2 } from 'gl-matrix';
 
 import { cross, VxV } from '../../math';
-import { BodyInterface, WorldInterface } from '../types';
+import { BodyInterface, ConstraintClamping, WorldInterface } from '../types';
 
 import { ConstraintBase } from './constraint.base';
 
@@ -12,11 +12,11 @@ const velocities = new Float32Array(6);
 
 export class ContactConstraint extends ConstraintBase {
   constructor(
-    public readonly world: WorldInterface,
-    public readonly bodyA: Readonly<BodyInterface>,
-    public readonly bodyB: Readonly<BodyInterface>,
-    public readonly joint: vec2,
-    public readonly normal: vec2, // normal at bodyA
+    readonly world: WorldInterface,
+    readonly bodyA: Readonly<BodyInterface>,
+    readonly bodyB: Readonly<BodyInterface>,
+    readonly joint: vec2,
+    readonly normal: vec2, // normal at bodyA
     public penetration: number
   ) {
     super();
@@ -55,11 +55,11 @@ export class ContactConstraint extends ConstraintBase {
     }
   }
 
-  getClamping() {
+  getClamping(): ConstraintClamping {
     return { min: 0.0, max: Number.POSITIVE_INFINITY };
   }
 
-  setPenetration(penetration: number) {
+  setPenetration(penetration: number): void {
     this.penetration = penetration;
   }
 

@@ -46,7 +46,7 @@ export const configureContainer = (
     container.set({ id: 'NARROW_PHASE', type: GjkEpaNarrowPhase });
   } else {
     throw new Error(
-      "Physics2D: Unknown narrow phase identifier, supported keys: 'sat', 'gjk-epa'"
+      "RbPhys2D: Unknown narrow phase identifier, supported keys: 'sat', 'gjk-epa'"
     );
   }
 
@@ -56,7 +56,7 @@ export const configureContainer = (
     container.set({ id: 'BROAD_PHASE', type: SapBroadPhase });
   } else {
     throw new Error(
-      "Physics2D: Unknown broad phase identifier, supported keys: 'naive', 'sap'"
+      "RbPhys2D: Unknown broad phase identifier, supported keys: 'naive', 'sap'"
     );
   }
 
@@ -66,7 +66,7 @@ export const configureContainer = (
     container.set({ id: 'ISLANDS_GENERATOR', type: SoleIslandGenerator });
   } else {
     throw new Error(
-      "Physics2D: Unknown island generator identifier, supported keys: 'local', 'sole'"
+      "RbPhys2D: Unknown island generator identifier, supported keys: 'local', 'sole'"
     );
   }
 

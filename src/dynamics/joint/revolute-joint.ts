@@ -31,14 +31,14 @@ export class RevoluteJoint implements JointInterface {
 
   constructor(
     readonly world: WorldInterface,
-    public readonly bodyA: Readonly<BodyInterface>,
-    public readonly pivotA: Readonly<vec2>,
-    public readonly bodyB: Readonly<BodyInterface>,
-    public readonly pivotB: Readonly<vec2>,
-    public readonly minAngle: number,
-    public readonly maxAngle: number,
-    public readonly stiffness: number,
-    public readonly damping: number
+    readonly bodyA: Readonly<BodyInterface>,
+    readonly pivotA: Readonly<vec2>,
+    readonly bodyB: Readonly<BodyInterface>,
+    readonly pivotB: Readonly<vec2>,
+    readonly minAngle: number,
+    readonly maxAngle: number,
+    readonly stiffness: number,
+    readonly damping: number
   ) {
     this.constraints.push(
       new RevoluteXConstraint(
@@ -86,7 +86,7 @@ export class RevoluteJoint implements JointInterface {
     }
   }
 
-  *[Symbol.iterator]() {
+  *[Symbol.iterator](): Iterator<ConstraintInterface> {
     yield* this.constraints;
   }
 }
