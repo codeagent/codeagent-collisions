@@ -12,7 +12,7 @@ export class GaussExample implements ExampleInterface {
   ) {}
 
   install(): void {
-    this.settings.defaultPushFactor = 0.4;
+    this.settings.constraintPushFactor = 0.4;
 
     this.createGauss();
   }

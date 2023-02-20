@@ -10,6 +10,6 @@ export class MinAngleConstraint extends AngleConstraint {
   }
 
   getClamping(): ConstraintClamping {
-    return { min: 0, max: Number.POSITIVE_INFINITY };
+    return { min: 0, max: this.world.settings.constraintMaxForce };
   }
 }

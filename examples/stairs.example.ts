@@ -19,7 +19,7 @@ export class StairsExample implements ExampleInterface {
   ) {}
 
   install(): void {
-    this.settings.defaultPushFactor = 0.4;
+    this.settings.constraintPushFactor = 0.4;
 
     this.createStairs(8);
 
@@ -35,7 +35,7 @@ export class StairsExample implements ExampleInterface {
 
   private createStairs(n: number): void {
     Object.assign(this.world.settings, { defaultRestitution: 0.2 });
-    Object.assign(this.world.settings, { defaultPushFactor: 0.4 });
+    Object.assign(this.world.settings, { constraintPushFactor: 0.4 });
     Object.assign(this.world.settings, { defaultFriction: 0.2 });
 
     const w = 6;

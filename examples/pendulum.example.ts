@@ -18,7 +18,7 @@ export class PendulumExample implements ExampleInterface {
   ) {}
 
   install(): void {
-    this.settings.defaultPushFactor = 1.0;
+    this.settings.constraintPushFactor = 1.0;
 
     this.createPendulums(6);
   }

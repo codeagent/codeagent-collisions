@@ -56,7 +56,7 @@ export class ContactConstraint extends ConstraintBase {
   }
 
   getClamping(): ConstraintClamping {
-    return { min: 0.0, max: Number.POSITIVE_INFINITY };
+    return { min: 0.0, max: this.world.settings.constraintMaxForce };
   }
 
   setPenetration(penetration: number): void {

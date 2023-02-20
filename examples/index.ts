@@ -33,7 +33,7 @@ canvas.height = Math.max(
   window.innerHeight || 0
 );
 
-const world = createWorld();
+const world = createWorld({});
 const viewport = createViewport(canvas)
   .addMousePickingControl(world)
   .addViewportAdjustingControl({ width: 50 });

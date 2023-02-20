@@ -35,6 +35,9 @@ export class AngleConstraint extends ConstraintBase {
   }
 
   getClamping(): ConstraintClamping {
-    return { min: Number.NEGATIVE_INFINITY, max: Number.POSITIVE_INFINITY };
+    return {
+      min: -this.world.settings.constraintMaxForce,
+      max: this.world.settings.constraintMaxForce,
+    };
   }
 }

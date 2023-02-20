@@ -12,7 +12,7 @@ export class ChainExample implements ExampleInterface {
   ) {}
 
   install(): void {
-    this.settings.defaultPushFactor = 0.25;
+    this.settings.constraintPushFactor = 0.25;
 
     this.createChain(20);
   }

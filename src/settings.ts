@@ -10,8 +10,13 @@ export interface Settings {
 
   // Memory
   totalReservedMemory: number; // in bytes
+
+  // Material
   defaultMaterial: MaterialDef;
-  defaultPushFactor: number;
+
+  // Constraints
+  constraintPushFactor: number;
+  constraintMaxForce: number;
 
   // Solver
   solverIterations: number;
@@ -52,7 +57,8 @@ export const defaultSettings: Settings = {
   maxConstraintsNumber: 4096,
   gravity: vec2.fromValues(0.0, -9.8),
   totalReservedMemory: 16e6, // 16mb
-  defaultPushFactor: 0.25,
+  constraintPushFactor: 0.25,
+  constraintMaxForce: 1.0e6,
   defaultMaterial: {
     friction: 0.5,
     restitution: 0.5,

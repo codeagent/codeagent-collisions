@@ -185,7 +185,7 @@ export class ConstraintsSolver implements ConstraintsSolverInterface {
       this.cMax[j] = max;
       this.v0[j] = constraint.getPushFactor(
         dt,
-        this.settings.defaultPushFactor
+        this.settings.constraintPushFactor
       );
       this.v1[j] = constraint.getPushFactor(dt, 0);
       this.lambdas0[j] = constraint.getCache(0);

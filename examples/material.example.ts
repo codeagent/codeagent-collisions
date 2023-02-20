@@ -12,7 +12,7 @@ export class MaterialExample implements ExampleInterface {
   ) {}
 
   install(): void {
-    this.settings.defaultPushFactor = 0.7;
+    this.settings.constraintPushFactor = 0.7;
 
     this.createRestitutionObjects(3);
     this.createFrictionObjects(3);

@@ -15,6 +15,6 @@ export class MaxDistanceConstraint extends DistanceConstraint {
   }
 
   getClamping(): ConstraintClamping {
-    return { min: Number.NEGATIVE_INFINITY, max: 0 };
+    return { min: -this.world.settings.constraintMaxForce, max: 0 };
   }
 }
