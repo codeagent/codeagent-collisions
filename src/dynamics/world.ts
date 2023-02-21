@@ -58,7 +58,7 @@ export class World implements WorldInterface {
     private readonly dispatcher: EventDispatcher
   ) {}
 
-  createBody(bodyDef: BodyDef): BodyInterface {
+  createBody(bodyDef?: BodyDef): BodyInterface {
     if (this.bodies.size === this.settings.maxBodiesNumber) {
       throw new Error(
         `World.createBody: Failed to create body: maximum namber of bodies attained: ${this.settings.maxBodiesNumber}`
@@ -68,12 +68,12 @@ export class World implements WorldInterface {
     const body = new Body(
       this.idManager.getUniqueId(),
       this,
-      bodyDef.isContinuos ?? false
+      bodyDef?.isContinuos ?? false
     );
-    body.mass = bodyDef.mass ?? 1.0;
+    body.mass = bodyDef?.mass ?? 1.0;
     body.inertia = bodyDef?.inertia ?? 1.0;
-    body.position = bodyDef.position ?? vec2.create();
-    body.angle = bodyDef.angle ?? 0.0;
+    body.position = bodyDef?.position ?? vec2.create();
+    body.angle = bodyDef?.angle ?? 0.0;
     body.updateTransform();
 
     this.bodies.set(body.id, body);

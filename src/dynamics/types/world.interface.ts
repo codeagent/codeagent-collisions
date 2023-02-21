@@ -17,7 +17,7 @@ import { JointInterface } from './joint.interface';
 
 export interface WorldInterface extends Iterable<BodyInterface> {
   readonly settings: Readonly<Settings>;
-  createBody(bodyDef: BodyDef): BodyInterface;
+  createBody(bodyDef?: BodyDef): BodyInterface;
   destroyBody(body: BodyInterface): void;
   addDistanceJoint(joint: DistanceJointDef): JointInterface;
   addPrismaticJoint(joint: PrismaticJointDef): JointInterface;

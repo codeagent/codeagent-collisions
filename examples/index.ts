@@ -55,7 +55,7 @@ const loader = container.get(ExampleLoader);
 fromEvent(self.document.querySelectorAll('.nav-link'), 'click')
   .pipe(
     map((e: MouseEvent) => (e.target as HTMLAnchorElement).id),
-    startWith('gauss'),
+    startWith('joint'),
     tap(id => {
       document
         .querySelectorAll('.nav-link')

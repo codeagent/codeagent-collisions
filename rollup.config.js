@@ -66,6 +66,6 @@ export default process.env.BUILD !== 'development'
           open: true,
           contentBase: ['examples/public', 'dist/examples'],
         }),
-        // livereload(),
+        livereload(),
       ],
     };
