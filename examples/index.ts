@@ -1,26 +1,28 @@
 /// <reference path="./declarations.d.ts" />
 import 'reflect-metadata';
 
-import { createWorld } from 'rb-phys2d';
+import { mat4, vec4 } from 'gl-matrix';
+import { createWorld, getLoops, isCCW } from 'rb-phys2d';
 import {
   RenderMask,
   createViewport,
   createWorldRenderer,
 } from 'rb-phys2d-renderer';
-// import { createWorld } from 'rb-phys2d-threaded';
-import { animationFrames, fromEvent, interval } from 'rxjs';
-import { map, startWith, switchMap, tap } from 'rxjs/operators';
+import { animationFrames } from 'rxjs';
 import { Container } from 'typedi';
 
-import { ExampleInterface } from './example.interface';
+import { collection, createGometry, toMat4 } from './decomp';
 import {
-  Profiler,
-  ExampleLoader,
   EXAMPLES_TOKEN,
   EXAMPLES,
   CONTAINER_TOKEN,
   RENDERER_TOKEN,
+  Device,
 } from './services';
+import {
+  vertex as shapeVertex,
+  fragment as shapeFragment,
+} from './shaders/shape';
 
 const canvas = document.getElementById('canvas') as HTMLCanvasElement;
 
@@ -47,50 +49,47 @@ container.set({ id: RENDERER_TOKEN, value: renderer });
 container.set({ id: 'WORLD', value: world });
 container.set({ id: 'SETTINGS', value: world.settings });
 
-let example: ExampleInterface;
+// collection.GearTrain
+// collection.EscapeWheel
+// collection.PalletFork
+// collection.Balance
+// collection.ImpactPinHousing
 
-const profiler = container.get(Profiler);
-const loader = container.get(ExampleLoader);
+const loops = getLoops(collection.GearTrain);
 
-fromEvent(self.document.querySelectorAll('.nav-link'), 'click')
-  .pipe(
-    map((e: MouseEvent) => (e.target as HTMLAnchorElement).id),
-    startWith('joint'),
-    tap(id => {
-      document
-        .querySelectorAll('.nav-link')
-        .forEach(e => e.classList.remove('active'));
-      document.getElementById(id).classList.add('active');
-    }),
-    switchMap((id: string) => loader.loadExample(id))
-  )
-  .subscribe(e => {
-    if (example) {
-      example.uninstall();
-      renderer.reset();
-    }
-    example = e;
-    example.install();
-  });
+const device = new Device(viewport.context);
+const shader = device.createShader(shapeVertex, shapeFragment);
+const drawable = loops.map(loop => device.createGeometry(createGometry(loop)));
 
-const dt = 1.0 / 60.0;
+console.log(loops);
 
-interval(dt * 1000).subscribe(() => {
-  profiler.begin('step');
-  world.step(dt);
-  profiler.end('step');
-});
+const projMat = mat4.create();
+const worldMat = mat4.create();
+const colorCW = vec4.fromValues(1.0, 0.0, 0.0, 1.0);
+const colorCCW = vec4.fromValues(0.0, 0.0, 1.0, 1.0);
 
 animationFrames().subscribe(() => {
-  profiler.begin('draw');
   renderer.clear();
-  renderer.render(RenderMask.Default);
-  profiler.end('draw');
-});
+  renderer.render(RenderMask.Axes);
 
-const perf = document.getElementById('perf');
-profiler.listen('draw', 'step').subscribe(e => {
-  perf.innerText = `Draw: ${e.draw?.toFixed(2)}ms | Step: ${e.step?.toFixed(
-    2
-  )}ms`;
+  {
+    device.useProgram(shader);
+    device.setProgramVariable(
+      shader,
+      'projMat',
+      'mat4',
+      toMat4(projMat, viewport.projection)
+    );
+    device.setProgramVariable(shader, 'worldMat', 'mat4', worldMat);
+
+    drawable.forEach((geometry, index) => {
+      device.setProgramVariable(
+        shader,
+        'albedo',
+        'vec4',
+        isCCW(loops[index]) ? colorCCW : colorCW
+      );
+      device.drawGeometry(geometry);
+    });
+  }
 });
