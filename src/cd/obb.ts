@@ -12,7 +12,7 @@ export class OBB {
   }
 }
 
-export module OBB {
+export namespace OBB {
   const p0 = vec2.create();
   const p1 = vec2.create();
   const p2 = vec2.create();

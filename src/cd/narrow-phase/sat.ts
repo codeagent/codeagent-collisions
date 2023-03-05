@@ -6,7 +6,8 @@ import {
   fromBarycentric,
   clipByPlane,
 } from '../../math';
-import { Circle, Edge, Polygon, Vertex } from '../shape';
+import { Edge, Vertex } from '../loop';
+import { Circle, Polygon } from '../shape';
 import { Convex } from '../types';
 
 // --

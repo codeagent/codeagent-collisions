@@ -2,7 +2,7 @@
 import 'reflect-metadata';
 
 import { mat4, vec4 } from 'gl-matrix';
-import { createWorld, getLoops, isCCW } from 'rb-phys2d';
+import { Loop, createWorld, getLoops, polyDecompose } from 'rb-phys2d';
 import {
   RenderMask,
   createViewport,
@@ -55,7 +55,10 @@ container.set({ id: 'SETTINGS', value: world.settings });
 // collection.Balance
 // collection.ImpactPinHousing
 
-const loops = getLoops(collection.GearTrain);
+const loops = getLoops(collection.Plane001);
+const decomposed = polyDecompose(loops[0]);
+
+console.log(decomposed);
 
 const device = new Device(viewport.context);
 const shader = device.createShader(shapeVertex, shapeFragment);
@@ -87,7 +90,7 @@ animationFrames().subscribe(() => {
         shader,
         'albedo',
         'vec4',
-        isCCW(loops[index]) ? colorCCW : colorCW
+        Loop.isCCW(loops[index]) ? colorCCW : colorCW
       );
       device.drawGeometry(geometry);
     });

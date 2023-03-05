@@ -7,7 +7,8 @@ import {
   fromBarycentric,
 } from '../../../math';
 import { Collider } from '../../collider';
-import { Circle, Polygon, Edge } from '../../shape';
+import { Edge } from '../../loop';
+import { Circle, Polygon } from '../../shape';
 import { ContactInfo } from '../../types';
 
 const inc0 = vec2.create();

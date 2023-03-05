@@ -238,9 +238,6 @@ export const fromBarycentric = <T extends ArrayLike<number>>(
   return out;
 };
 
-export const isInsideTriangle = (barycentric: Readonly<vec2>): boolean =>
-  barycentric[0] < 0.0 || barycentric[1] < 0.0 ? false : true;
-
 export const transformMat3Vec = (
   out: vec2,
   v: Readonly<vec2>,

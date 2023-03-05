@@ -15,7 +15,7 @@ export class OBBNode<T = unknown> {
   constructor(readonly obb: OBB) {}
 }
 
-export module OBBNode {
+export namespace OBBNode {
   const mapping = mat3.create();
   const invMapping = mat3.create();
   const firstToSecondTransform = mat3.create();

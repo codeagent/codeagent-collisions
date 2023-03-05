@@ -2,37 +2,10 @@ import { mat3, vec2 } from 'gl-matrix';
 
 import { cross, getPolygonCentroid, getPolygonSignedArea } from '../../math';
 import { AABB } from '../aabb';
+import { Edge, Loop, Vertex } from '../loop';
 import { Shape, MassDistribution } from '../types';
 
 const v = vec2.create();
-
-export class Vertex {
-  readonly normal: Readonly<vec2>;
-
-  readonly prev: Vertex = null;
-
-  readonly next: Vertex = null;
-
-  readonly edge0: Edge = null; // incoming
-
-  readonly edge1: Edge = null; // outgoing
-
-  constructor(readonly point: Readonly<vec2>) {}
-}
-
-export class Edge {
-  readonly normal = vec2.create();
-
-  readonly prev: Edge = null;
-
-  readonly next: Edge = null;
-
-  constructor(readonly v0: Readonly<Vertex>, readonly v1: Readonly<Vertex>) {
-    vec2.sub(this.normal, this.v1.point, this.v0.point);
-    vec2.normalize(this.normal, this.normal);
-    vec2.set(this.normal, this.normal[1], -this.normal[0]);
-  }
-}
 
 export class Polygon implements Shape, MassDistribution {
   readonly radius: number = 0;
@@ -55,8 +28,8 @@ export class Polygon implements Shape, MassDistribution {
       points = this.transformOriginToCentroid(points);
     }
 
-    this.loop = this.cachedSupportVertex = this.createVertexLoop(points);
-    this.edgeLoop = this.createEdgeLoop(this.loop);
+    this.loop = this.cachedSupportVertex = Loop.ofVertices(points);
+    this.edgeLoop = Loop.ofEdges(this.loop);
     this.radius = this.getRadius();
   }
 
@@ -148,22 +121,11 @@ export class Polygon implements Shape, MassDistribution {
   }
 
   *vertices(): Iterable<Vertex> {
-    let vertex = this.loop;
-
-    do {
-      yield vertex;
-      vertex = vertex.next;
-    } while (vertex !== this.loop);
+    yield* Loop.iterator(this.loop);
   }
 
   *edges(): Iterable<Edge> {
-    let edge = this.edgeLoop;
-
-    do {
-      yield edge;
-
-      edge = edge.next;
-    } while (edge !== this.edgeLoop);
+    yield* Loop.iterator(this.edgeLoop);
   }
 
   private transformOriginToCentroid(polygon: Readonly<vec2[]>): vec2[] {
@@ -176,71 +138,5 @@ export class Polygon implements Shape, MassDistribution {
     return Array.from(this.vertices())
       .map(p => vec2.length(p.point))
       .reduce((max, length) => (length > max ? length : max), 0);
-  }
-
-  private createVertexLoop(points: Readonly<vec2[]>): Vertex {
-    let first: Vertex = null;
-    let last: Vertex = null;
-
-    for (const point of points) {
-      const vertex = new Vertex(point);
-
-      if (last) {
-        (last.next as Vertex) = vertex;
-        (vertex.prev as Vertex) = last;
-      } else {
-        first = vertex;
-      }
-
-      last = vertex;
-    }
-
-    (last.next as Vertex) = first;
-    (first.prev as Vertex) = last;
-
-    return first;
-  }
-
-  private createEdgeLoop(loop: Vertex): Edge {
-    let first: Edge = null;
-    let last: Edge = null;
-    let vertex = loop;
-
-    do {
-      const edge = new Edge(vertex, vertex.next);
-
-      if (last) {
-        (last.next as Edge) = edge;
-        (edge.prev as Edge) = last;
-      } else {
-        first = edge;
-      }
-
-      (vertex.edge0 as Edge) = last;
-      (vertex.edge1 as Edge) = edge;
-
-      last = edge;
-      vertex = vertex.next;
-    } while (vertex !== loop);
-
-    (last.next as Edge) = first;
-    (first.prev as Edge) = last;
-    (vertex.edge0 as Edge) = last;
-
-    let edge = first;
-    do {
-      const normal = vec2.create();
-      vec2.add(normal, edge.normal, edge.prev.normal);
-      vec2.scale(
-        normal,
-        normal,
-        1.0 / (1.0 + vec2.dot(edge.normal, edge.prev.normal))
-      );
-      (edge.v0.normal as vec2) = normal;
-
-      edge = edge.next;
-    } while (edge !== first);
-
-    return first;
   }
 }

@@ -8,7 +8,7 @@ export class AABB {
   constructor(readonly min = vec2.create(), readonly max = vec2.create()) {}
 }
 
-export module AABB {
+export namespace AABB {
   const dir = vec2.create();
   const enter = vec2.create();
   const exit = vec2.create();

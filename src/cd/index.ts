@@ -11,3 +11,4 @@ export * from './obb';
 export * from './obb-tree';
 export * from './mesh';
 export * from './pair';
+export * from './loop';

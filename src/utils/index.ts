@@ -6,4 +6,4 @@ export * from './event-dispatcher';
 export * from './memory';
 export * from './stack';
 export * from './priority-queue';
-export * from './poly-decomposer';
+export * from './poly-decompose';

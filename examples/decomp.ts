@@ -1,23 +1,21 @@
-import { mat3, mat4, vec2 } from 'gl-matrix';
-import { loadObj } from 'rb-phys2d';
+import { mat3, mat4 } from 'gl-matrix';
+import { Loop, Vertex, loadObj } from 'rb-phys2d';
 
-import MECH from './objects/mech.obj';
+// import MECH from './objects/mech.obj';
+import MESH from './objects/mesh.obj';
 import { GeometryData } from './services';
 
-export const collection = loadObj(MECH);
+export const collection = loadObj(MESH);
 
-export const createGometry = (loop: vec2[]): GeometryData => {
+export const createGometry = (loop: Vertex): GeometryData => {
   const vertices = [];
   const indices = [];
 
   let index = 0;
 
-  for (let i = 0; i < loop.length; i++) {
-    const p0 = loop[i];
-    const p1 = loop[(i + 1) % loop.length];
-
+  for (const vertex of Loop.iterator(loop)) {
     indices.push(index++, index++);
-    vertices.push(...p0, ...p1);
+    vertices.push(...vertex.point, ...vertex.next.point);
   }
 
   return {
