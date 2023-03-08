@@ -84,7 +84,7 @@ export const getLoops = (mesh: Mesh): Vertex[] => {
       }
 
       if (found === 0) {
-        const vertexLoop = Loop.ofVertices(loop);
+        const vertexLoop = Loop.ofVertices(loop.slice(0, -1));
         Loop.ofEdges(vertexLoop);
         loops.push(vertexLoop);
         loop = null;
@@ -93,7 +93,7 @@ export const getLoops = (mesh: Mesh): Vertex[] => {
   }
 
   if (loop) {
-    const vertexLoop = Loop.ofVertices(loop);
+    const vertexLoop = Loop.ofVertices(loop.slice(0, -1));
     Loop.ofEdges(vertexLoop);
     loops.push(vertexLoop);
   }
@@ -113,7 +113,11 @@ export const isVisible = (vertex: Vertex, from: Vertex): boolean => {
   let d1 = 0;
 
   for (const curr of Loop.iterator(from.next)) {
-    d1 = Line.distance(line, curr.point);
+    if (curr === vertex || curr === from) {
+      d1 = 0;
+    } else {
+      d1 = Line.distance(line, curr.point);
+    }
 
     // sign is changed means we are intersecting a looking ray
     if (d0 * d1 < 0) {
@@ -138,13 +142,12 @@ export const polyDecompose = (loop: Vertex): Vertex[] => {
     Loop.isReflex(vertex)
   );
 
+  Loop.check(queue[0]);
+
   const line0 = Line.create();
   const line1 = Line.create();
 
-  let depth = 0;
-
   while (queue.length) {
-    depth++;
     const reflex = queue.shift();
 
     // viewing cone
@@ -207,13 +210,15 @@ export const polyDecompose = (loop: Vertex): Vertex[] => {
             t = bary[0];
           }
         }
+      }
 
-        if (closestEdge) {
-          best = closestEdge.split(t);
-        }
+      if (closestEdge) {
+        best = Loop.split(closestEdge, t);
+        Loop.check(best);
       }
     } else {
       // find beset vertex using some heuristics
+
       for (const vertex of candidates) {
         if (!best) {
           best = vertex;
@@ -245,6 +250,8 @@ export const polyDecompose = (loop: Vertex): Vertex[] => {
       throw new Error('polyDecompose: Some misleading occurred');
     }
 
+    queue.splice(queue.indexOf(best), 1);
+
     // split loop
     for (const edge of Loop.cut(reflex, best)) {
       if (Loop.isConvex(edge.v0)) {
@@ -258,6 +265,8 @@ export const polyDecompose = (loop: Vertex): Vertex[] => {
           queue.push(edge.v1);
         }
       }
+
+      Loop.check(edge.v0);
     }
   }
 

@@ -7,6 +7,8 @@ import { GeometryData } from './services';
 
 export const collection = loadObj(MESH);
 
+const CROSS_SIZE = 0.2;
+
 export const createGometry = (loop: Vertex): GeometryData => {
   const vertices = [];
   const indices = [];
@@ -16,6 +18,26 @@ export const createGometry = (loop: Vertex): GeometryData => {
   for (const vertex of Loop.iterator(loop)) {
     indices.push(index++, index++);
     vertices.push(...vertex.point, ...vertex.next.point);
+
+    // debug info
+    indices.push(index++, index++, index++, index++);
+    vertices.push(
+      -0.5 * CROSS_SIZE + vertex.point[0],
+      vertex.point[1],
+      0.5 * CROSS_SIZE + vertex.point[0],
+      vertex.point[1],
+      vertex.point[0],
+      -0.5 * CROSS_SIZE + vertex.point[1],
+      vertex.point[0],
+      0.5 * CROSS_SIZE + vertex.point[1]
+    );
+
+    indices.push(index++, index++);
+    vertices.push(
+      ...vertex.point,
+      vertex.point[0] + vertex.edge1.normal[0],
+      vertex.point[1] + vertex.edge1.normal[1]
+    );
   }
 
   return {

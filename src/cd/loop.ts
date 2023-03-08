@@ -28,39 +28,6 @@ export class Edge {
     vec2.normalize(this.normal, this.normal);
     vec2.set(this.normal, this.normal[1], -this.normal[0]);
   }
-
-  split(t: number): Vertex {
-    const vertex = new Vertex(vec2.create());
-    vec2.lerp(vertex.point, this.v0.point, this.v1.point, t);
-    vec2.copy(vertex.normal, this.normal);
-
-    const left = new Edge(this.v0, vertex);
-    const right = new Edge(vertex, this.v1);
-
-    left.prev = this.prev;
-    this.prev.next = left;
-
-    left.next = right;
-    right.prev = left;
-
-    right.next = this.next;
-    this.next.prev = right;
-
-    this.v0.next = vertex;
-    vertex.prev = this.v0;
-    this.v0.edge1 = left;
-
-    this.v1.prev = vertex;
-    vertex.next = this.v1;
-    this.v1.edge0 = right;
-
-    vertex.edge0 = left;
-    vertex.edge1 = right;
-
-    this.v0 = this.v1 = this.next = this.prev = null;
-
-    return vertex;
-  }
 }
 
 export namespace Loop {
@@ -93,9 +60,8 @@ export namespace Loop {
   export const ofEdges = (loop: Vertex): Edge => {
     let first: Edge = null;
     let last: Edge = null;
-    let vertex = loop;
 
-    do {
+    for (const vertex of Loop.iterator(loop)) {
       const edge = new Edge(vertex, vertex.next);
 
       if (last) {
@@ -109,24 +75,20 @@ export namespace Loop {
       vertex.edge1 = edge;
 
       last = edge;
-      vertex = vertex.next;
-    } while (vertex !== loop);
+    }
 
     last.next = first;
     first.prev = last;
-    vertex.edge0 = last;
+    loop.edge0 = last;
 
-    let edge = first;
-    do {
+    for (const edge of Loop.iterator(first)) {
       vec2.add(edge.v0.normal, edge.normal, edge.prev.normal);
       vec2.scale(
         edge.v0.normal,
         edge.v0.normal,
         1.0 / (1.0 + vec2.dot(edge.normal, edge.prev.normal))
       );
-
-      edge = edge.next;
-    } while (edge !== first);
+    }
 
     return first;
   };
@@ -200,27 +162,64 @@ export namespace Loop {
       start.edge1 = end.edge0 = edge;
 
       // normals
-      vec2.add(start.normal, start.edge0.normal, start.edge1.normal);
-      vec2.scale(
-        start.normal,
-        start.normal,
-        1.0 / (1.0 + vec2.dot(start.edge0.normal, start.edge1.normal))
-      );
-
-      vec2.add(end.normal, end.edge0.normal, end.edge1.normal);
-      vec2.scale(
-        end.normal,
-        end.normal,
-        1.0 / (1.0 + vec2.dot(end.edge0.normal, end.edge1.normal))
-      );
+      for (const vertex of [start, end]) {
+        vec2.add(vertex.normal, vertex.edge0.normal, vertex.edge1.normal);
+        vec2.scale(
+          vertex.normal,
+          vertex.normal,
+          1.0 / (1.0 + vec2.dot(vertex.edge0.normal, vertex.edge1.normal))
+        );
+      }
 
       edges[i++] = edge;
     }
 
+    v0.prev = v0.next = v0.edge0 = v0.edge1 = null;
+    v1.prev = v1.next = v1.edge0 = v1.edge1 = null;
+
     return edges;
   };
 
-  export function* iterator<T extends { next: T }>(loop: T): Iterable<T> {
+  export const split = (edge: Edge, t: number): Vertex => {
+    const vertex = new Vertex(vec2.create());
+    vec2.lerp(vertex.point, edge.v0.point, edge.v1.point, t);
+    vec2.copy(vertex.normal, edge.normal);
+
+    const left = new Edge(edge.v0, vertex);
+    const right = new Edge(vertex, edge.v1);
+
+    // edges
+    left.prev = edge.prev;
+    edge.prev.next = left;
+
+    left.next = right;
+    right.prev = left;
+
+    right.next = edge.next;
+    edge.next.prev = right;
+
+    // vertices
+    vertex.prev = edge.v0;
+    edge.v0.next = vertex;
+
+    vertex.next = edge.v1;
+    edge.v1.prev = vertex;
+
+    // edge-vertices
+    edge.v0.edge1 = left;
+    vertex.edge0 = left;
+
+    edge.v1.edge0 = right;
+    vertex.edge1 = right;
+
+    edge.v0 = edge.v1 = edge.next = edge.prev = null;
+
+    return vertex;
+  };
+
+  export function* iterator<T extends { next: T; prev: T }>(
+    loop: T
+  ): Iterable<T> {
     let curr: T = loop;
 
     do {
@@ -229,4 +228,49 @@ export namespace Loop {
       curr = curr.next;
     } while (curr !== loop);
   }
+
+  export const check = (loop: Vertex, maxLength = 1024): void => {
+    let length = 0;
+    let lastVertex: Vertex = null;
+
+    for (const vertex of Loop.iterator(loop)) {
+      console.assert(length++ < maxLength, 'Vertex length check failed');
+      console.assert(
+        vertex.prev && vertex.next,
+        'Vertex siblings check failed'
+      );
+      console.assert(
+        vertex.edge0.v1 === vertex && vertex.edge1.v0 === vertex,
+        'Vertex edges check failed'
+      );
+
+      lastVertex = vertex;
+    }
+
+    console.assert(
+      lastVertex.next === loop && loop.prev === lastVertex,
+      'Vertex loop closeness'
+    );
+
+    length = 0;
+    let lastEdge: Edge = null;
+    for (const edge of Loop.iterator(loop.edge1)) {
+      console.assert(length++ < maxLength, 'Edge length check failed');
+      console.assert(edge.prev && edge.next, 'Edge siblings check failed');
+      console.assert(
+        edge.v0 === edge.prev.v1 && edge.v1 === edge.next.v0,
+        'Edge vertices check failed'
+      );
+
+      lastEdge = edge;
+    }
+
+    console.assert(
+      lastEdge.next === loop.edge1 && loop.edge1.prev === lastEdge,
+      'Edge loop closeness'
+    );
+
+    console.assert(isCCW(loop), 'CCW check failed');
+    console.assert(length > 2, 'Min length check failed');
+  };
 }

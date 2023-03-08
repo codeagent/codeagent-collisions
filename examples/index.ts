@@ -1,7 +1,7 @@
 /// <reference path="./declarations.d.ts" />
 import 'reflect-metadata';
 
-import { mat4, vec4 } from 'gl-matrix';
+import { mat4, vec2, vec4 } from 'gl-matrix';
 import { Loop, createWorld, getLoops, polyDecompose } from 'rb-phys2d';
 import {
   RenderMask,
@@ -55,16 +55,42 @@ container.set({ id: 'SETTINGS', value: world.settings });
 // collection.Balance
 // collection.ImpactPinHousing
 
-const loops = getLoops(collection.Plane001);
-const decomposed = polyDecompose(loops[0]);
+let loops = getLoops(collection.Plane001);
+const loop = Array.from(Loop.iterator(loops[0]));
+// Loop.check(loop[0]);
+// console.log(loop);
 
-console.log(decomposed);
+// const loop = Loop.ofVertices([
+//   vec2.fromValues(0, 2),
+//   vec2.fromValues(-2, 0),
+//   vec2.fromValues(-1, -2),
+//   vec2.fromValues(0, 1),
+//   vec2.fromValues(1, -2),
+//   vec2.fromValues(2, 0),
+// ]);
+
+// Loop.ofEdges(loop)
+
+const polygons = polyDecompose(loop[0]);
+
+// polyDecompose(loop[0]);
 
 const device = new Device(viewport.context);
 const shader = device.createShader(shapeVertex, shapeFragment);
-const drawable = loops.map(loop => device.createGeometry(createGometry(loop)));
 
-console.log(loops);
+// const [e0, e1] = Loop.cut(loop[6], loop[13]);
+// Loop.split(e0, 0.5);
+// Loop.split(e1, 0.5);
+
+// Loop.check(e0.v0);
+// console.log(Array.from(Loop.iterator(e0.v0)));
+
+// Loop.check(e1.v0);
+// console.log(Array.from(Loop.iterator(e1.v0)));
+
+const drawable = polygons.map(poly =>
+  device.createGeometry(createGometry(poly))
+);
 
 const projMat = mat4.create();
 const worldMat = mat4.create();
@@ -90,7 +116,8 @@ animationFrames().subscribe(() => {
         shader,
         'albedo',
         'vec4',
-        Loop.isCCW(loops[index]) ? colorCCW : colorCW
+        colorCCW
+        // Loop.isCCW(loops[index]) ? colorCCW : colorCW
       );
       device.drawGeometry(geometry);
     });
