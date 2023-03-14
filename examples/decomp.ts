@@ -1,13 +1,16 @@
 import { mat3, mat4 } from 'gl-matrix';
 import { Loop, Vertex, loadObj } from 'rb-phys2d';
 
-// import MECH from './objects/mech.obj';
+import GEARS from './objects/gears.obj';
+import HELIX from './objects/helix.obj';
+import MECH from './objects/mech.obj';
 import MESH from './objects/mesh.obj';
+import PINBALL from './objects/pintball.obj';
 import { GeometryData } from './services';
 
-export const collection = loadObj(MESH);
+export const collection = loadObj(MECH);
 
-const CROSS_SIZE = 0.2;
+const CROSS_SIZE = 0.08;
 
 export const createGometry = (loop: Vertex): GeometryData => {
   const vertices = [];
@@ -32,12 +35,12 @@ export const createGometry = (loop: Vertex): GeometryData => {
       0.5 * CROSS_SIZE + vertex.point[1]
     );
 
-    indices.push(index++, index++);
-    vertices.push(
-      ...vertex.point,
-      vertex.point[0] + vertex.edge1.normal[0],
-      vertex.point[1] + vertex.edge1.normal[1]
-    );
+    // indices.push(index++, index++);
+    // vertices.push(
+    //   ...vertex.point,
+    //   vertex.point[0] + vertex.normal[0] * 0.1,
+    //   vertex.point[1] + vertex.normal[1]* 0.1
+    // );
   }
 
   return {

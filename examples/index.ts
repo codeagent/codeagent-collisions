@@ -55,38 +55,31 @@ container.set({ id: 'SETTINGS', value: world.settings });
 // collection.Balance
 // collection.ImpactPinHousing
 
-let loops = getLoops(collection.Plane001);
-const loop = Array.from(Loop.iterator(loops[0]));
+let loop = getLoops(collection.GearTrain).find(loop => Loop.isCCW(loop));
+Loop.check(loop);
+
+// const polygons = polyDecompose(loop);
+
+// Loop.check(polygons[0]);
+
 // Loop.check(loop[0]);
 // console.log(loop);
 
 // const loop = Loop.ofVertices([
-//   vec2.fromValues(0, 2),
-//   vec2.fromValues(-2, 0),
-//   vec2.fromValues(-1, -2),
+//   vec2.fromValues(-3.5, 3),
+//   vec2.fromValues(-4, -2),
 //   vec2.fromValues(0, 1),
-//   vec2.fromValues(1, -2),
-//   vec2.fromValues(2, 0),
+//   vec2.fromValues(0, -2),
+//   vec2.fromValues(3, 2),
 // ]);
 
-// Loop.ofEdges(loop)
+// Loop.ofEdges(loop);
 
-const polygons = polyDecompose(loop[0]);
-
-// polyDecompose(loop[0]);
+const polygons = polyDecompose(loop);
+// const polygons = [loop]
 
 const device = new Device(viewport.context);
 const shader = device.createShader(shapeVertex, shapeFragment);
-
-// const [e0, e1] = Loop.cut(loop[6], loop[13]);
-// Loop.split(e0, 0.5);
-// Loop.split(e1, 0.5);
-
-// Loop.check(e0.v0);
-// console.log(Array.from(Loop.iterator(e0.v0)));
-
-// Loop.check(e1.v0);
-// console.log(Array.from(Loop.iterator(e1.v0)));
 
 const drawable = polygons.map(poly =>
   device.createGeometry(createGometry(poly))
@@ -112,13 +105,7 @@ animationFrames().subscribe(() => {
     device.setProgramVariable(shader, 'worldMat', 'mat4', worldMat);
 
     drawable.forEach((geometry, index) => {
-      device.setProgramVariable(
-        shader,
-        'albedo',
-        'vec4',
-        colorCCW
-        // Loop.isCCW(loops[index]) ? colorCCW : colorCW
-      );
+      device.setProgramVariable(shader, 'albedo', 'vec4', colorCCW);
       device.drawGeometry(geometry);
     });
   }

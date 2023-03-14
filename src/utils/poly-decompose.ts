@@ -1,13 +1,12 @@
 import { vec2, vec3 } from 'gl-matrix';
 
 import { Edge, Loop, Mesh, Vertex } from '../cd';
-import { closestPointToLineSegment, fromBarycentric } from '../math';
+
+import { PriorityQueue } from './priority-queue';
 
 const line = vec3.create();
 const normal = vec2.create();
-const closest = vec2.create();
 const x = vec2.create();
-const bary = vec2.create();
 
 export namespace Line {
   const p = vec3.create();
@@ -136,19 +135,29 @@ export const isVisible = (vertex: Vertex, from: Vertex): boolean => {
 };
 
 export const polyDecompose = (loop: Vertex): Vertex[] => {
+  if (Loop.isConvex(loop)) {
+    return [loop];
+  }
+
   const polygons: Vertex[] = [];
 
-  const queue = Array.from(Loop.iterator(loop)).filter(vertex =>
-    Loop.isReflex(vertex)
+  const queue = new PriorityQueue<Vertex>(
+    (a, b) => -(Loop.angle(a) - Loop.angle(b))
   );
 
-  Loop.check(queue[0]);
+  for (const vertex of Loop.iterator(loop)) {
+    if (Loop.isReflex(vertex)) {
+      queue.enqueue(vertex);
+    }
+  }
 
   const line0 = Line.create();
   const line1 = Line.create();
 
-  while (queue.length) {
-    const reflex = queue.shift();
+  let depth = 0;
+
+  while (queue.size && ++depth) {
+    const reflex = queue.dequeue();
 
     // viewing cone
     Line.set(line0, reflex.edge0.normal, reflex.point);
@@ -160,7 +169,9 @@ export const polyDecompose = (loop: Vertex): Vertex[] => {
     for (const vertex of Loop.iterator(reflex)) {
       // if in viewing cone and is visble
       if (
+        vertex !== reflex.prev &&
         vertex !== reflex &&
+        vertex !== reflex.next &&
         Line.distance(line0, vertex.point) < 0 &&
         Line.distance(line1, vertex.point) < 0 &&
         isVisible(vertex, reflex)
@@ -185,39 +196,56 @@ export const polyDecompose = (loop: Vertex): Vertex[] => {
     if (candidates.length === 0) {
       // find best edge and split it
       let min = Number.POSITIVE_INFINITY;
-      let closestEdge: Edge = null;
+      let edge: Edge = null;
       let t = 0;
 
-      for (const edge of Loop.iterator(reflex.edge1)) {
+      Loop.check(reflex);
+
+      vec2.set(normal, reflex.normal[1], -reflex.normal[0]);
+      vec2.normalize(normal, normal);
+      Line.set(line, normal, reflex.point);
+
+      let d0 = 0;
+      let d1 = 0;
+
+      // loop all edges and find crossing with inverse reflex normal
+      for (const vertex of Loop.iterator(reflex)) {
+        if (vertex === reflex) {
+          d1 = 0;
+        } else {
+          d1 = Line.distance(line, vertex.point);
+        }
+
+        // intersection occured
         if (
-          Line.distance(line0, edge.v0.point) > 0 &&
-          Line.distance(line1, edge.v1.point) > 0
+          vertex !== reflex.prev &&
+          vertex !== reflex &&
+          vertex !== reflex.next &&
+          d0 * d1 < 0
         ) {
-          //
-          closestPointToLineSegment(
-            bary,
-            edge.v0.point,
-            edge.v1.point,
-            reflex.point
-          );
-          fromBarycentric(closest, bary, edge.v0.point, edge.v1.point);
+          // find intersection point x
+          const s = Math.abs(d0) / (Math.abs(d0) + Math.abs(d1));
+          vec2.lerp(x, vertex.prev.point, vertex.point, s);
+          vec2.subtract(x, x, reflex.point);
 
-          let dist = vec2.sqrDist(closest, reflex.point);
+          let dot = -vec2.dot(x, reflex.normal);
 
-          if (dist < min) {
-            min = dist;
-            closestEdge = edge;
-            t = bary[0];
+          // minimal projection picking
+          if (dot > 0 && dot < min) {
+            min = dot;
+            edge = vertex.edge0;
+            t = s;
           }
         }
+
+        d0 = d1;
       }
 
-      if (closestEdge) {
-        best = Loop.split(closestEdge, t);
-        Loop.check(best);
+      if (edge) {
+        best = Loop.split(edge, t);
       }
     } else {
-      // find beset vertex using some heuristics
+      // find best vertex using some heuristics
 
       for (const vertex of candidates) {
         if (!best) {
@@ -244,13 +272,11 @@ export const polyDecompose = (loop: Vertex): Vertex[] => {
       }
     }
 
-    // console.log(depth)
-
     if (!best) {
       throw new Error('polyDecompose: Some misleading occurred');
     }
 
-    queue.splice(queue.indexOf(best), 1);
+    queue.remove(best);
 
     // split loop
     for (const edge of Loop.cut(reflex, best)) {
@@ -258,11 +284,11 @@ export const polyDecompose = (loop: Vertex): Vertex[] => {
         polygons.push(edge.v0);
       } else {
         if (Loop.isReflex(edge.v0)) {
-          queue.push(edge.v0);
+          queue.enqueue(edge.v0);
         }
 
         if (Loop.isReflex(edge.v1)) {
-          queue.push(edge.v1);
+          queue.enqueue(edge.v1);
         }
       }
 

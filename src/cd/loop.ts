@@ -99,6 +99,17 @@ export namespace Loop {
     return cross(e0, e1) < 0;
   };
 
+  export const angle = (vertex: Vertex): number => {
+    vec2.sub(e0, vertex.point, vertex.prev.point);
+    vec2.sub(e1, vertex.next.point, vertex.point);
+
+    if (cross(e0, e1) < 0) {
+      return -vec2.angle(e0, e1);
+    } else {
+      return vec2.angle(e0, e1);
+    }
+  };
+
   export const isCCW = (loop: Vertex): boolean => {
     let sum = 0;
 
@@ -229,7 +240,7 @@ export namespace Loop {
     } while (curr !== loop);
   }
 
-  export const check = (loop: Vertex, maxLength = 1024): void => {
+  export const check = (loop: Vertex, maxLength = 4096): void => {
     let length = 0;
     let lastVertex: Vertex = null;
 
@@ -260,6 +271,10 @@ export namespace Loop {
       console.assert(
         edge.v0 === edge.prev.v1 && edge.v1 === edge.next.v0,
         'Edge vertices check failed'
+      );
+      console.assert(
+        !vec2.exactEquals(edge.v0.point, edge.v1.point),
+        'Edge vertices inequality check failed'
       );
 
       lastEdge = edge;

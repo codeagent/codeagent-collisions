@@ -142,6 +142,11 @@ export class PriorityQueue<T extends object> implements Iterable<T> {
     this._size--;
   }
 
+  clear(): void {
+    this.begin = this.end = null;
+    this._size = 0;
+  }
+
   *[Symbol.iterator](): Iterator<T> {
     for (let p = this.begin; p != null; p = p.next) {
       yield p.value;
