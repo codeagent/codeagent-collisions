@@ -38,19 +38,6 @@ export const affineInverse = (out: mat3, m: Readonly<mat3>): mat3 => {
   );
 };
 
-export const areEqual = <T extends ArrayLike<number>>(
-  a: T,
-  b: T,
-  epsilon: number
-): boolean => {
-  for (let i = 0; i < a.length; i++) {
-    if (Math.abs(a[i] - b[i]) > epsilon) {
-      return false;
-    }
-  }
-  return true;
-};
-
 export const closestPointToLineSegment = (
   out: vec2,
   a: Readonly<vec2>,
@@ -284,3 +271,26 @@ export const clipByPlane = (
   t = Math.max(0, Math.min(1, t));
   return vec2.scaleAndAdd(p0, p0, c1, t);
 };
+
+export namespace Line {
+  const p = vec3.create();
+
+  export const create = (): vec3 => {
+    return vec3.fromValues(1.0, 0.0, 0.0);
+  };
+
+  export const set = (
+    out: vec3,
+    normal: Readonly<vec2>,
+    point: Readonly<vec2>
+  ): vec3 => {
+    return vec3.set(out, normal[0], normal[1], -vec2.dot(normal, point));
+  };
+
+  export const distance = (
+    line: Readonly<vec3>,
+    point: Readonly<vec2>
+  ): number => {
+    return vec3.dot(line, vec3.set(p, point[0], point[1], 1));
+  };
+}

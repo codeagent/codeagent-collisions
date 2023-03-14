@@ -121,11 +121,11 @@ export class Polygon implements Shape, MassDistribution {
   }
 
   *vertices(): Iterable<Vertex> {
-    yield* Loop.iterator(this.loop);
+    yield* Loop(this.loop);
   }
 
   *edges(): Iterable<Edge> {
-    yield* Loop.iterator(this.edgeLoop);
+    yield* Loop(this.edgeLoop);
   }
 
   private transformOriginToCentroid(polygon: Readonly<vec2[]>): vec2[] {

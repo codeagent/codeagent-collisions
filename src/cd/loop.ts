@@ -1,6 +1,6 @@
 import { vec2 } from 'gl-matrix';
 
-import { cross } from '../math';
+import { cross, Line } from '../math';
 
 export class Vertex {
   normal = vec2.create();
@@ -30,9 +30,22 @@ export class Edge {
   }
 }
 
+export function* Loop<T extends { next: T; prev: T }>(loop: T): Iterable<T> {
+  let curr: T = loop;
+
+  do {
+    yield curr;
+
+    curr = curr.next;
+  } while (curr !== loop);
+}
+
 export namespace Loop {
   const e0 = vec2.create();
   const e1 = vec2.create();
+  const x = vec2.create();
+  const line = Line.create();
+  const normal = vec2.create();
 
   export const ofVertices = (points: Readonly<vec2[]>): Vertex => {
     let first: Vertex = null;
@@ -61,7 +74,7 @@ export namespace Loop {
     let first: Edge = null;
     let last: Edge = null;
 
-    for (const vertex of Loop.iterator(loop)) {
+    for (const vertex of Loop(loop)) {
       const edge = new Edge(vertex, vertex.next);
 
       if (last) {
@@ -81,7 +94,7 @@ export namespace Loop {
     first.prev = last;
     loop.edge0 = last;
 
-    for (const edge of Loop.iterator(first)) {
+    for (const edge of Loop(first)) {
       vec2.add(edge.v0.normal, edge.normal, edge.prev.normal);
       vec2.scale(
         edge.v0.normal,
@@ -113,7 +126,7 @@ export namespace Loop {
   export const isCCW = (loop: Vertex): boolean => {
     let sum = 0;
 
-    for (const vertex of Loop.iterator(loop)) {
+    for (const vertex of Loop(loop)) {
       const p0 = vertex.point;
       const p1 = vertex.next.point;
 
@@ -124,10 +137,44 @@ export namespace Loop {
   };
 
   export const isConvex = (loop: Vertex): boolean => {
-    for (const vertex of Loop.iterator(loop)) {
+    for (const vertex of Loop(loop)) {
       if (isReflex(vertex)) {
         return false;
       }
+    }
+
+    return true;
+  };
+
+  export const isVisible = (vertex: Vertex, from: Vertex): boolean => {
+    vec2.sub(normal, vertex.point, from.point);
+    const dist = vec2.length(normal);
+    vec2.scale(normal, normal, 1.0 / dist);
+    vec2.set(normal, normal[1], -normal[0]);
+
+    Line.set(line, normal, from.point);
+
+    let d0 = 0;
+    let d1 = 0;
+
+    for (const curr of Loop(from.next)) {
+      if (curr === vertex || curr === from) {
+        d1 = 0;
+      } else {
+        d1 = Line.distance(line, curr.point);
+      }
+
+      // sign is changed means we are intersecting a looking ray
+      if (d0 * d1 < 0) {
+        const t = Math.abs(d0) / (Math.abs(d0) + Math.abs(d1));
+        vec2.lerp(x, curr.prev.point, curr.point, t);
+
+        if (vec2.dist(x, from.point) < dist) {
+          return false;
+        }
+      }
+
+      d0 = d1;
     }
 
     return true;
@@ -228,23 +275,11 @@ export namespace Loop {
     return vertex;
   };
 
-  export function* iterator<T extends { next: T; prev: T }>(
-    loop: T
-  ): Iterable<T> {
-    let curr: T = loop;
-
-    do {
-      yield curr;
-
-      curr = curr.next;
-    } while (curr !== loop);
-  }
-
   export const check = (loop: Vertex, maxLength = 4096): void => {
     let length = 0;
     let lastVertex: Vertex = null;
 
-    for (const vertex of Loop.iterator(loop)) {
+    for (const vertex of Loop(loop)) {
       console.assert(length++ < maxLength, 'Vertex length check failed');
       console.assert(
         vertex.prev && vertex.next,
@@ -265,7 +300,7 @@ export namespace Loop {
 
     length = 0;
     let lastEdge: Edge = null;
-    for (const edge of Loop.iterator(loop.edge1)) {
+    for (const edge of Loop(loop.edge1)) {
       console.assert(length++ < maxLength, 'Edge length check failed');
       console.assert(edge.prev && edge.next, 'Edge siblings check failed');
       console.assert(

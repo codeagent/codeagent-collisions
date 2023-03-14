@@ -1,35 +1,9 @@
-import { vec2, vec3 } from 'gl-matrix';
+import { vec2 } from 'gl-matrix';
 
 import { Edge, Loop, Mesh, Vertex } from '../cd';
+import { Line } from '../math';
 
 import { PriorityQueue } from './priority-queue';
-
-const line = vec3.create();
-const normal = vec2.create();
-const x = vec2.create();
-
-export namespace Line {
-  const p = vec3.create();
-
-  export const create = (): vec3 => {
-    return vec3.fromValues(1.0, 0.0, 0.0);
-  };
-
-  export const set = (
-    out: vec3,
-    normal: Readonly<vec2>,
-    point: Readonly<vec2>
-  ): vec3 => {
-    return vec3.set(out, normal[0], normal[1], -vec2.dot(normal, point));
-  };
-
-  export const distance = (
-    line: Readonly<vec3>,
-    point: Readonly<vec2>
-  ): number => {
-    return vec3.dot(line, vec3.set(p, point[0], point[1], 1));
-  };
-}
 
 export const getLoops = (mesh: Mesh): Vertex[] => {
   const lookup = new Map<string, [vec2, vec2]>();
@@ -100,63 +74,28 @@ export const getLoops = (mesh: Mesh): Vertex[] => {
   return loops;
 };
 
-export const isVisible = (vertex: Vertex, from: Vertex): boolean => {
-  vec2.sub(normal, vertex.point, from.point);
-  const dist = vec2.length(normal);
-  vec2.scale(normal, normal, 1.0 / dist);
-  vec2.set(normal, normal[1], -normal[0]);
-
-  Line.set(line, normal, from.point);
-
-  let d0 = 0;
-  let d1 = 0;
-
-  for (const curr of Loop.iterator(from.next)) {
-    if (curr === vertex || curr === from) {
-      d1 = 0;
-    } else {
-      d1 = Line.distance(line, curr.point);
-    }
-
-    // sign is changed means we are intersecting a looking ray
-    if (d0 * d1 < 0) {
-      const t = Math.abs(d0) / (Math.abs(d0) + Math.abs(d1));
-      vec2.lerp(x, curr.prev.point, curr.point, t);
-
-      if (vec2.dist(x, from.point) < dist) {
-        return false;
-      }
-    }
-
-    d0 = d1;
-  }
-
-  return true;
-};
-
 export const polyDecompose = (loop: Vertex): Vertex[] => {
   if (Loop.isConvex(loop)) {
     return [loop];
   }
 
+  const line0 = Line.create();
+  const line1 = Line.create();
+  const normal = vec2.create();
+  const x = vec2.create();
   const polygons: Vertex[] = [];
 
   const queue = new PriorityQueue<Vertex>(
-    (a, b) => -(Loop.angle(a) - Loop.angle(b))
+    (a, b) => Loop.angle(b) - Loop.angle(a)
   );
 
-  for (const vertex of Loop.iterator(loop)) {
+  for (const vertex of Loop(loop)) {
     if (Loop.isReflex(vertex)) {
       queue.enqueue(vertex);
     }
   }
 
-  const line0 = Line.create();
-  const line1 = Line.create();
-
-  let depth = 0;
-
-  while (queue.size && ++depth) {
+  while (queue.size) {
     const reflex = queue.dequeue();
 
     // viewing cone
@@ -166,7 +105,7 @@ export const polyDecompose = (loop: Vertex): Vertex[] => {
     // list of visible vervices ordered by distance from current reflex vertex
     const candidates: Vertex[] = [];
 
-    for (const vertex of Loop.iterator(reflex)) {
+    for (const vertex of Loop(reflex)) {
       // if in viewing cone and is visble
       if (
         vertex !== reflex.prev &&
@@ -174,7 +113,7 @@ export const polyDecompose = (loop: Vertex): Vertex[] => {
         vertex !== reflex.next &&
         Line.distance(line0, vertex.point) < 0 &&
         Line.distance(line1, vertex.point) < 0 &&
-        isVisible(vertex, reflex)
+        Loop.isVisible(vertex, reflex)
       ) {
         // submerge vertex
         let i = candidates.length - 1;
@@ -199,21 +138,19 @@ export const polyDecompose = (loop: Vertex): Vertex[] => {
       let edge: Edge = null;
       let t = 0;
 
-      Loop.check(reflex);
-
       vec2.set(normal, reflex.normal[1], -reflex.normal[0]);
       vec2.normalize(normal, normal);
-      Line.set(line, normal, reflex.point);
+      Line.set(line0, normal, reflex.point);
 
       let d0 = 0;
       let d1 = 0;
 
       // loop all edges and find crossing with inverse reflex normal
-      for (const vertex of Loop.iterator(reflex)) {
+      for (const vertex of Loop(reflex)) {
         if (vertex === reflex) {
           d1 = 0;
         } else {
-          d1 = Line.distance(line, vertex.point);
+          d1 = Line.distance(line0, vertex.point);
         }
 
         // intersection occured
@@ -246,7 +183,6 @@ export const polyDecompose = (loop: Vertex): Vertex[] => {
       }
     } else {
       // find best vertex using some heuristics
-
       for (const vertex of candidates) {
         if (!best) {
           best = vertex;
@@ -291,8 +227,6 @@ export const polyDecompose = (loop: Vertex): Vertex[] => {
           queue.enqueue(edge.v1);
         }
       }
-
-      Loop.check(edge.v0);
     }
   }
 
