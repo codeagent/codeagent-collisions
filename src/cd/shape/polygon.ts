@@ -28,8 +28,8 @@ export class Polygon implements Shape, MassDistribution {
       points = this.transformOriginToCentroid(points);
     }
 
-    this.loop = this.cachedSupportVertex = Loop.ofVertices(points);
-    this.edgeLoop = Loop.ofEdges(this.loop);
+    this.loop = this.cachedSupportVertex = Loop.from(points);
+    this.edgeLoop = this.loop.edge1;
     this.radius = this.getRadius();
   }
 
@@ -121,11 +121,11 @@ export class Polygon implements Shape, MassDistribution {
   }
 
   *vertices(): Iterable<Vertex> {
-    yield* Loop(this.loop);
+    yield* Loop.of(this.loop);
   }
 
   *edges(): Iterable<Edge> {
-    yield* Loop(this.edgeLoop);
+    yield* Loop.of(this.edgeLoop);
   }
 
   private transformOriginToCentroid(polygon: Readonly<vec2[]>): vec2[] {

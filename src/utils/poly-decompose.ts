@@ -1,6 +1,6 @@
 import { vec2 } from 'gl-matrix';
 
-import { Edge, Loop, Mesh, Vertex } from '../cd';
+import { Loop, Mesh, Vertex } from '../cd';
 import { Line } from '../math';
 
 import { PriorityQueue } from './priority-queue';
@@ -57,18 +57,14 @@ export const getLoops = (mesh: Mesh): Vertex[] => {
       }
 
       if (found === 0) {
-        const vertexLoop = Loop.ofVertices(loop.slice(0, -1));
-        Loop.ofEdges(vertexLoop);
-        loops.push(vertexLoop);
+        loops.push(Loop.from(loop.slice(0, -1)));
         loop = null;
       }
     }
   }
 
   if (loop) {
-    const vertexLoop = Loop.ofVertices(loop.slice(0, -1));
-    Loop.ofEdges(vertexLoop);
-    loops.push(vertexLoop);
+    loops.push(Loop.from(loop.slice(0, -1)));
   }
 
   return loops;
@@ -82,14 +78,14 @@ export const polyDecompose = (loop: Vertex): Vertex[] => {
   const line0 = Line.create();
   const line1 = Line.create();
   const normal = vec2.create();
-  const x = vec2.create();
+  const bary = vec2.create();
   const polygons: Vertex[] = [];
 
   const queue = new PriorityQueue<Vertex>(
     (a, b) => Loop.angle(b) - Loop.angle(a)
   );
 
-  for (const vertex of Loop(loop)) {
+  for (const vertex of Loop.of(loop)) {
     if (Loop.isReflex(vertex)) {
       queue.enqueue(vertex);
     }
@@ -105,7 +101,7 @@ export const polyDecompose = (loop: Vertex): Vertex[] => {
     // list of visible vervices ordered by distance from current reflex vertex
     const candidates: Vertex[] = [];
 
-    for (const vertex of Loop(reflex)) {
+    for (const vertex of Loop.of(reflex)) {
       // if in viewing cone and is visble
       if (
         vertex !== reflex.prev &&
@@ -133,53 +129,12 @@ export const polyDecompose = (loop: Vertex): Vertex[] => {
     let best: Vertex = null;
 
     if (candidates.length === 0) {
-      // find best edge and split it
-      let min = Number.POSITIVE_INFINITY;
-      let edge: Edge = null;
-      let t = 0;
+      vec2.negate(normal, reflex.normal);
 
-      vec2.set(normal, reflex.normal[1], -reflex.normal[0]);
-      vec2.normalize(normal, normal);
-      Line.set(line0, normal, reflex.point);
-
-      let d0 = 0;
-      let d1 = 0;
-
-      // loop all edges and find crossing with inverse reflex normal
-      for (const vertex of Loop(reflex)) {
-        if (vertex === reflex) {
-          d1 = 0;
-        } else {
-          d1 = Line.distance(line0, vertex.point);
-        }
-
-        // intersection occured
-        if (
-          vertex !== reflex.prev &&
-          vertex !== reflex &&
-          vertex !== reflex.next &&
-          d0 * d1 < 0
-        ) {
-          // find intersection point x
-          const s = Math.abs(d0) / (Math.abs(d0) + Math.abs(d1));
-          vec2.lerp(x, vertex.prev.point, vertex.point, s);
-          vec2.subtract(x, x, reflex.point);
-
-          let dot = -vec2.dot(x, reflex.normal);
-
-          // minimal projection picking
-          if (dot > 0 && dot < min) {
-            min = dot;
-            edge = vertex.edge0;
-            t = s;
-          }
-        }
-
-        d0 = d1;
-      }
+      const edge = Loop.rayIntersection(bary, reflex, reflex.point, normal);
 
       if (edge) {
-        best = Loop.split(edge, t);
+        best = Loop.split(edge, bary[0]);
       }
     } else {
       // find best vertex using some heuristics
@@ -231,4 +186,69 @@ export const polyDecompose = (loop: Vertex): Vertex[] => {
   }
 
   return polygons;
+};
+
+export const joinLoops = (loops: Vertex[]): Vertex => {
+  let outer = loops.find(loop => Loop.isCCW(loop));
+  const inner = loops.filter(loop => loop !== outer);
+
+  const line0 = Line.create();
+  const line1 = Line.create();
+  const bary = vec2.create();
+  const direction = vec2.create();
+
+  let best: [Vertex, Vertex] = null;
+  let min = Number.POSITIVE_INFINITY;
+
+  while (inner.length) {
+    console.assert(!Loop.isCCW(inner[0]), 'wrong ordering');
+
+    for (const iv of Loop.of(inner[0])) {
+      Line.set(line0, iv.edge0.normal, iv.point);
+      Line.set(line1, iv.edge1.normal, iv.point);
+
+      for (const ov of Loop.of(outer)) {
+        if (
+          Line.distance(line0, ov.point) < 0 &&
+          Line.distance(line1, ov.point) < 0
+        ) {
+          vec2.subtract(direction, ov.point, iv.point);
+          vec2.normalize(direction, direction);
+
+          let blocked = false;
+
+          // filter ones which are blocked by internal loops
+          for (const loop of inner) {
+            if (Loop.rayIntersection(bary, loop, iv.point, direction)) {
+              blocked = true;
+              break;
+            }
+          }
+
+          if (!blocked) {
+            let dist = vec2.sqrDist(iv.point, ov.point);
+
+            if (dist < min) {
+              min = dist;
+              best = [iv, ov];
+            }
+          }
+        }
+      }
+    }
+
+    if (!best) {
+      throw new Error('joinLoops');
+    }
+
+    const [edge] = Loop.cut(best[0], best[1]);
+    outer = edge.v1;
+
+    best = null;
+    min = Number.POSITIVE_INFINITY;
+
+    inner.shift();
+  }
+
+  return outer;
 };

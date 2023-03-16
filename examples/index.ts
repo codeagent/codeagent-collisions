@@ -2,7 +2,13 @@
 import 'reflect-metadata';
 
 import { mat4, vec2, vec4 } from 'gl-matrix';
-import { Loop, createWorld, getLoops, polyDecompose } from 'rb-phys2d';
+import {
+  Loop,
+  createWorld,
+  getLoops,
+  joinLoops,
+  polyDecompose,
+} from 'rb-phys2d';
 import {
   RenderMask,
   createViewport,
@@ -55,28 +61,21 @@ container.set({ id: 'SETTINGS', value: world.settings });
 // collection.Balance
 // collection.ImpactPinHousing
 
-let loop = getLoops(collection.GearTrain).find(loop => Loop.isCCW(loop));
+let t = performance.now();
+let loops = getLoops(collection.ImpactPinHousing);
+console.log('Get loops: ', performance.now() - t);
+
+t = performance.now();
+const loop = joinLoops(loops);
+console.log('joinLoops: ', performance.now() - t);
+
+t = performance.now();
 Loop.check(loop);
+console.log('checkLoops: ', performance.now() - t);
 
-// const polygons = polyDecompose(loop);
-
-// Loop.check(polygons[0]);
-
-// Loop.check(loop[0]);
-// console.log(loop);
-
-// const loop = Loop.ofVertices([
-//   vec2.fromValues(-3.5, 3),
-//   vec2.fromValues(-4, -2),
-//   vec2.fromValues(0, 1),
-//   vec2.fromValues(0, -2),
-//   vec2.fromValues(3, 2),
-// ]);
-
-// Loop.ofEdges(loop);
-
+t = performance.now();
 const polygons = polyDecompose(loop);
-// const polygons = [loop]
+console.log('polyDecompose: ', performance.now() - t);
 
 const device = new Device(viewport.context);
 const shader = device.createShader(shapeVertex, shapeFragment);

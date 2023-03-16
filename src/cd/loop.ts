@@ -30,16 +30,6 @@ export class Edge {
   }
 }
 
-export function* Loop<T extends { next: T; prev: T }>(loop: T): Iterable<T> {
-  let curr: T = loop;
-
-  do {
-    yield curr;
-
-    curr = curr.next;
-  } while (curr !== loop);
-}
-
 export namespace Loop {
   const e0 = vec2.create();
   const e1 = vec2.create();
@@ -47,54 +37,80 @@ export namespace Loop {
   const line = Line.create();
   const normal = vec2.create();
 
-  export const ofVertices = (points: Readonly<vec2[]>): Vertex => {
-    let first: Vertex = null;
-    let last: Vertex = null;
+  export class Cone {
+    readonly line0 = Line.create();
+
+    readonly line1 = Line.create();
+
+    constructor(
+      readonly origin: vec2,
+      readonly direction: vec2,
+      readonly fov: number
+    ) {
+      vec2.rotate(normal, this.direction, this.origin, this.fov * 0.5);
+      vec2.set(normal, -normal[1], normal[0]);
+      Line.set(this.line0, normal, this.origin);
+
+      vec2.rotate(normal, this.direction, this.origin, -this.fov * 0.5);
+      vec2.set(normal, normal[1], -normal[0]);
+      Line.set(this.line1, normal, this.origin);
+    }
+  }
+
+  export function* of<T extends { next: T; prev: T }>(loop: T): Iterable<T> {
+    let curr: T = loop;
+
+    do {
+      yield curr;
+
+      curr = curr.next;
+    } while (curr !== loop);
+  }
+
+  export const from = (points: Readonly<vec2[]>): Vertex => {
+    let firstFertex: Vertex = null;
+    let lastFertex: Vertex = null;
 
     for (const point of points) {
       const vertex = new Vertex(point);
 
-      if (last) {
-        last.next = vertex;
-        vertex.prev = last;
+      if (lastFertex) {
+        lastFertex.next = vertex;
+        vertex.prev = lastFertex;
       } else {
-        first = vertex;
+        firstFertex = vertex;
       }
 
-      last = vertex;
+      lastFertex = vertex;
     }
 
-    last.next = first;
-    first.prev = last;
+    lastFertex.next = firstFertex;
+    firstFertex.prev = lastFertex;
 
-    return first;
-  };
+    let firstEdge: Edge = null;
+    let lastEdge: Edge = null;
 
-  export const ofEdges = (loop: Vertex): Edge => {
-    let first: Edge = null;
-    let last: Edge = null;
-
-    for (const vertex of Loop(loop)) {
+    for (const vertex of Loop.of(firstFertex)) {
       const edge = new Edge(vertex, vertex.next);
 
-      if (last) {
-        last.next = edge;
-        edge.prev = last;
+      if (lastEdge) {
+        lastEdge.next = edge;
+        edge.prev = lastEdge;
       } else {
-        first = edge;
+        firstEdge = edge;
       }
 
-      vertex.edge0 = last;
+      vertex.edge0 = lastEdge;
       vertex.edge1 = edge;
 
-      last = edge;
+      lastEdge = edge;
     }
 
-    last.next = first;
-    first.prev = last;
-    loop.edge0 = last;
+    lastEdge.next = firstEdge;
+    firstEdge.prev = lastEdge;
+    firstFertex.edge0 = lastEdge;
 
-    for (const edge of Loop(first)) {
+    for (const edge of Loop.of(firstEdge)) {
       vec2.add(edge.v0.normal, edge.normal, edge.prev.normal);
       vec2.scale(
         edge.v0.normal,
@@ -103,7 +119,7 @@ export namespace Loop {
       );
     }
 
-    return first;
+    return firstFertex;
   };
 
   export const isReflex = (vertex: Vertex): boolean => {
@@ -126,7 +142,7 @@ export namespace Loop {
   export const isCCW = (loop: Vertex): boolean => {
     let sum = 0;
 
-    for (const vertex of Loop(loop)) {
+    for (const vertex of Loop.of(loop)) {
       const p0 = vertex.point;
       const p1 = vertex.next.point;
 
@@ -137,7 +153,7 @@ export namespace Loop {
   };
 
   export const isConvex = (loop: Vertex): boolean => {
-    for (const vertex of Loop(loop)) {
+    for (const vertex of Loop.of(loop)) {
       if (isReflex(vertex)) {
         return false;
       }
@@ -157,7 +173,7 @@ export namespace Loop {
     let d0 = 0;
     let d1 = 0;
 
-    for (const curr of Loop(from.next)) {
+    for (const curr of Loop.of(from)) {
       if (curr === vertex || curr === from) {
         d1 = 0;
       } else {
@@ -178,6 +194,56 @@ export namespace Loop {
     }
 
     return true;
+  };
+
+  export const rayIntersection = (
+    out: vec2,
+    loop: Readonly<Vertex>,
+    origin: Readonly<vec2>,
+    direction: Readonly<vec2>
+  ): Edge => {
+    let min = Number.POSITIVE_INFINITY;
+    let edge: Edge = null;
+
+    vec2.set(normal, direction[1], -direction[0]);
+    Line.set(line, normal, origin);
+
+    let d0 = 0;
+    let d1 = 0;
+
+    for (const vertex of Loop.of(loop)) {
+      if (vertex === loop) {
+        d1 = 0;
+      } else {
+        d1 = Line.distance(line, vertex.point);
+      }
+
+      // intersection occured
+      if (
+        vertex !== loop.prev &&
+        vertex !== loop &&
+        vertex !== loop.next &&
+        d0 * d1 < 0
+      ) {
+        // find intersection point x
+        const t = Math.abs(d0) / (Math.abs(d0) + Math.abs(d1));
+        vec2.lerp(x, vertex.prev.point, vertex.point, t);
+        vec2.subtract(x, x, origin);
+
+        const dot = vec2.dot(x, direction);
+
+        // minimal projection picking
+        if (dot > 0 && dot < min) {
+          min = dot;
+          edge = vertex.edge0;
+          vec2.set(out, t, 1.0 - t);
+        }
+      }
+
+      d0 = d1;
+    }
+
+    return edge;
   };
 
   export const cut = (v0: Vertex, v1: Vertex): [Edge, Edge] => {
@@ -275,11 +341,11 @@ export namespace Loop {
     return vertex;
   };
 
-  export const check = (loop: Vertex, maxLength = 4096): void => {
+  export const check = (loop: Vertex, maxLength = 16384): void => {
     let length = 0;
     let lastVertex: Vertex = null;
 
-    for (const vertex of Loop(loop)) {
+    for (const vertex of Loop.of(loop)) {
       console.assert(length++ < maxLength, 'Vertex length check failed');
       console.assert(
         vertex.prev && vertex.next,
@@ -300,7 +366,7 @@ export namespace Loop {
 
     length = 0;
     let lastEdge: Edge = null;
-    for (const edge of Loop(loop.edge1)) {
+    for (const edge of Loop.of(loop.edge1)) {
       console.assert(length++ < maxLength, 'Edge length check failed');
       console.assert(edge.prev && edge.next, 'Edge siblings check failed');
       console.assert(

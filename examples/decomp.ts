@@ -18,7 +18,7 @@ export const createGometry = (loop: Vertex): GeometryData => {
 
   let index = 0;
 
-  for (const vertex of Loop(loop)) {
+  for (const vertex of Loop.of(loop)) {
     indices.push(index++, index++);
     vertices.push(...vertex.point, ...vertex.next.point);
 
