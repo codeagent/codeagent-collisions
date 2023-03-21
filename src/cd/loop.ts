@@ -37,24 +37,10 @@ export namespace Loop {
   const line = Line.create();
   const normal = vec2.create();
 
-  export class Cone {
-    readonly line0 = Line.create();
+  export class RayCastQuery {
+    readonly edges: Edge[] = [];
 
-    readonly line1 = Line.create();
-
-    constructor(
-      readonly origin: vec2,
-      readonly direction: vec2,
-      readonly fov: number
-    ) {
-      vec2.rotate(normal, this.direction, this.origin, this.fov * 0.5);
-      vec2.set(normal, -normal[1], normal[0]);
-      Line.set(this.line0, normal, this.origin);
-
-      vec2.rotate(normal, this.direction, this.origin, -this.fov * 0.5);
-      vec2.set(normal, normal[1], -normal[0]);
-      Line.set(this.line1, normal, this.origin);
-    }
+    readonly barycentric: vec2[] = [];
   }
 
   export function* of<T extends { next: T; prev: T }>(loop: T): Iterable<T> {
@@ -139,7 +125,7 @@ export namespace Loop {
     }
   };
 
-  export const isCCW = (loop: Vertex): boolean => {
+  export const area = (loop: Vertex): number => {
     let sum = 0;
 
     for (const vertex of Loop.of(loop)) {
@@ -149,7 +135,11 @@ export namespace Loop {
       sum += cross(p0, p1);
     }
 
-    return sum > 0;
+    return sum;
+  };
+
+  export const isCCW = (loop: Vertex): boolean => {
+    return area(loop) > 0;
   };
 
   export const isConvex = (loop: Vertex): boolean => {
@@ -196,14 +186,14 @@ export namespace Loop {
     return true;
   };
 
-  export const rayIntersection = (
-    out: vec2,
+  export const castRay = (
+    out: RayCastQuery,
     loop: Readonly<Vertex>,
     origin: Readonly<vec2>,
     direction: Readonly<vec2>
-  ): Edge => {
-    let min = Number.POSITIVE_INFINITY;
-    let edge: Edge = null;
+  ): boolean => {
+    out.barycentric.length = 0;
+    out.edges.length = 0;
 
     vec2.set(normal, direction[1], -direction[0]);
     Line.set(line, normal, origin);
@@ -230,20 +220,36 @@ export namespace Loop {
         vec2.lerp(x, vertex.prev.point, vertex.point, t);
         vec2.subtract(x, x, origin);
 
-        const dot = vec2.dot(x, direction);
+        if (vec2.dot(x, direction) > 0) {
+          // submerge vertex
+          const dist = vec2.sqrLen(x);
+          let i = out.edges.length - 1;
 
-        // minimal projection picking
-        if (dot > 0 && dot < min) {
-          min = dot;
-          edge = vertex.edge0;
-          vec2.set(out, t, 1.0 - t);
+          while (
+            i >= 0 &&
+            dist <
+              vec2.sqrDist(
+                origin,
+                vec2.lerp(
+                  x,
+                  out.edges[i].v0.point,
+                  out.edges[i].v1.point,
+                  out.barycentric[i][0]
+                )
+              )
+          ) {
+            i--;
+          }
+
+          out.edges.splice(i + 1, 0, vertex.edge0);
+          out.barycentric.splice(i + 1, 0, vec2.fromValues(t, 1.0 - t));
         }
       }
 
       d0 = d1;
     }
 
-    return edge;
+    return out.edges.length !== 0;
   };
 
   export const cut = (v0: Vertex, v1: Vertex): [Edge, Edge] => {
@@ -388,5 +394,25 @@ export namespace Loop {
 
     console.assert(isCCW(loop), 'CCW check failed');
     console.assert(length > 2, 'Min length check failed');
+  };
+
+  export const dumpRings = (rings: Map<Vertex, Vertex[]>): void => {
+    const collection = [];
+
+    for (const [loop, children] of rings) {
+      let path = [];
+
+      for (const child of [loop, ...children]) {
+        path.push(
+          `${Loop.isCCW(child) ? 'CCW' : 'CW'}[${Math.abs(
+            Loop.area(child)
+          ).toFixed(2)}]`
+        );
+      }
+
+      collection.push(path);
+    }
+
+    console.log(collection);
   };
 }

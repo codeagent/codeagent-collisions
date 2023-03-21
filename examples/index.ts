@@ -1,14 +1,8 @@
 /// <reference path="./declarations.d.ts" />
 import 'reflect-metadata';
 
-import { mat4, vec2, vec4 } from 'gl-matrix';
-import {
-  Loop,
-  createWorld,
-  getLoops,
-  joinLoops,
-  polyDecompose,
-} from 'rb-phys2d';
+import { mat4, vec4 } from 'gl-matrix';
+import { Loop, createWorld, decompose } from 'rb-phys2d';
 import {
   RenderMask,
   createViewport,
@@ -55,27 +49,24 @@ container.set({ id: RENDERER_TOKEN, value: renderer });
 container.set({ id: 'WORLD', value: world });
 container.set({ id: 'SETTINGS', value: world.settings });
 
-// collection.GearTrain
-// collection.EscapeWheel
-// collection.PalletFork
-// collection.Balance
-// collection.ImpactPinHousing
+// Balance;
+// EscapeWheel;
+// EscapeWheelGear;
+// GearRarge;
+// GearTrain;
+// GearTrainMini;
+// ImpactPinHousing;
+// PalletFork;
 
 let t = performance.now();
-let loops = getLoops(collection.ImpactPinHousing);
+const polygons = [];
+
+for (const name in collection) {
+  console.log(name);
+  polygons.push(...decompose(collection[name]));
+}
+
 console.log('Get loops: ', performance.now() - t);
-
-t = performance.now();
-const loop = joinLoops(loops);
-console.log('joinLoops: ', performance.now() - t);
-
-t = performance.now();
-Loop.check(loop);
-console.log('checkLoops: ', performance.now() - t);
-
-t = performance.now();
-const polygons = polyDecompose(loop);
-console.log('polyDecompose: ', performance.now() - t);
 
 const device = new Device(viewport.context);
 const shader = device.createShader(shapeVertex, shapeFragment);
@@ -104,7 +95,12 @@ animationFrames().subscribe(() => {
     device.setProgramVariable(shader, 'worldMat', 'mat4', worldMat);
 
     drawable.forEach((geometry, index) => {
-      device.setProgramVariable(shader, 'albedo', 'vec4', colorCCW);
+      device.setProgramVariable(
+        shader,
+        'albedo',
+        'vec4',
+        Loop.isCCW(polygons[index]) ? colorCCW : colorCW
+      );
       device.drawGeometry(geometry);
     });
   }

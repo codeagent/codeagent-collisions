@@ -8,9 +8,9 @@ import MESH from './objects/mesh.obj';
 import PINBALL from './objects/pintball.obj';
 import { GeometryData } from './services';
 
-export const collection = loadObj(MECH);
+export const collection = loadObj(PINBALL);
 
-const CROSS_SIZE = 0.08;
+const CROSS_SIZE = 0.018;
 
 export const createGometry = (loop: Vertex): GeometryData => {
   const vertices = [];

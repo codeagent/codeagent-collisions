@@ -5,7 +5,7 @@ import { Line } from '../math';
 
 import { PriorityQueue } from './priority-queue';
 
-export const getLoops = (mesh: Mesh): Vertex[] => {
+export const findLoops = (mesh: Mesh): Vertex[] => {
   const lookup = new Map<string, [vec2, vec2]>();
 
   for (const triangle of mesh) {
@@ -70,7 +70,7 @@ export const getLoops = (mesh: Mesh): Vertex[] => {
   return loops;
 };
 
-export const polyDecompose = (loop: Vertex): Vertex[] => {
+export const decomposeLoop = (loop: Vertex): Vertex[] => {
   if (Loop.isConvex(loop)) {
     return [loop];
   }
@@ -78,9 +78,8 @@ export const polyDecompose = (loop: Vertex): Vertex[] => {
   const line0 = Line.create();
   const line1 = Line.create();
   const normal = vec2.create();
-  const bary = vec2.create();
   const polygons: Vertex[] = [];
-
+  const query = new Loop.RayCastQuery();
   const queue = new PriorityQueue<Vertex>(
     (a, b) => Loop.angle(b) - Loop.angle(a)
   );
@@ -131,10 +130,8 @@ export const polyDecompose = (loop: Vertex): Vertex[] => {
     if (candidates.length === 0) {
       vec2.negate(normal, reflex.normal);
 
-      const edge = Loop.rayIntersection(bary, reflex, reflex.point, normal);
-
-      if (edge) {
-        best = Loop.split(edge, bary[0]);
+      if (Loop.castRay(query, reflex, reflex.point, normal)) {
+        best = Loop.split(query.edges[0], query.barycentric[0][0]);
       }
     } else {
       // find best vertex using some heuristics
@@ -188,67 +185,115 @@ export const polyDecompose = (loop: Vertex): Vertex[] => {
   return polygons;
 };
 
-export const joinLoops = (loops: Vertex[]): Vertex => {
-  let outer = loops.find(loop => Loop.isCCW(loop));
-  const inner = loops.filter(loop => loop !== outer);
+export const findSolids = (loops: Vertex[]): Map<Vertex, Vertex[]> => {
+  const solids = new Map<Vertex, Vertex[]>(
+    loops.filter(loop => Loop.isCCW(loop)).map(loop => [loop, []])
+  );
+  const query = new Loop.RayCastQuery();
+  const queue = [...loops].sort(
+    (a, b) => Math.abs(Loop.area(a)) - Math.abs(Loop.area(b))
+  );
 
+  for (let i = 0; i < queue.length; i++) {
+    if (!Loop.isCCW(queue[i])) {
+      for (let j = i + 1; j < queue.length; j++) {
+        if (Loop.isCCW(queue[j])) {
+          Loop.castRay(query, queue[j], queue[i].point, queue[i].normal);
+
+          const contains = query.edges.length % 2 !== 0;
+
+          if (contains) {
+            solids.get(queue[j]).push(queue[i]);
+            break;
+          }
+        }
+      }
+    }
+  }
+
+  return solids;
+};
+
+export const joinLoops = (
+  inner: Vertex,
+  outer: Vertex,
+  siblings: Vertex[]
+): Vertex => {
   const line0 = Line.create();
   const line1 = Line.create();
-  const bary = vec2.create();
+  const query = new Loop.RayCastQuery();
   const direction = vec2.create();
 
   let best: [Vertex, Vertex] = null;
   let min = Number.POSITIVE_INFINITY;
 
-  while (inner.length) {
-    console.assert(!Loop.isCCW(inner[0]), 'wrong ordering');
+  if (Loop.isCCW(inner) || !Loop.isCCW(outer)) {
+    throw new Error('join: wrong ordering');
+  }
 
-    for (const iv of Loop.of(inner[0])) {
-      Line.set(line0, iv.edge0.normal, iv.point);
-      Line.set(line1, iv.edge1.normal, iv.point);
+  for (const iv of Loop.of(inner)) {
+    Line.set(line0, iv.edge0.normal, iv.point);
+    Line.set(line1, iv.edge1.normal, iv.point);
 
-      for (const ov of Loop.of(outer)) {
-        if (
-          Line.distance(line0, ov.point) < 0 &&
-          Line.distance(line1, ov.point) < 0
-        ) {
-          vec2.subtract(direction, ov.point, iv.point);
-          vec2.normalize(direction, direction);
+    for (const ov of Loop.of(outer)) {
+      if (
+        Line.distance(line0, ov.point) < 0 &&
+        Line.distance(line1, ov.point) < 0 &&
+        Loop.isVisible(iv, ov)
+      ) {
+        vec2.subtract(direction, ov.point, iv.point);
+        vec2.normalize(direction, direction);
 
-          let blocked = false;
+        let blocked = false;
 
-          // filter ones which are blocked by internal loops
-          for (const loop of inner) {
-            if (Loop.rayIntersection(bary, loop, iv.point, direction)) {
-              blocked = true;
-              break;
-            }
+        // filter ones which are blocked by internal loops
+        for (const loop of siblings) {
+          if (Loop.castRay(query, loop, iv.point, direction)) {
+            blocked = true;
+            break;
           }
+        }
 
-          if (!blocked) {
-            let dist = vec2.sqrDist(iv.point, ov.point);
+        if (!blocked) {
+          let dist = vec2.sqrDist(iv.point, ov.point);
 
-            if (dist < min) {
-              min = dist;
-              best = [iv, ov];
-            }
+          if (dist < min) {
+            min = dist;
+            best = [iv, ov];
           }
         }
       }
     }
-
-    if (!best) {
-      throw new Error('joinLoops');
-    }
-
-    const [edge] = Loop.cut(best[0], best[1]);
-    outer = edge.v1;
-
-    best = null;
-    min = Number.POSITIVE_INFINITY;
-
-    inner.shift();
   }
 
-  return outer;
+  if (!best) {
+    throw new Error('join: failed to find best point candidates');
+  }
+
+  const [edge] = Loop.cut(best[0], best[1]);
+
+  return edge.v1;
+};
+
+export const decompose = (mesh: Mesh): Vertex[] => {
+  const loops = findLoops(mesh);
+  const solids = findSolids(loops);
+
+  const contours: Vertex[] = [];
+
+  for (let [outer, inner] of solids) {
+    while (inner.length) {
+      outer = joinLoops(inner.pop(), outer, inner);
+    }
+
+    contours.push(outer);
+  }
+
+  const polygons: Vertex[] = [];
+
+  for (const contour of contours) {
+    polygons.push(...decomposeLoop(contour));
+  }
+
+  return polygons;
 };
