@@ -108,6 +108,22 @@ export namespace Loop {
     return firstFertex;
   };
 
+  export const points = (loop: Readonly<Vertex>): vec2[] => {
+    return Array.from(Loop.of(loop)).map(vertex => vertex.point);
+  };
+
+  export const centroid = (loop: Readonly<Vertex>): vec2 => {
+    const centroid = vec2.create();
+    let counter = 0;
+
+    for (const vertex of Loop.of(loop)) {
+      vec2.add(centroid, centroid, vertex.point);
+      counter++;
+    }
+
+    return vec2.scale(centroid, centroid, 1.0 / counter);
+  };
+
   export const isReflex = (vertex: Vertex): boolean => {
     vec2.sub(e0, vertex.point, vertex.prev.point);
     vec2.sub(e1, vertex.next.point, vertex.point);

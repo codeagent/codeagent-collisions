@@ -25,7 +25,6 @@ export class GearsExample implements ExampleInterface {
   private createGears(): void {
     const collection = loadObj(GEARS);
 
-    // for (const object in collection) {
     const motor = this.world.createBody({
       mass: Number.POSITIVE_INFINITY,
       inertia: 10,

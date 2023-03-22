@@ -26,8 +26,8 @@ export class MidPhase implements MidPhaseInterface {
           )
         ) {
           for (const [leftNode, rightNode] of nodes) {
-            pair[0].shape = leftNode.payload.triangleShape;
-            pair[1].shape = rightNode.payload.triangleShape;
+            pair[0].shape = leftNode.payload.shape;
+            pair[1].shape = rightNode.payload.shape;
 
             yield pair;
           }
@@ -44,7 +44,7 @@ export class MidPhase implements MidPhaseInterface {
           )
         ) {
           for (const node of nodes) {
-            pair[0].shape = node.payload.triangleShape;
+            pair[0].shape = node.payload.shape;
 
             yield pair;
           }
@@ -61,7 +61,7 @@ export class MidPhase implements MidPhaseInterface {
           )
         ) {
           for (const node of nodes) {
-            pair[1].shape = node.payload.triangleShape;
+            pair[1].shape = node.payload.shape;
 
             yield pair;
           }

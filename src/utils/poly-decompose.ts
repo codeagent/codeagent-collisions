@@ -5,7 +5,7 @@ import { Line } from '../math';
 
 import { PriorityQueue } from './priority-queue';
 
-export const findLoops = (mesh: Mesh): Vertex[] => {
+export const findLoops = (mesh: Readonly<Mesh>): Vertex[] => {
   const lookup = new Map<string, [vec2, vec2]>();
 
   for (const triangle of mesh) {
@@ -275,7 +275,7 @@ export const joinLoops = (
   return edge.v1;
 };
 
-export const decompose = (mesh: Mesh): Vertex[] => {
+export const decompose = (mesh: Readonly<Mesh>): Vertex[] => {
   const loops = findLoops(mesh);
   const solids = findSolids(loops);
 

@@ -2,6 +2,7 @@ import { mat2, mat3, vec2 } from 'gl-matrix';
 
 import { affineInverse, cross, getPolygonSignedArea } from '../math';
 
+import { Loop, Vertex } from './loop';
 import { OBB } from './obb';
 import { OBBNode } from './obb-tree';
 import { Polygon } from './shape';
@@ -14,28 +15,30 @@ export interface MeshTriangle {
 
 export type Mesh = MeshTriangle[];
 
-const getPoints = (mesh: Readonly<Mesh>): vec2[] =>
+const getPoints = (loops: Readonly<Vertex[]>): vec2[] =>
   Array.from(
-    mesh.reduce((acc, tri) => {
-      acc.add(tri.p0);
-      acc.add(tri.p1);
-      acc.add(tri.p2);
+    loops.reduce((acc, loop) => {
+      for (const vertex of Loop.of(loop)) {
+        acc.add(vertex.point);
+      }
       return acc;
     }, new Set<vec2>())
   );
 
-const getMedian = (mesh: Readonly<Mesh>): vec2 => {
-  const points = getPoints(mesh);
+const getMedian = (loops: Readonly<Vertex[]>): vec2 => {
+  const points = getPoints(loops);
   const median = vec2.create();
+
   for (const point of points) {
     vec2.add(median, median, point);
   }
   return vec2.scale(median, median, 1.0 / points.length);
 };
 
-const getCovarianceMatrix = (mesh: Readonly<Mesh>): mat2 => {
-  const points = getPoints(mesh);
-  const median = getMedian(mesh);
+const getCovarianceMatrix = (loops: Readonly<Vertex[]>): mat2 => {
+  const points = getPoints(loops);
+  const median = getMedian(loops);
+
   let c00 = 0.0;
   let c01 = 0.0;
   let c11 = 0.0;
@@ -45,6 +48,7 @@ const getCovarianceMatrix = (mesh: Readonly<Mesh>): mat2 => {
     c01 = c01 + (point[0] - median[0]) * (point[1] - median[1]);
     c11 = c11 + (point[1] - median[1]) * (point[1] - median[1]);
   }
+
   const m = 1.0 / points.length;
   return mat2.fromValues(c00 * m, c01 * m, c01 * m, c11 * m);
 };
@@ -77,9 +81,9 @@ const getEigenVectors = (m: mat2): vec2[] => {
   return [x0, x1];
 };
 
-export const calculateOBB = (mesh: Readonly<Mesh>): OBB => {
-  const points = getPoints(mesh);
-  const covariance = getCovarianceMatrix(mesh);
+export const calculateOBB = (loops: Readonly<Vertex[]>): OBB => {
+  const points = getPoints(loops);
+  const covariance = getCovarianceMatrix(loops);
   const [e0, e1] = getEigenVectors(covariance);
 
   vec2.normalize(e0, e0);
@@ -96,17 +100,21 @@ export const calculateOBB = (mesh: Readonly<Mesh>): OBB => {
 
   for (const point of points) {
     let dot = vec2.dot(point, e0);
+
     if (dot < minDot0) {
       minDot0 = dot;
     }
+
     if (dot > maxDot0) {
       maxDot0 = dot;
     }
 
     dot = vec2.dot(point, e1);
+
     if (dot < minDot1) {
       minDot1 = dot;
     }
+
     if (dot > maxDot1) {
       maxDot1 = dot;
     }
@@ -147,20 +155,14 @@ export const calculateOBB = (mesh: Readonly<Mesh>): OBB => {
 };
 
 export type MeshOBBNode = OBBNode<{
-  triangle: MeshTriangle;
-  triangleShape: Polygon;
+  loop: Vertex;
+  shape: Polygon;
 }>;
 
-export const centroid = (triangle: MeshTriangle): vec2 =>
-  vec2.fromValues(
-    (triangle.p0[0] + triangle.p1[0] + triangle.p2[0]) / 3.0,
-    (triangle.p0[1] + triangle.p1[1] + triangle.p2[1]) / 3.0
-  );
-
-export const generateOBBTree = (mesh: Readonly<Mesh>): MeshOBBNode => {
+export const generateOBBTree = (mesh: Readonly<Vertex[]>): MeshOBBNode => {
   const root: MeshOBBNode = new OBBNode(calculateOBB(mesh));
 
-  const queue: { node: MeshOBBNode; soup: Readonly<Mesh> }[] = [
+  const queue: { node: MeshOBBNode; soup: Readonly<Vertex[]> }[] = [
     {
       node: root,
       soup: mesh,
@@ -189,21 +191,22 @@ export const generateOBBTree = (mesh: Readonly<Mesh>): MeshOBBNode => {
         if (i === 0) {
           vec2.set(origin, parent.obb.transform[6], parent.obb.transform[7]);
         } else {
-          for (const triangle of soup) {
-            vec2.add(origin, origin, centroid(triangle));
+          for (const polygon of soup) {
+            vec2.add(origin, origin, Loop.centroid(polygon));
           }
           vec2.scale(origin, origin, 1.0 / soup.length);
         }
 
         for (const normal of [normal0, normal1]) {
-          const positive: Mesh = [];
-          const negative: Mesh = [];
+          const positive: Vertex[] = [];
+          const negative: Vertex[] = [];
           const dot = vec2.dot(origin, normal);
-          for (const triangle of soup) {
-            if (vec2.dot(normal, centroid(triangle)) > dot) {
-              positive.push(triangle);
+
+          for (const polygon of soup) {
+            if (vec2.dot(normal, Loop.centroid(polygon)) > dot) {
+              positive.push(polygon);
             } else {
-              negative.push(triangle);
+              negative.push(polygon);
             }
           }
 
@@ -245,8 +248,8 @@ export const generateOBBTree = (mesh: Readonly<Mesh>): MeshOBBNode => {
       }
     } else {
       parent.payload = {
-        triangle: soup[0],
-        triangleShape: new Polygon([soup[0].p0, soup[0].p1, soup[0].p2], false),
+        loop: soup[0],
+        shape: new Polygon(Loop.points(soup[0]), false),
       };
       parent.leaf = true;
     }
@@ -265,7 +268,7 @@ export const getLeafs = (
     const { payload, children } = q.pop();
 
     if (payload) {
-      leafs.push(payload.triangleShape);
+      leafs.push(payload.shape);
     }
 
     for (const child of children) {
@@ -276,6 +279,12 @@ export const getLeafs = (
   return leafs;
 };
 
+export const centroid = (triangle: MeshTriangle): vec2 =>
+  vec2.fromValues(
+    (triangle.p0[0] + triangle.p1[0] + triangle.p2[0]) / 3.0,
+    (triangle.p0[1] + triangle.p1[1] + triangle.p2[1]) / 3.0
+  );
+
 export const getMeshCentroid = (mesh: Readonly<Mesh>): vec2 => {
   const weighted = new Set<vec2>();
   let totalArea = 0.0;
@@ -285,7 +294,9 @@ export const getMeshCentroid = (mesh: Readonly<Mesh>): vec2 => {
     const area = Math.abs(
       getPolygonSignedArea([triangle.p0, triangle.p1, triangle.p2])
     );
+
     weighted.add(vec2.scale(center, center, area));
+
     totalArea += area;
   }
 
@@ -299,14 +310,17 @@ export const getMeshCentroid = (mesh: Readonly<Mesh>): vec2 => {
   return vec2.fromValues(cx, cy);
 };
 
-export const getMeshItertia = (mesh: Readonly<Mesh>, mass: number): number => {
+export const getMeshItertia = (
+  mesh: Readonly<Vertex[]>,
+  mass: number
+): number => {
   let totalArea = 0.0;
   let sum = 0.0;
-  for (const triangle of mesh) {
-    const center = centroid(triangle);
-    const area = Math.abs(
-      getPolygonSignedArea([triangle.p0, triangle.p1, triangle.p2])
-    );
+
+  for (const polygon of mesh) {
+    const center = Loop.centroid(polygon);
+    const area = Math.abs(Loop.area(polygon));
+
     sum += vec2.dot(center, center) * area;
     totalArea += area;
   }

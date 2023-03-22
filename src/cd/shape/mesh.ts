@@ -1,7 +1,12 @@
 import { mat3, vec2 } from 'gl-matrix';
 
-import { getUnique, getConvexHull } from '../../utils';
+import {
+  getUnique,
+  getConvexHull,
+  decompose as decomposeMesh,
+} from '../../utils';
 import { AABB } from '../aabb';
+import { Loop, Vertex } from '../loop';
 import {
   Mesh,
   MeshOBBNode,
@@ -21,17 +26,26 @@ export class MeshShape implements Shape, MassDistribution {
 
   readonly triangles: Polygon[] = [];
 
+  readonly loops: Vertex[] = [];
+
   private readonly hull: vec2[] = [];
 
   constructor(
     readonly mesh: Readonly<Mesh>,
-    readonly transformOrigin: boolean = true
+    readonly transformOrigin: boolean = true,
+    readonly decompose: boolean = true
   ) {
     if (transformOrigin) {
       this.mesh = this.transformOriginToCentroid(this.mesh);
     }
 
-    this.obbTree = generateOBBTree(this.mesh);
+    if (decompose) {
+      this.loops = decomposeMesh(this.mesh);
+    } else {
+      this.loops = this.getLoops(this.mesh);
+    }
+
+    this.obbTree = generateOBBTree(this.loops);
     getLeafs(this.triangles, this.obbTree);
 
     this.getConvexHull();
@@ -79,7 +93,7 @@ export class MeshShape implements Shape, MassDistribution {
   }
 
   inetria(mass: number): number {
-    return getMeshItertia(this.mesh, mass);
+    return getMeshItertia(this.loops, mass);
   }
 
   private getConvexHull(): void {
@@ -98,6 +112,7 @@ export class MeshShape implements Shape, MassDistribution {
 
   private transformOriginToCentroid(mesh: Readonly<Mesh>): Mesh {
     const shift = getMeshCentroid(mesh);
+
     return mesh.map(triangle => ({
       p0: vec2.subtract(vec2.create(), triangle.p0, shift),
       p1: vec2.subtract(vec2.create(), triangle.p1, shift),
@@ -124,5 +139,15 @@ export class MeshShape implements Shape, MassDistribution {
     return this.hull
       .map(p => vec2.length(p))
       .reduce((max, length) => (length > max ? length : max), 0);
+  }
+
+  private getLoops(mesh: Readonly<Mesh>): Vertex[] {
+    return mesh.reduce(
+      (acc, triangle) => [
+        ...acc,
+        Loop.from([triangle.p0, triangle.p1, triangle.p2]),
+      ],
+      []
+    );
   }
 }
